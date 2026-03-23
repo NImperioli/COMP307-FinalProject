@@ -8312,6 +8312,4 @@ venv/lib/python3.12/site-packages/werkzeug-3.1.6.dist-info/METADATA
 venv/lib/python3.12/site-packages/werkzeug-3.1.6.dist-info/RECORD
 venv/lib/python3.12/site-packages/werkzeug-3.1.6.dist-info/WHEEL
 venv/lib/python3.12/site-packages/werkzeug-3.1.6.dist-info/licenses/LICENSE.txt
-backend/package.json
-backend/package-lock.json
 .gitignore
