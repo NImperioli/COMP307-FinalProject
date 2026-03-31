@@ -1,27 +1,39 @@
 /**
- * testDB.js — Tests for userModel, slotModel, reservationModel, notificationService
+ * testDB.js — Full test suite for slotModel, reservationModel, notificationService
  *
  * Run from the backend/ folder:
  *   node src/testDB.js
  *
- * Cleans up all inserted test data after each run automatically.
+ * All test data is cleaned up automatically after each run.
  */
-
-//MADE BY AI CANT BE ASKED TO MAKE MY OWN
 
 require("dotenv").config({ path: require("path").resolve(__dirname, "../.env") });
 
-const { connectDB, getDB } = require("./config/db");
-const { createUser, findUserByEmail, findUserById, findActiveOwners, getRoleFromEmail } = require("./models/userModel");
-const { createSlot, activateSlot, deleteSlot, findSlotsByOwner, findActiveSlotsByOwner, findSlotByToken, findSlotById } = require("./models/slotModel");
-const { reserveSlot, cancelReservation, findReservationsByUser, findReservationBySlot, findReservationWithDetails } = require("./models/reservationModel");
+const { connectDB, getDB }                      = require("./config/db");
+const { createUser }                            = require("./models/userModel");
+const {
+  createSlot, createRecurringSlots,
+  activateSlot, activateSlotsByGroup,
+  deactivateSlot, deleteSlot, deleteSlotsByGroup,
+  findActiveSlotsByOwner, findSlotByToken,
+  findSlotById, findSlotsByGroup, findActiveOwners,
+}                                               = require("./models/slotModel");
+const {
+  reserveSlot, cancelReservation,
+  findReservationBySlot, findReservationsByOwner,
+  findReservationsByUser, findReservationWithDetails,
+}                                               = require("./models/reservationModel");
+const {
+  slotDeletedNotification, recurringGroupDeletedNotification,
+  ownerMessageToBooker, reservationCancelledNotification,
+  slotReservedNotification, userMessageToOwner, buildInviteUrl,
+}                                               = require("./services/notificationService");
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 let passed = 0;
 let failed = 0;
-const createdUserIds = [];
-const createdSlotIds = [];
+const TEST_EMAILS = ["t.owner@mcgill.ca", "t.student@mail.mcgill.ca"];
 
 function assert(label, condition, extra = "") {
   if (condition) {
@@ -33,157 +45,216 @@ function assert(label, condition, extra = "") {
   }
 }
 
-function assertThrows(label, fn) {
-  return fn().then(() => {
+async function assertThrows(label, fn) {
+  try {
+    await fn();
     console.error(`  ❌ ${label} — expected an error but none was thrown`);
     failed++;
-  }).catch(() => {
+  } catch {
     console.log(`  ✅ ${label}`);
     passed++;
-  });
+  }
 }
 
-// ─── User model ───────────────────────────────────────────────────────────────
+// ─── Setup ────────────────────────────────────────────────────────────────────
 
-async function testUsers() {
-  console.log("\n👤 User model");
+async function setupUsers() {
+  const db = getDB();
+  await db.collection("users").deleteMany({ email: { $in: TEST_EMAILS } });
 
-  // Role detection from email domain
-  assert("@mcgill.ca → owner",        getRoleFromEmail("prof@mcgill.ca") === "owner");
-  assert("@mail.mcgill.ca → student", getRoleFromEmail("stu@mail.mcgill.ca") === "student");
-  assert("@gmail.com → null",         getRoleFromEmail("x@gmail.com") === null);
-
-  // Create owner
-  const ownerRes = await createUser({ email: "test.owner@mcgill.ca", name: "Test Owner" });
-  assert("owner inserted", !!ownerRes.insertedId);
-  createdUserIds.push(ownerRes.insertedId);
-
-  // Create student
-  const stuRes = await createUser({ email: "test.student@mail.mcgill.ca", name: "Test Student" });
-  assert("student inserted", !!stuRes.insertedId);
-  createdUserIds.push(stuRes.insertedId);
-
-  // Reject non-McGill email
-  await assertThrows("non-McGill email rejected", () =>
-    createUser({ email: "someone@gmail.com", name: "Outsider" })
-  );
-
-  // Reject duplicate email
-  await assertThrows("duplicate email rejected", () =>
-    createUser({ email: "test.owner@mcgill.ca", name: "Duplicate" })
-  );
-
-  // findUserByEmail
-  const found = await findUserByEmail("test.owner@mcgill.ca");
-  assert("findUserByEmail returns correct doc", found?.email === "test.owner@mcgill.ca");
-  assert("owner role stored correctly",         found?.role === "owner");
-
-  // findUserById
-  const byId = await findUserById(ownerRes.insertedId.toString());
-  assert("findUserById returns correct doc", byId?.name === "Test Owner");
+  const ownerRes = await createUser({ email: "t.owner@mcgill.ca",        name: "Test Owner"   });
+  const stuRes   = await createUser({ email: "t.student@mail.mcgill.ca", name: "Test Student" });
 
   return {
     ownerId:      ownerRes.insertedId.toString(),
-    ownerEmail:   "test.owner@mcgill.ca",
+    ownerEmail:   "t.owner@mcgill.ca",
     studentId:    stuRes.insertedId.toString(),
-    studentEmail: "test.student@mail.mcgill.ca",
+    studentEmail: "t.student@mail.mcgill.ca",
   };
 }
 
-// ─── Slot model ───────────────────────────────────────────────────────────────
+// ─── Single slot: activation & privacy ───────────────────────────────────────
 
-async function testSlots(ownerId) {
-  console.log("\n📅 Slot model");
+async function testSingleSlot(ownerId) {
+  console.log("\n📅 Single slot — activation & privacy");
 
-  const slotData = {
-    title:     "Office Hours - Test",
-    startTime: new Date("2026-09-01T10:00:00Z"),
-    endTime:   new Date("2026-09-01T11:00:00Z"),
-  };
-
-  // Create — starts private
-  const slotRes = await createSlot(ownerId, slotData);
-  assert("slot created", !!slotRes.insertedId);
-  createdSlotIds.push(slotRes.insertedId);
-  const slotId = slotRes.insertedId.toString();
+  const res = await createSlot(ownerId, {
+    title:     "Drop-in — Test",
+    startTime: new Date("2026-10-01T09:00:00Z"),
+    endTime:   new Date("2026-10-01T10:00:00Z"),
+  });
+  assert("single slot created",      !!res.insertedId);
+  const slotId = res.insertedId.toString();
 
   const slot = await findSlotById(slotId);
-  assert("slot starts as private",          slot?.status === "private");
-  assert("invite token generated",          typeof slot?.inviteToken === "string" && slot.inviteToken.length > 0);
+  assert("starts as private",        slot?.status === "private");
+  assert("type is single",           slot?.type   === "single");
+  assert("invite token generated",   typeof slot?.inviteToken === "string" && slot.inviteToken.length > 0);
 
-  // findSlotsByOwner includes private slots
-  const ownerSlots = await findSlotsByOwner(ownerId);
-  assert("findSlotsByOwner includes private slot", ownerSlots.some(s => s._id.toString() === slotId));
-
-  // findActiveSlotsByOwner excludes private slots
   const activeBefore = await findActiveSlotsByOwner(ownerId);
-  assert("private slot excluded from active list", !activeBefore.some(s => s._id.toString() === slotId));
+  assert("private slot hidden from active list", !activeBefore.some(s => s._id.toString() === slotId));
 
-  // Activate
-  const activated = await activateSlot(slotId, ownerId);
-  assert("slot activated (matched)",  activated.matchedCount === 1);
-  assert("slot activated (modified)", activated.modifiedCount === 1);
+  const act = await activateSlot(slotId, ownerId);
+  assert("activateSlot matched",     act.matchedCount  === 1);
+  assert("activateSlot modified",    act.modifiedCount === 1);
 
-  // Now visible in active list
   const activeAfter = await findActiveSlotsByOwner(ownerId);
-  assert("slot appears in active list after activation", activeAfter.some(s => s._id.toString() === slotId));
+  assert("slot visible after activation", activeAfter.some(s => s._id.toString() === slotId));
 
-  // findSlotByToken
+  const fake = await activateSlot(slotId, "000000000000000000000001");
+  assert("wrong owner cannot activate", fake.matchedCount === 0);
+
+  const deact = await deactivateSlot(slotId, ownerId);
+  assert("deactivateSlot works",     deact.modifiedCount === 1);
+
+  const afterDeact = await findActiveSlotsByOwner(ownerId);
+  assert("slot hidden after deactivation", !afterDeact.some(s => s._id.toString() === slotId));
+
+  await activateSlot(slotId, ownerId);
+
   const byToken = await findSlotByToken(slot.inviteToken);
-  assert("findSlotByToken returns correct slot", byToken.length > 0 && byToken[0]._id.toString() === slotId);
-
-  // Owner guard — wrong owner cannot modify
-  const fakeOwnerId = "000000000000000000000001";
-  const guardCheck  = await activateSlot(slotId, fakeOwnerId);
-  assert("wrong owner cannot modify slot", guardCheck.matchedCount === 0);
+  assert("findSlotByToken returns slot", byToken.some(s => s._id.toString() === slotId));
 
   return { slotId, inviteToken: slot.inviteToken };
 }
 
-// ─── Reservation model ────────────────────────────────────────────────────────
+// ─── Type 3: recurring office hours ───────────────────────────────────────────
 
-async function testReservations(ownerId, studentId, slotId) {
-  console.log("\n🎟️  Reservation model");
+async function testRecurringSlots(ownerId) {
+  console.log("\n🔁 Type 3 — Recurring office hours");
 
-  // Reserve slot
-  const resRes = await reserveSlot(slotId, studentId);
-  assert("reservation created", !!resRes.insertedId);
-  const reservationId = resRes.insertedId.toString();
+  const weeklySlots = [
+    {
+      title:     "Office Hours – Monday",
+      startTime: new Date("2026-09-07T14:00:00Z"),
+      endTime:   new Date("2026-09-07T15:00:00Z"),
+    },
+    {
+      title:     "Office Hours – Wednesday",
+      startTime: new Date("2026-09-09T14:00:00Z"),
+      endTime:   new Date("2026-09-09T15:00:00Z"),
+    },
+  ];
+  const WEEKS = 3;
 
-  // Double-booking must throw
-  await assertThrows("double-booking blocked", () =>
-    reserveSlot(slotId, ownerId)
+  const result = await createRecurringSlots(ownerId, weeklySlots, WEEKS);
+  assert("correct slot count created",  result.insertedCount === weeklySlots.length * WEEKS);
+  assert("groupToken returned",         typeof result.groupToken === "string");
+
+  const { groupToken } = result;
+  const groupSlots = await findSlotsByGroup(groupToken);
+
+  assert("all slots start private",     groupSlots.every(s => s.status === "private"));
+  assert("all slots have groupToken",   groupSlots.every(s => s.groupToken === groupToken));
+  assert("weekNumbers assigned",        groupSlots.some(s => s.weekNumber === 1) && groupSlots.some(s => s.weekNumber === WEEKS));
+
+  const monSlots = groupSlots
+    .filter(s => s.title === "Office Hours – Monday")
+    .sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+  assert("Monday slot count matches weeks", monSlots.length === WEEKS);
+  const MS_PER_WEEK = 7 * 24 * 60 * 60 * 1000;
+  assert("7-day gap between Monday occurrences",
+    new Date(monSlots[1].startTime) - new Date(monSlots[0].startTime) === MS_PER_WEEK
   );
 
-  // findReservationBySlot — owner sees who booked
+  const actGroup = await activateSlotsByGroup(groupToken, ownerId);
+  assert("activateSlotsByGroup modified all", actGroup.modifiedCount === weeklySlots.length * WEEKS);
+
+  const activeGroup = await findSlotsByGroup(groupToken);
+  assert("all group slots now active",  activeGroup.every(s => s.status === "active"));
+
+  const byGroupToken = await findSlotByToken(groupToken);
+  assert("groupToken resolves all active slots", byGroupToken.length === weeklySlots.length * WEEKS);
+
+  // Deactivate-while-reserved guard
+  const { ObjectId } = require("mongodb");
+  const db = getDB();
+  const firstSlotId = groupSlots[0]._id.toString();
+  const tmpRes = await db.collection("reservations").insertOne({
+    slotId:     new ObjectId(firstSlotId),
+    userId:     new ObjectId("000000000000000000000002"),
+    reservedAt: new Date(),
+  });
+  await assertThrows("cannot deactivate slot with active reservation", () =>
+    deactivateSlot(firstSlotId, ownerId)
+  );
+  await db.collection("reservations").deleteOne({ _id: tmpRes.insertedId });
+
+  // deleteSlotsByGroup skips reserved slots
+  const tmpRes2 = await db.collection("reservations").insertOne({
+    slotId:     new ObjectId(firstSlotId),
+    userId:     new ObjectId("000000000000000000000002"),
+    reservedAt: new Date(),
+  });
+  const delResult = await deleteSlotsByGroup(groupToken, ownerId);
+  assert("deleteSlotsByGroup deletes unreserved", delResult.deletedCount === weeklySlots.length * WEEKS - 1);
+  assert("deleteSlotsByGroup skips reserved",     delResult.skippedIds.length === 1);
+  assert("skipped ID matches reserved slot",      delResult.skippedIds[0].toString() === firstSlotId);
+
+  // Clean up remaining reserved slot + reservation
+  await db.collection("reservations").deleteOne({ _id: tmpRes2.insertedId });
+  await db.collection("slots").deleteOne({ _id: new ObjectId(firstSlotId) });
+}
+
+// ─── Reservation model ────────────────────────────────────────────────────────
+
+async function testReservations(ownerId, ownerEmail, studentId, studentEmail, slotId) {
+  console.log("\n🎟️  Reservation model");
+
+  const { ObjectId } = require("mongodb");
+  const db = getDB();
+
+  // Cannot reserve a private slot
+  await db.collection("slots").updateOne({ _id: new ObjectId(slotId) }, { $set: { status: "private" } });
+  await assertThrows("cannot reserve a private slot", () => reserveSlot(slotId, studentId));
+  await db.collection("slots").updateOne({ _id: new ObjectId(slotId) }, { $set: { status: "active" } });
+
+  // Reserve
+  const resRes = await reserveSlot(slotId, studentId);
+  assert("reservation created",            !!resRes.insertedId);
+  const reservationId = resRes.insertedId.toString();
+
+  // Double-booking blocked
+  await assertThrows("double-booking blocked", () => reserveSlot(slotId, studentId));
+
+  // findReservationBySlot
   const bySlot = await findReservationBySlot(slotId);
-  assert("findReservationBySlot returns booker email", bySlot?.user?.email === "test.student@mail.mcgill.ca");
+  assert("findReservationBySlot returns doc",    !!bySlot);
+  assert("booker email joined",                  bySlot?.user?.email === studentEmail);
 
-  // findReservationsByUser — student's "my bookings" view
+  // findReservationsByOwner
+  const byOwner = await findReservationsByOwner(ownerId);
+  assert("findReservationsByOwner returns docs", byOwner.length > 0);
+  assert("owner result has slot title",          !!byOwner[0]?.slot?.title);
+  assert("owner result has user email",          !!byOwner[0]?.user?.email);
+
+  // findReservationsByUser
   const byUser = await findReservationsByUser(studentId);
-  assert("findReservationsByUser returns booking",    byUser.length > 0);
-  assert("booking includes slot title",               byUser[0]?.slot?.title === "Office Hours - Test");
-  assert("booking includes owner email",              !!byUser[0]?.owner?.email);
+  assert("findReservationsByUser returns docs",  byUser.length > 0);
+  assert("user result has slot title",           byUser[0]?.slot?.title === "Drop-in — Test");
+  assert("user result has owner email",          !!byUser[0]?.owner?.email);
 
-  // findReservationWithDetails — used for building notification links
+  // findReservationWithDetails
   const details = await findReservationWithDetails(reservationId);
-  assert("findReservationWithDetails has slot", !!details?.slot?.title);
-  assert("findReservationWithDetails has user", !!details?.user?.email);
+  assert("details has slot",                     !!details?.slot?.title);
+  assert("details has user email",               !!details?.user?.email);
 
-  // Cancel reservation
+  // Wrong user cannot cancel
+  const wrongCancel = await cancelReservation(reservationId, ownerId);
+  assert("wrong user cannot cancel",             wrongCancel.matchedCount === 0);
+
+  // Correct user cancels
   const cancelled = await cancelReservation(reservationId, studentId);
-  assert("reservation cancelled (matched)",  cancelled.matchedCount === 1);
-  assert("reservation cancelled (modified)", cancelled.modifiedCount === 1);
+  assert("cancellation matched",                 cancelled.matchedCount  === 1);
+  assert("cancellation modified",                cancelled.modifiedCount === 1);
 
-  // Slot is free again after cancellation
+  // Slot free again
   const afterCancel = await findReservationBySlot(slotId);
-  assert("slot is free after cancellation", afterCancel === null);
+  assert("slot free after cancellation",         afterCancel === null);
 
-  // Wrong user cannot cancel someone else's reservation
-  const reRes2   = await reserveSlot(slotId, studentId);
-  const rid2     = reRes2.insertedId.toString();
-  const wrongCancel = await cancelReservation(rid2, ownerId);
-  assert("wrong user cannot cancel reservation", wrongCancel.matchedCount === 0);
+  // Cannot cancel twice
+  const doubleCancel = await cancelReservation(reservationId, studentId);
+  assert("cannot cancel twice",                  doubleCancel.matchedCount === 0);
 }
 
 // ─── findActiveOwners ─────────────────────────────────────────────────────────
@@ -192,45 +263,71 @@ async function testFindActiveOwners(ownerEmail) {
   console.log("\n🔍 findActiveOwners");
 
   const owners = await findActiveOwners();
-  assert("owner with active slot in list",  owners.some(o => o.email === ownerEmail));
-  assert("all results have owner role",     owners.every(o => o.role === "owner"));
+  assert("owner with active slot in results", owners.some(o => o.email === ownerEmail));
+  assert("all results are owners",            owners.every(o => o.role === "owner"));
 }
 
-// ─── Slot deletion with owner guard ──────────────────────────────────────────
+// ─── Notification service ─────────────────────────────────────────────────────
+
+async function testNotifications(ownerEmail, studentEmail, slotId) {
+  console.log("\n📧 Notification service");
+
+  const slot = await findSlotById(slotId);
+
+  const del = slotDeletedNotification(studentEmail, slot);
+  assert("slotDeletedNotification is mailto",       del.startsWith("mailto:"));
+  assert("slotDeletedNotification targets booker",  del.includes(studentEmail));
+
+  const recDel = recurringGroupDeletedNotification(studentEmail, [slot]);
+  assert("recurringGroupDeleted is mailto",         recDel.startsWith("mailto:"));
+  assert("recurringGroupDeleted includes title",    recDel.includes(encodeURIComponent(slot.title)));
+
+  const ownerMsg = ownerMessageToBooker(studentEmail, slot);
+  assert("ownerMessageToBooker is mailto",          ownerMsg.startsWith("mailto:"));
+  assert("ownerMessageToBooker targets student",    ownerMsg.includes(studentEmail));
+
+  const canc = reservationCancelledNotification(ownerEmail, slot, studentEmail);
+  assert("reservationCancelled is mailto",          canc.startsWith("mailto:"));
+  assert("reservationCancelled targets owner",      canc.includes(ownerEmail));
+
+  const booked = slotReservedNotification(ownerEmail, slot, studentEmail);
+  assert("slotReservedNotification is mailto",      booked.startsWith("mailto:"));
+  assert("slotReservedNotification targets owner",  booked.includes(ownerEmail));
+
+  const userMsg = userMessageToOwner(ownerEmail, slot);
+  assert("userMessageToOwner is mailto",            userMsg.startsWith("mailto:"));
+  assert("userMessageToOwner targets owner",        userMsg.includes(ownerEmail));
+
+  const url = buildInviteUrl("https://myapp.com", "test-token-abc");
+  assert("buildInviteUrl contains token",           url.includes("test-token-abc"));
+  assert("buildInviteUrl contains /book",           url.includes("/book"));
+}
+
+// ─── Slot deletion ────────────────────────────────────────────────────────────
 
 async function testSlotDeletion(ownerId, slotId) {
   console.log("\n🗑️  Slot deletion");
 
-  const fakeOwnerId = "000000000000000000000001";
-  const badDelete   = await deleteSlot(slotId, fakeOwnerId);
-  assert("wrong owner cannot delete slot", badDelete.deletedCount === 0);
+  const wrong = await deleteSlot(slotId, "000000000000000000000001");
+  assert("wrong owner cannot delete",  wrong.deletedCount === 0);
 
-  const goodDelete = await deleteSlot(slotId, ownerId);
-  assert("owner can delete own slot", goodDelete.deletedCount === 1);
+  const good = await deleteSlot(slotId, ownerId);
+  assert("owner can delete own slot",  good.deletedCount === 1);
 
   const gone = await findSlotById(slotId);
-  assert("slot gone after deletion", gone === null);
-
-  createdSlotIds.length = 0; // already deleted, skip cleanup
+  assert("slot gone after deletion",   gone === null);
 }
 
 // ─── Cleanup ──────────────────────────────────────────────────────────────────
 
-async function cleanup() {
+async function cleanup(ownerId, studentId) {
   const db = getDB();
   const { ObjectId } = require("mongodb");
 
-  if (createdSlotIds.length > 0) {
-    await db.collection("slots").deleteMany({
-      _id: { $in: createdSlotIds.map(id => new ObjectId(id)) }
-    });
-  }
-
-  if (createdUserIds.length > 0) {
-    const userOids = createdUserIds.map(id => new ObjectId(id));
-    await db.collection("reservations").deleteMany({ userId: { $in: userOids } });
-    await db.collection("users").deleteMany({ _id: { $in: userOids } });
-  }
+  const userOids = [ownerId, studentId].filter(Boolean).map(id => new ObjectId(id));
+  await db.collection("slots").deleteMany({ ownerId: { $in: userOids } });
+  await db.collection("reservations").deleteMany({ userId: { $in: userOids } });
+  await db.collection("users").deleteMany({ email: { $in: TEST_EMAILS } });
 
   console.log("\n  🧹 Test data cleaned up");
 }
@@ -243,20 +340,27 @@ async function runTests() {
     await connectDB();
     console.log("✅ Connected");
   } catch (err) {
-    console.error("❌ Could not connect to MongoDB:", err.message);
+    console.error("❌ Could not connect:", err.message);
     process.exit(1);
   }
 
+  let ownerId, studentId;
+
   try {
-    const { ownerId, ownerEmail, studentId, studentEmail } = await testUsers();
-    const { slotId } = await testSlots(ownerId);
-    await testReservations(ownerId, studentId, slotId);
+    const users = await setupUsers();
+    ({ ownerId, studentId } = users);
+    const { ownerEmail, studentEmail } = users;
+
+    const { slotId } = await testSingleSlot(ownerId);
+    await testRecurringSlots(ownerId);
+    await testReservations(ownerId, ownerEmail, studentId, studentEmail, slotId);
     await testFindActiveOwners(ownerEmail);
+    await testNotifications(ownerEmail, studentEmail, slotId);
     await testSlotDeletion(ownerId, slotId);
   } catch (err) {
     console.error("\n💥 Unexpected error:", err);
   } finally {
-    await cleanup();
+    await cleanup(ownerId, studentId);
   }
 
   console.log("\n─────────────────────────────────────");
