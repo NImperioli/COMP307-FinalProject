@@ -5,15 +5,23 @@ const COLLECTION = "reservations";
 
 const reserveSlot = async (slotId, userId) => {
   const db = getDB();
-  const taken = await db.collection(COLLECTION).findOne({
-    slotId: new ObjectId(slotId),
-    cancelledAt: { $exists: false }
+
+  // Confirm slot exists and is active
+  const slot = await db.collection("slots").findOne({ _id: new ObjectId(slotId) });
+  if (!slot) throw new Error("Slot not found.");
+  if (slot.status !== "active") throw new Error("Slot is not available for booking.");
+
+  // Prevent double-booking
+  const existing = await db.collection(COLLECTION).findOne({
+    slotId:      new ObjectId(slotId),
+    cancelledAt: { $exists: false },
   });
-  if (taken) throw new Error("Slot already reserved.");
+  if (existing) throw new Error("Slot is already reserved.");
+
   return await db.collection(COLLECTION).insertOne({
-    slotId: new ObjectId(slotId),
-    userId: new ObjectId(userId),
-    reservedAt: new Date()
+    slotId:     new ObjectId(slotId),
+    userId:     new ObjectId(userId),
+    reservedAt: new Date(),
   });
 };
 
@@ -23,18 +31,6 @@ const cancelReservation = async (reservationId, userId) => {
     { _id: new ObjectId(reservationId), userId: new ObjectId(userId), cancelledAt: { $exists: false } },
     { $set: { cancelledAt: new Date() } }
   );
-};
-
-// All active reservations for a user
-const findReservationsByUser = async (userId) => {
-  const db = getDB();
-  return await db.collection(COLLECTION).aggregate([
-    { $match: { userId: new ObjectId(userId), cancelledAt: { $exists: false } } },
-    { $lookup: { from: "slots", localField: "slotId", foreignField: "_id", as: "slot" } },
-    { $lookup: { from: "users", localField: "slot.ownerId", foreignField: "_id", as: "owner" } },
-    { $unwind: "$slot" },
-    { $unwind: "$owner" }
-  ]).toArray();
 };
 
 // Who booked a slot (owners view)
@@ -48,21 +44,113 @@ const findReservationBySlot = async (slotId) => {
   return result || null;
 };
 
-// Used for notification emails on delete/cancel
+// Owner view
+const findReservationsByOwner = async (ownerId) => {
+  const db = getDB();
+
+  // Get all slot IDs belonging to this owner
+  const ownerSlots = await db.collection("slots")
+    .find({ ownerId: new ObjectId(ownerId) })
+    .project({ _id: 1 })
+    .toArray();
+
+  const slotIds = ownerSlots.map(s => s._id);
+  if (slotIds.length === 0) return [];
+
+  return await db.collection(COLLECTION).aggregate([
+    {
+      $match: {
+        slotId:      { $in: slotIds },
+        cancelledAt: { $exists: false },
+      },
+    },
+    {
+      $lookup: {
+        from:         "slots",
+        localField:   "slotId",
+        foreignField: "_id",
+        as:           "slot",
+      },
+    },
+    {
+      $lookup: {
+        from:         "users",
+        localField:   "userId",
+        foreignField: "_id",
+        as:           "user",
+      },
+    },
+    { $unwind: "$slot" },
+    { $unwind: "$user" },
+    { $sort: { "slot.startTime": 1 } },
+  ]).toArray();
+};
+
+// User view 
+const findReservationsByUser = async (userId) => {
+  const db = getDB();
+  return await db.collection(COLLECTION).aggregate([
+    {
+      $match: {
+        userId:      new ObjectId(userId),
+        cancelledAt: { $exists: false },
+      },
+    },
+    {
+      $lookup: {
+        from:         "slots",
+        localField:   "slotId",
+        foreignField: "_id",
+        as:           "slot",
+      },
+    },
+    {
+      $lookup: {
+        from:         "users",
+        localField:   "slot.ownerId",
+        foreignField: "_id",
+        as:           "owner",
+      },
+    },
+    { $unwind: "$slot" },
+    { $unwind: "$owner" },
+    { $sort: { "slot.startTime": 1 } },
+  ]).toArray();
+};
+
+// Notification helper
 const findReservationWithDetails = async (reservationId) => {
   const db = getDB();
   const [result] = await db.collection(COLLECTION).aggregate([
     { $match: { _id: new ObjectId(reservationId) } },
-    { $lookup: { from: "slots", localField: "slotId", foreignField: "_id", as: "slot" } },
-    { $lookup: { from: "users", localField: "userId", foreignField: "_id", as: "user" } },
+    {
+      $lookup: {
+        from:         "slots",
+        localField:   "slotId",
+        foreignField: "_id",
+        as:           "slot",
+      },
+    },
+    {
+      $lookup: {
+        from:         "users",
+        localField:   "userId",
+        foreignField: "_id",
+        as:           "user",
+      },
+    },
     { $unwind: "$slot" },
-    { $unwind: "$user" }
+    { $unwind: "$user" },
   ]).toArray();
-  return result || null;
+
+  return result ?? null;
 };
 
 module.exports = {
-  reserveSlot, cancelReservation,
-  findReservationsByUser, findReservationBySlot,
-  findReservationWithDetails
+  reserveSlot,
+  cancelReservation,
+  findReservationBySlot,
+  findReservationsByOwner,
+  findReservationsByUser,
+  findReservationWithDetails,
 };
