@@ -16,4 +16,9 @@ router.post("/group/finalize", controller.finalizeGroupMeeting);
 router.post("/office-hours/create", controller.createOfficeHours);
 router.post("/office-hours/reserve", controller.reserveOfficeHour);
 
+//William Borlase - 261143451
+// Dashboard routing
+
+//router.post("/dashboard/view", controller.viewSlots);
+
 module.exports = router;
