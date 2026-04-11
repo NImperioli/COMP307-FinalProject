@@ -1,0 +1,153 @@
+<html>
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+
+    <title>Landing Page</title>
+
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Outfit", sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: rgb(245, 245, 245);
+            padding: 28px 14px 24px 14px;
+        }
+
+        .top-bar {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 90px;
+        }
+
+        .logo {
+            font-size: 26px;
+            font-weight: 700;
+            color: rgb(237, 27, 47);
+        }
+
+        .top-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .top-button {
+            width: 88px;
+            height: 44px;
+            background: rgb(0, 0, 0);
+            border: none;
+            border-radius: 30px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            transition: .3s;
+        }
+
+        .top-button:hover {
+            background: rgb(237, 27, 47);
+        }
+
+        .hero-section {
+            width: 100%;
+            max-width: 950px;
+            margin: 0 auto 95px auto;
+            text-align: center;
+        }
+
+        .hero-section h1 {
+            font-size: 58px;
+            color: rgb(0, 0, 0);
+            margin-bottom: 24px;
+        }
+
+        .hero-section p {
+            font-size: 18px;
+            color: rgb(50, 50, 50);
+            line-height: 1.6;
+            margin-bottom: 28px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 14px;
+        }
+
+        .hero-button {
+            min-width: 130px;
+            height: 46px;
+            padding: 0 22px;
+            background: rgb(0, 0, 0);
+            border: none;
+            border-radius: 30px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            transition: .3s;
+        }
+
+        .hero-button:hover {
+            background: rgb(237, 27, 47);
+        }
+
+        .bottom-cards {
+            width: 100%;
+            display: flex;
+            gap: 18px;
+        }
+
+        .card {
+            flex: 1;
+            background: rgb(255, 255, 255);
+            border-radius: 24px;
+            box-shadow: 0px 5px 14px 1px rgb(220, 220, 220);
+            padding: 24px 24px 22px 24px;
+        }
+
+        .card h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: rgb(0, 0, 0);
+        }
+
+        .card p {
+            font-size: 15px;
+            color: rgb(50, 50, 50);
+            line-height: 1.5;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="top-bar">
+        <div class="logo">Booking Application</div>
+
+        <div class="top-buttons">
+            <button class="top-button" onclick="window.location.href='login.html'">Login</button>
+            <button class="top-button" onclick="window.location.href='register.html'">Register</button>
+        </div>
+    </div>
+
+    <div class="hero-section">
+        <h1>McGill Booking Application</h1>
+        <p>
+            Book office hours, request meetings, and manage recurring appointments in one simple place.
+        </p>
+
+        <div class="hero-buttons">
+            <button class="hero-button" onclick="window.location.href='register.html'">Get Started</button>
+            <button class="hero-button" onclick="window.location.href='browse-owners.html'">Browse Owners</button>
+        </div>
+    </div>
+
+   
+</body>
+</html>

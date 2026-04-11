@@ -1,0 +1,137 @@
+<html>
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+
+    <title>Browse Owners</title>
+
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Outfit", sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: rgb(255, 255, 255);
+            padding: 30px 40px;
+        }
+
+        h6 {
+            text-align: center;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .page-header h1 {
+            font-size: 42px;
+            color: rgb(237, 27, 47);
+        }
+
+        .back-button {
+            width: 130px;
+            height: 50px;
+            background: black;
+            border: none;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            transition: .3s;
+        }
+
+        .back-button:hover {
+            background: rgb(237, 27, 47);
+        }
+
+        .owners-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 22px;
+        }
+
+        .owner-card {
+            background: rgb(255, 255, 255);
+            border-radius: 30px;
+            box-shadow: 0px 5px 10px 1px rgb(146, 146, 146);
+            padding: 28px;
+        }
+
+        .owner-card h3 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: black;
+        }
+
+        .owner-card p {
+            color: rgb(70, 70, 70);
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .view-button {
+            margin-top: 15px;
+            width: 170px;
+            height: 48px;
+            background: black;
+            border: none;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            transition: .3s;
+        }
+
+        .view-button:hover {
+            background: rgb(237, 27, 47);
+        }
+    </style>
+</head>
+
+<body>
+    <h6>NAME OF APPLICATION</h6>
+
+    <div class="page-header">
+        <h1>Browse Owners</h1>
+        <button class="back-button" onclick="window.location.href='dashboard.html'">Back</button>
+    </div>
+
+    <div class="owners-grid" id="ownersList">
+        <div class="owner-card">
+            <h3>Prof. Joseph Vybihal</h3>
+            <p>Email: joseph.vybihal@mcgill.ca</p>
+            <p>Active Slots: 4</p>
+            <button class="view-button" onclick="window.location.href='owner-slots.html'">View Slots</button>
+        </div>
+
+        <div class="owner-card">
+            <h3>TA - Shida Sharif Bakhtiar</h3>
+            <p>Email: sheedeh.sharifbakhtiar@mail.mcgill.ca</p>
+            <p>Active Slots: 3</p>
+            <button class="view-button" onclick="window.location.href='owner-slots.html'">View Slots</button>
+        </div>
+
+        <div class="owner-card">
+            <h3>TA - Yawen Guo</h3>
+            <p>Email: yawen.guo2@mail.mcgill.ca</p>
+            <p>Active Slots: 5</p>
+            <button class="view-button" onclick="window.location.href='owner-slots.html'">View Slots</button>
+        </div>
+
+        <div class="owner-card">
+            <h3>TA - Alejandro Salinas</h3>
+            <p>Email: alejandro.salinas@mail.mcgill.ca</p>
+            <p>Active Slots: 2</p>
+            <button class="view-button" onclick="window.location.href='owner-slots.html'">View Slots</button>
+        </div>
+    </div>
+</body>
+</html>
