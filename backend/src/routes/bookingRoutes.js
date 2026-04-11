@@ -18,8 +18,4 @@ router.post("/group/finalize",                   controller.finalizeGroupMeeting
 router.get("/appointments/user/:userId",         controller.getUserAppointments);
 router.get("/appointments/owner/:ownerId",       controller.getOwnerAppointments);
 
-// TYPE 3 — Office Hours
-router.post("/office-hours/create",              controller.createOfficeHours);
-router.post("/office-hours/reserve",             controller.reserveOfficeHour);
-
 module.exports = router;
