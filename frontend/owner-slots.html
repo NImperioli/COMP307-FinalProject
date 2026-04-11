@@ -1,0 +1,138 @@
+<html>
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+
+    <title>Owner Slots</title>
+
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Outfit", sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: rgb(255, 255, 255);
+            padding: 30px 40px;
+        }
+
+        h6 {
+            text-align: center;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .page-header h1 {
+            font-size: 42px;
+            color: rgb(237, 27, 47);
+        }
+
+        .back-button {
+            width: 130px;
+            height: 50px;
+            background: black;
+            border: none;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            transition: .3s;
+        }
+
+        .back-button:hover {
+            background: rgb(237, 27, 47);
+        }
+
+        .owner-info {
+            margin-bottom: 28px;
+            color: rgb(70, 70, 70);
+            font-size: 18px;
+        }
+
+        .slot-card {
+            background: rgb(255, 255, 255);
+            border-radius: 30px;
+            box-shadow: 0px 5px 10px 1px rgb(146, 146, 146);
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .slot-card h3 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: black;
+        }
+
+        .slot-card p {
+            color: rgb(70, 70, 70);
+            margin-bottom: 7px;
+            font-size: 16px;
+        }
+
+        .reserve-button {
+            margin-top: 14px;
+            width: 170px;
+            height: 48px;
+            background: black;
+            border: none;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            transition: .3s;
+        }
+
+        .reserve-button:hover {
+            background: rgb(237, 27, 47);
+        }
+    </style>
+</head>
+
+<body>
+    <h6>NAME OF APPLICATION</h6>
+
+    <div class="page-header">
+        <h1>Available Slots</h1>
+        <button class="back-button" onclick="window.location.href='browse-owners.html'">Back</button>
+    </div>
+
+    <div class="owner-info">
+        Showing active slots for <b>Prof. Joseph Vybihal</b>
+    </div>
+
+    <div id="slotsList">
+        <div class="slot-card">
+            <h3>Office Hours</h3>
+            <p>Date: Monday, April 15</p>
+            <p>Time: 10:00 AM - 10:30 AM</p>
+            <p>Type: Single Slot</p>
+            <button class="reserve-button">Reserve Slot</button>
+        </div>
+
+        <div class="slot-card">
+            <h3>Office Hours</h3>
+            <p>Date: Tuesday, April 16</p>
+            <p>Time: 1:00 PM - 1:30 PM</p>
+            <p>Type: Recurring Slot</p>
+            <button class="reserve-button">Reserve Slot</button>
+        </div>
+
+        <div class="slot-card">
+            <h3>Review Session</h3>
+            <p>Date: Thursday, April 18</p>
+            <p>Time: 3:00 PM - 3:30 PM</p>
+            <p>Type: Recurring Slot</p>
+            <button class="reserve-button">Reserve Slot</button>
+        </div>
+    </div>
+</body>
+</html>

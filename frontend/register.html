@@ -4,7 +4,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
 
-    <title>Login</title>
+    <title>Register</title>
+
+    <!-- CSS  -->
 
     <style>
         *{
@@ -26,11 +28,11 @@
 
         .page-container {
             width: 100%;
-            max-width: 1100px;         
+            max-width: 1100px;
             display: flex;
-            justify-content: center;   
+            justify-content: center;
             align-items: center;
-            gap: 50px;                 
+            gap: 50px;
             padding: 0 40px;
         }
 
@@ -102,6 +104,7 @@
 
         .input-submit {
             position: relative;
+            margin-top: 10px;
         }
 
         .submit-button {
@@ -138,47 +141,65 @@
 
         .left-section h1.mcgill {
             color: rgb(237, 27, 47);
-           
         }
 
-
+        .small-text {
+            font-size: 14px;
+            color: rgb(80, 80, 80);
+            margin-top: 10px;
+            text-align: center;
+        }
     </style>
 </head>
 
+    <!-- HTML  -->
+
+
 <body>
     <h6>NAME OF APPLICATION</h6>
-<div class="page-container">
-    <div class="left-section">
-        <h1 class="mcgill">Booking Application</h1>
-        <p>
-           Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-           Integer in lorem viverra, pellentesque eros in, fermentum 
-           urna. Nulla eget lectus non mauris pretium pellentesque id 
-           nec arcu. Aliquam erat volutpat. 
-         
-        </p>
-    </div>
 
-    <div class="right-section">
-        <div class="login-box">
-            <div class="login-header">
-                <header><b>Login</b></header>
-            </div>
+    <div class="page-container">
+        <div class="left-section">
+            <h1 class="mcgill">Create Account</h1>
+            <p>
+                Register using your McGill email to access booking features.
+                Professors and TAs can create and manage slots, while students can
+                browse and reserve active appointments.
+            </p>
+        </div>
 
-            <div class="info-box">
-                <input type="text" class="input-field" placeholder="Email" autocomplete="off" required>
-            </div>
+        <div class="right-section">
+            <div class="login-box">
+                <div class="login-header">
+                    <header><b>Register</b></header>
+                </div>
 
-            <div class="info-box">
-                <input type="password" class="input-field" placeholder="Password" autocomplete="off" required>
-            </div>
+                <form id="registerForm">
+                    <div class="info-box">
+                        <input type="text" class="input-field" placeholder="Full Name" name="name" required>
+                    </div>
 
-            <div class="input-submit">
-                <button class="submit-button" id="submit"></button>
-                <label for="submit">Sign In</label>
+                    <div class="info-box">
+                        <input type="email" class="input-field" placeholder="McGill Email" name="email" required>
+                    </div>
+
+                    <div class="info-box">
+                        <input type="password" class="input-field" placeholder="Password" name="password" required>
+                    </div>
+
+                    <div class="info-box">
+                        <input type="password" class="input-field" placeholder="Confirm Password" name="confirmPassword" required>
+                    </div>
+
+                    <div class="input-submit">
+                        <button class="submit-button" id="submit" type="submit"></button>
+                        <label for="submit">Register</label>
+                    </div>
+                </form>
+
+                
             </div>
         </div>
-    </div>
     </div>
 </body>
 </html>
