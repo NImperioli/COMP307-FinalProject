@@ -36,24 +36,30 @@ const createRecurringSlots = async (ownerId, weeklySlots, weeks) => {
   }
 
   const groupToken = crypto.randomUUID();
-
   const docs = [];
+
   for (const slot of weeklySlots) {
+    const start = new Date(slot.startTime);
+    const end = new Date(slot.endTime);
+    if (end <= start) {
+      throw new Error(`Invalid time range for slot "${slot.title}": End time must be after start time.`);
+    }
+
     const startOccurrences = expandWeeklyOccurrences(slot.startTime, weeks);
-    const endOccurrences   = expandWeeklyOccurrences(slot.endTime,   weeks);
+    const endOccurrences = expandWeeklyOccurrences(slot.endTime, weeks);
 
     for (let w = 0; w < weeks; w++) {
       docs.push({
-        ownerId:     new ObjectId(ownerId),
-        title:       slot.title,
-        type:        "recurring",
-        weekNumber:  w + 1,           // 1-indexed week within the recurrence
-        startTime:   startOccurrences[w],
-        endTime:     endOccurrences[w],
-        status:      "private",
-        groupToken,                   // shared across all occurrences of this series
-        inviteToken: groupToken,      // invitation URL uses groupToken for recurring sets
-        createdAt:   new Date(),
+        ownerId: new ObjectId(ownerId),
+        title: slot.title,
+        type: "recurring",
+        weekNumber: w + 1,
+        startTime: startOccurrences[w],
+        endTime: endOccurrences[w],
+        status: "private",
+        groupToken,
+        inviteToken: groupToken,
+        createdAt: new Date(),
       });
     }
   }
@@ -75,12 +81,20 @@ const activateSlot = async (slotId, ownerId) => {
   );
 };
 
-const activateSlotsByGroup = async (groupToken, ownerId) => {
+const activateSlotsByGroup = async (groupToken, userId) => {
   const db = getDB();
-  return await db.collection(COLLECTION).updateMany(
-    { groupToken, ownerId: new ObjectId(ownerId), status: "private" },
+
+  const user = await db.collection("users").findOne({ _id: new ObjectId(userId) });
+  if (!user || user.role !== "owner") {
+    throw new Error("Unauthorized: Only registered owners can activate slots.");
+  }
+
+  const result = await db.collection(COLLECTION).updateMany(
+    { groupToken, ownerId: new ObjectId(userId), status: "private" },
     { $set: { status: "active" } }
   );
+
+  return result;
 };
 
 const deactivateSlot = async (slotId, ownerId) => {
