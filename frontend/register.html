@@ -176,19 +176,19 @@
 
                 <form id="registerForm">
                     <div class="info-box">
-                        <input type="text" class="input-field" placeholder="Full Name" name="name" required>
+                        <input type="text" id="name" class="input-field" placeholder="Full Name" name="name" required>
                     </div>
 
                     <div class="info-box">
-                        <input type="email" class="input-field" placeholder="McGill Email" name="email" required>
+                        <input type="email" id="email" class="input-field" placeholder="McGill Email" name="email" required>
                     </div>
 
                     <div class="info-box">
-                        <input type="password" class="input-field" placeholder="Password" name="password" required>
+                        <input type="password" id="pass" class="input-field" placeholder="Password" name="password" required>
                     </div>
 
                     <div class="info-box">
-                        <input type="password" class="input-field" placeholder="Confirm Password" name="confirmPassword" required>
+                        <input type="password" id="confirm-pass" class="input-field" placeholder="Confirm Password" name="confirmPassword" required>
                     </div>
 
                     <div class="input-submit">
@@ -196,10 +196,50 @@
                         <label for="submit">Register</label>
                     </div>
                 </form>
-
                 
             </div>
         </div>
     </div>
+    <!--- Annie Huynh --->
+    <script>
+        let form = document.querySelector('#registerForm');
+        form.addEventListener('submit', async(event) => {
+            // stop page from reloading
+            event.preventDefault()
+            
+            // read input values
+            const name = document.getElementById("name").value;
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("pass").value;
+            const confirmedPassword = document.getElementById("confirm-pass").value;
+
+            // validate email
+            if (!email.endsWith("@mcgill.ca") && !email.endsWith("@mail.mcgill.ca")){
+                alert("Email domain must be @mcgill.ca or @mail.mcgill.ca.");
+                return;
+            }
+
+            // validate password
+            if (password != confirmedPassword){
+                alert("Passwords must match.");
+                return;
+            }
+
+            // send login request
+            const response = await fetch('http://localhost:3000/api/auth/register', 
+                { method: 'POST', headers: {'Content-Type': 'application/json'}, 
+                    body: JSON.stringify({name, email, password}) })
+
+            const data = await response.json();
+            if (response.ok){ 
+                // redirect to dashboard 
+                window.location.href = 'login.html';
+            }
+            else{
+                alert(data.error) // CHANGE TO SOMETHING NICER IF TIME PERMITS
+                return;
+            }
+        });
+    </script>
 </body>
 </html>
