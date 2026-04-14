@@ -133,5 +133,60 @@
             <button class="view-button" onclick="window.location.href='owner-slots.html'">View Slots</button>
         </div>
     </div>
+    <!--- Annie Huynh --->
+    <script>
+        // read token and redirect if its missing
+        const token = localStorage.getItem('token');
+         if (!token){
+            window.location.href = 'login.html'
+        }
+
+        const ownersList = document.getElementById('ownersList');
+        //fetch active owners on load
+        async function loadOwners(){
+            const url = 'http://localhost:3000/api/slots/owners/active';
+
+            const response = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } }); // header for JWT handshake
+            const data = await response.json();
+
+            //clear hardcoded cards
+            ownersList.innerHTML='';
+           
+            // render each owner card
+            for (const owner of data){
+                renderOwnerCard(owner);
+            }
+        }
+        loadOwners();
+
+        // helper function to render cards
+        function renderOwnerCard(owner){
+            const newDiv = document.createElement("div");
+            newDiv.classList.add("owner-card");
+            newDiv.innerHTML='';
+
+            const buttonDiv = document.createElement("div");
+            buttonDiv.classList.add("card-actions");
+
+            const heading = document.createElement("h3");
+            heading.textContent=owner.name;
+            newDiv.appendChild(heading);
+
+            const email = document.createElement("p");
+            email.textContent = "Email: " + owner.email;
+            newDiv.appendChild(email);
+
+            const viewSlots = document.createElement("button");
+            viewSlots.classList.add("view-button");
+            viewSlots.textContent="View Slots";
+            buttonDiv.appendChild(viewSlots);
+            viewSlots.onclick = () => {
+                window.location.href = `owner-slots.html?ownerId=${owner._id}`;
+            };
+
+            newDiv.appendChild(buttonDiv);
+            ownersList.appendChild(newDiv);
+        }
+    </script>
 </body>
 </html>
