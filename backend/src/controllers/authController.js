@@ -68,7 +68,7 @@ const login = async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    res.json({ token, role: user.role, name: user.name, id: user._id.toString() });
+    res.json({ token, role: user.role, name: user.name, id: user._id.toString(), email:user.email });
 
   } catch (err) {
     res.status(500).json({ error: err.message });
