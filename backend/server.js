@@ -11,7 +11,7 @@ const app = express();
 app.use(express.json());
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/auth", authRoutes); // Annie Huynh
-app.use("/api/slot", slotRoutes); // Annie Huynh
+app.use("/api/slots", slotRoutes); // Annie Huynh
 app.use("/api/dashboard", dashboardRoutes); // Annie Huynh 
 
 connectDB(); 
