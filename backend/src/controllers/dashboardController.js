@@ -1,7 +1,5 @@
 //William Borlase - 261143451
-const bookingService = require("../services/bookingService");
 const slotModel = require("../models/slotModel")
-
 // Dashboard behavior: get all info for an authenticated owner.
 
 //
@@ -11,15 +9,12 @@ exports.ownerGetSlots = async (req, res) => {
   // const {ownerId, minDate, maxDate} = req.body;
   const ownerId = req.body;
 
-  // authenticate owner token?
-
   const result = await slotModel.findSlotsByOwner(ownerId);
   res.json(result);
 }
 
 exports.ownerCreateSlots = async (req, res) => {
   const ownerId = req.owner;
-  //authenticate owner token?
 
   // can handle req as an array of slots or 1.
   if (req.slots){
@@ -37,8 +32,6 @@ exports.ownerCreateSlots = async (req, res) => {
 }
 
 exports.ownerDeleteSlots = async(req, res) => {
-  //authenticate owner?
-
   // only delete 1 at a time!!
   const result = await slotModel.deleteSlot(req.slotId,req.owner);
   res.json(result);
