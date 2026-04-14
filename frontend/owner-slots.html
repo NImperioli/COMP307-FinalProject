@@ -153,7 +153,7 @@
         const slotsList = document.getElementById('slotsList');
         //fetch active owners on load
         async function loadSlots(){
-            const url = 'http://localhost:3000/api/slots/owner/${ownerId}/active';
+            const url = `http://localhost:3000/api/slots/owner/${ownerId}/active`;
 
             const response = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } }); // header for JWT handshake
             const data = await response.json();

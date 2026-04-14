@@ -181,7 +181,6 @@
 
         <div class="right-panel">
             <h2 class="panel-title">Actions</h2>
-
             <button class="action-button" onclick="window.location.href='browse-owners.html'">Browse Owners</button>
             <button class="action-button">Book Another Appointment</button>
             <button class="action-button">View Requests</button>
@@ -195,6 +194,7 @@
         const name = localStorage.getItem('name');
         const id = localStorage.getItem('user._id');
 
+        // redirect to login page if token is missing
         if (!token){
             window.location.href = 'login.html'
         }
@@ -247,7 +247,7 @@
                 const messageBooker = document.createElement("button");
                 messageBooker.classList.add("small-button");
                 messageBooker.textContent="Message Booker";
-                buttonDiv.appendChild(messageOwner);
+                buttonDiv.appendChild(messageBooker);
 
             }
             else{ // is a student
@@ -268,7 +268,7 @@
                 const messageOwner = document.createElement("button");
                 messageOwner.classList.add("small-button");
                 messageOwner.textContent="Message Owner";
-                buttonDiv.appendChild(messageOwner);
+                buttonDiv.appendChild(messageBooker);
                 messageOwner.onclick = async () => {
                     const response = await fetch(`http://localhost:3000/api/slots/${item.slot._id}/message-owner`, {
                         headers: { 'Authorization': 'Bearer ' + token }
@@ -285,14 +285,14 @@
                 cancel.classList.add("small-button");
                 cancel.textContent="Cancel Appointment";
                 buttonDiv.appendChild(cancel);
-                cancel.onclick = asyn() => {
+                cancel.onclick = async() => {
                     const response = await fetch('http://localhost:3000/api/slots/cancel', {
                         method: 'POST',
                         headers: { 
                             'Content-Type': 'application/json',
                             'Authorization': 'Bearer ' + token 
                         },
-                        body: JSON.stringify({ reservationId, userId: id })
+                        body: JSON.stringify({ reservationId: item._id, userId: id })
                     });
                     const data = await response.json();
                     if (response.ok) {
