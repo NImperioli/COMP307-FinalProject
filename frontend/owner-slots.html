@@ -134,5 +134,89 @@
             <button class="reserve-button">Reserve Slot</button>
         </div>
     </div>
+    <!--- Annie Huynh --->
+    <script>
+         const id = localStorage.getItem('user._id');
+         const email = localStorage.getItem('email');
+
+        // read token and redirect if its missing
+        const token = localStorage.getItem('token');
+         if (!token){
+            window.location.href = 'login.html'
+        }
+        // make sure that this page is only accessed from browse-owners
+        const ownerId = new URLSearchParams(window.location.search).get('ownerId');
+        if (!ownerId){
+            window.location.href='browse-owners.html';
+        }
+
+        const slotsList = document.getElementById('slotsList');
+        //fetch active owners on load
+        async function loadSlots(){
+            const url = `http://localhost:3000/api/slots/owner/${ownerId}/active`;
+
+            const response = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } }); // header for JWT handshake
+            const data = await response.json();
+
+            //clear hardcoded cards
+            slotsList.innerHTML='';
+           
+            // render each owner card
+            for (const slot of data){
+                renderSlotCard(slot);
+            }
+        }
+        loadSlots();
+
+        // helper function to render cards
+        function renderSlotCard(slot){
+            const newDiv = document.createElement("div");
+            newDiv.classList.add("slot-card");
+            newDiv.innerHTML='';
+
+            const buttonDiv = document.createElement("div");
+            buttonDiv.classList.add("card-actions");
+
+            const heading = document.createElement("h3");
+            heading.textContent=slot.title;
+            newDiv.appendChild(heading);
+
+            const time = document.createElement("p");
+            const startTime = new Date(slot.startTime).toLocaleString();
+            const endTime = new Date(slot.endTime).toLocaleString()
+            time.textContent = "Time: " + startTime + " - " + endTime;
+            newDiv.appendChild(time);
+
+            const reserveSlot = document.createElement("button");
+            reserveSlot.classList.add("reserve-button");
+            reserveSlot.textContent="Reserve Slot";
+            buttonDiv.appendChild(reserveSlot);
+            reserveSlot.onclick = async() => {
+                    const response = await fetch('http://localhost:3000/api/slots/reserve', {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + token 
+                        },
+                        body: JSON.stringify({ slotId: slot._id, userId: id, userEmail: email })
+                    });
+                    const data = await response.json();
+                    if (response.ok) {
+                        // reload the dashboard to reflect the cancellation
+                        loadSlots();
+                        if (data.notifyOwner){
+                            window.location.href = data.notifyOwner; // notify owner 
+                        }
+                        window.location.href = 'dashboard.html';
+                    } else {
+                        alert(data.error);
+                    }
+                }
+
+            // append to html 
+            newDiv.appendChild(buttonDiv);
+            slotsList.appendChild(newDiv);
+        }
+    </script>
 </body>
 </html>

@@ -165,20 +165,57 @@
                 <header><b>Login</b></header>
             </div>
 
-            <div class="info-box">
-                <input type="text" class="input-field" placeholder="Email" autocomplete="off" required>
-            </div>
+            <form id="login-form">
+                <div class="info-box">
+                    <input type="text" id="user" class="input-field" placeholder="Email" name="email" autocomplete="off" required>
+                </div>
 
-            <div class="info-box">
-                <input type="password" class="input-field" placeholder="Password" autocomplete="off" required>
-            </div>
+                <div class="info-box">
+                    <input type="password" id="pass" class="input-field" placeholder="Password" name="password" autocomplete="off" required>
+                </div>
 
-            <div class="input-submit">
-                <button class="submit-button" id="submit"></button>
-                <label for="submit">Sign In</label>
-            </div>
+                <div class="input-submit">
+                    <button class="submit-button" id="submit" type="submit"></button>
+                    <label for="submit">Sign In</label>
+                </div>
+            </form>
         </div>
     </div>
     </div>
+    <!--- Annie Huynh --->
+    <script>
+        let form = document.querySelector('#login-form');
+        form.addEventListener('submit', async(event) => {
+            // stop page from reloading
+            event.preventDefault()
+            
+            // read email/password input values
+            const email = document.getElementById("user").value;
+            const username = document.getElementById("user").value;
+            const password = document.getElementById("pass").value;
+
+            // send login request
+            const response = await fetch('http://localhost:3000/api/auth/login', 
+                { method: 'POST', headers: {'Content-Type': 'application/json'}, 
+                    body: JSON.stringify({email, password}) })
+
+            const data = await response.json();
+            if (response.ok){ 
+                localStorage.setItem('user._id', data.id);
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('role', data.role);
+                localStorage.setItem('name', data.name);
+                localStorage.setItem('email',data.email);
+
+                // redirect to dashboard 
+                window.location.href = 'dashboard.html';
+            }
+            else{
+                alert(data.error) // CHANGE TO SOMETHING NICER IF TIME PERMITS
+                return;
+            }
+
+        });
+    </script>
 </body>
 </html>

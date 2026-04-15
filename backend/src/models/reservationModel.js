@@ -6,21 +6,28 @@ const COLLECTION = "reservations";
 const reserveSlot = async (slotId, userId) => {
   const db = getDB();
 
-  // Confirm slot exists and is active
   const slot = await db.collection("slots").findOne({ _id: new ObjectId(slotId) });
   if (!slot) throw new Error("Slot not found.");
+  
+  if (slot.ownerId.toString() === userId.toString()) {
+    throw new Error("Security Violation: Owners cannot reserve their own booking slots.");
+  }
+
   if (slot.status !== "active") throw new Error("Slot is not available for booking.");
 
-  // Prevent double-booking
+  if (new Date(slot.startTime) < new Date()) {
+    throw new Error("Cannot reserve a slot that has already started or passed.");
+  }
+
   const existing = await db.collection(COLLECTION).findOne({
-    slotId:      new ObjectId(slotId),
+    slotId: new ObjectId(slotId),
     cancelledAt: { $exists: false },
   });
   if (existing) throw new Error("Slot is already reserved.");
 
   return await db.collection(COLLECTION).insertOne({
-    slotId:     new ObjectId(slotId),
-    userId:     new ObjectId(userId),
+    slotId: new ObjectId(slotId),
+    userId: new ObjectId(userId),
     reservedAt: new Date(),
   });
 };

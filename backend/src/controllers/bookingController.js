@@ -1,64 +1,121 @@
-//Nicholas Imperioli - 261120345
+// Nicholas Imperioli - 261120345
 const bookingService = require("../services/bookingService");
 
-// TYPE 1
+// TYPE 1 
 exports.requestMeeting = async (req, res) => {
-  const { userId, ownerId, message } = req.body;
-
-  const result = await bookingService.requestMeeting(userId, ownerId, message);
-  res.json(result);
+  try {
+    const { userId, ownerId, message, userEmail, ownerEmail } = req.body;
+    if (!userId || !ownerId || !message || !userEmail || !ownerEmail)
+      return res.status(400).json({ error: "userId, ownerId, message, userEmail, ownerEmail are all required." });
+    const result = await bookingService.requestMeeting(userId, ownerId, message, userEmail, ownerEmail);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
 exports.respondToRequest = async (req, res) => {
-  const { bookingId, accepted } = req.body;
-
-  const result = await bookingService.respondToRequest(bookingId, accepted);
-  res.json(result);
+  try {
+    const { bookingId, accepted } = req.body;
+    if (!bookingId || accepted === undefined)
+      return res.status(400).json({ error: "bookingId and accepted are required." });
+    const result = await bookingService.respondToRequest(bookingId, accepted);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
-// TYPE 2
-exports.createGroupSlots = async (req, res) => {
-  const { ownerId, slots } = req.body;
-
-  const result = await bookingService.createGroupSlots(ownerId, slots);
-  res.json(result);
+exports.getUserMeetingRequests = async (req, res) => {
+  try {
+    const result = await bookingService.getUserMeetingRequests(req.params.userId);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
-exports.voteSlot = async (req, res) => {
-  const { bookingId, userId, slotTime } = req.body;
+exports.getOwnerMeetingRequests = async (req, res) => {
+  try {
+    const result = await bookingService.getOwnerMeetingRequests(req.params.ownerId);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
 
-  const result = await bookingService.voteSlot(bookingId, userId, slotTime);
-  res.json(result);
+exports.getOwnerPendingRequests = async (req, res) => {
+  try {
+    const result = await bookingService.getOwnerPendingRequests(req.params.ownerId);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// TYPE 2 
+
+exports.createGroupMeeting = async (req, res) => {
+  try {
+    const { ownerId, ownerEmail, title, slots, opensAt, closesAt } = req.body;
+    if (!ownerId || !ownerEmail || !title || !slots || !opensAt || !closesAt)
+      return res.status(400).json({ error: "ownerId, ownerEmail, title, slots, opensAt, closesAt are all required." });
+    const result = await bookingService.createGroupMeeting(ownerId, ownerEmail, title, slots, opensAt, closesAt);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.voteForSlots = async (req, res) => {
+  try {
+    const { bookingId, userId, slotTimes } = req.body;
+    if (!bookingId || !userId || !Array.isArray(slotTimes) || slotTimes.length === 0)
+      return res.status(400).json({ error: "bookingId, userId, and slotTimes (array) are required." });
+    const result = await bookingService.voteForSlots(bookingId, userId, slotTimes);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.getSlotVoteCounts = async (req, res) => {
+  try {
+    const result = await bookingService.getSlotVoteCounts(req.params.bookingId);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
 exports.finalizeGroupMeeting = async (req, res) => {
-  const { bookingId, selectedTime, repeatWeeks } = req.body;
-
-  const result = await bookingService.finalizeGroupMeeting(
-    bookingId,
-    selectedTime,
-    repeatWeeks
-  );
-  res.json(result);
+  try {
+    const { bookingId, selectedTime, repeatWeeks, ownerEmail } = req.body;
+    if (!bookingId || !selectedTime || !ownerEmail)
+      return res.status(400).json({ error: "bookingId, selectedTime, and ownerEmail are required." });
+    const result = await bookingService.finalizeGroupMeeting(bookingId, selectedTime, repeatWeeks, ownerEmail);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
-// TYPE 3
-exports.createOfficeHours = async (req, res) => {
-  const { ownerId, slots, weeks } = req.body;
-
-  const result = await bookingService.createOfficeHours(ownerId, slots, weeks);
-  res.json(result);
+exports.getUserAppointments = async (req, res) => {
+  try {
+    const result = await bookingService.getUserAppointments(req.params.userId);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
-exports.reserveOfficeHour = async (req, res) => {
-  const { bookingId, slotTime, userId } = req.body;
-
-  const result = await bookingService.reserveOfficeHour(
-    bookingId,
-    slotTime,
-    userId
-  );
-  res.json(result);
+exports.getOwnerAppointments = async (req, res) => {
+  try {
+    const result = await bookingService.getOwnerAppointments(req.params.ownerId);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
 // William Borlase - 261143451

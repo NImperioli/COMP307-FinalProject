@@ -4,11 +4,15 @@ const express = require("express");
 const { connectDB } = require("./src/config/db"); 
 const bookingRoutes = require("./src/routes/bookingRoutes");
 const authRoutes = require("./src/routes/authRoutes"); // Annie Huynh
+const slotRoutes = require("./src/routes/slotRoutes"); //Annie Huynh
+const dashboardRoutes = require("./src/routes/dashboardRoutes"); //Annie Huynh
 
 const app = express();
 app.use(express.json());
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/auth", authRoutes); // Annie Huynh
+app.use("/api/slots", slotRoutes); // Annie Huynh
+app.use("/api/dashboard", dashboardRoutes); // Annie Huynh 
 
 connectDB(); 
 
