@@ -1,7 +1,7 @@
 
+
 <!-- TAYM ATRACH 261183855 -->
 
-<html>
 <head>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -10,7 +10,7 @@
     <title>Landing Page</title>
 
     <style>
-        *{
+        * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
@@ -19,8 +19,26 @@
 
         body {
             min-height: 100vh;
-            background: rgb(245, 245, 245);
+            background: url('Images/landing_bg.jpg'); /* Replace with your image URL */
+            background-size: cover; /* Ensure the image covers the entire body */
+            background-position: center; /* Center the image */
             padding: 28px 14px 24px 14px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            position: relative; /* This is to position the pseudo-element correctly */
+        }
+
+        body::before {
+            content: ''; /* Creates an empty pseudo-element */
+            position: absolute; /* Position it on top of the body */
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4); /* Dark tint with 40% opacity */
+            z-index: 0; /* Ensure it's behind the content */
         }
 
         .top-bar {
@@ -28,7 +46,12 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 90px;
+            background-color: rgb(255, 255, 255);
+            padding: 20px 40px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
         }
 
         .logo {
@@ -56,23 +79,35 @@
 
         .top-button:hover {
             background: rgb(237, 27, 47);
+            
         }
 
         .hero-section {
             width: 100%;
-            max-width: 950px;
-            margin: 0 auto 95px auto;
+            max-width: 450px; /* Makes the box more square-like */
+            height: 450px; /* Adjust height for a square shape */
             text-align: center;
+            background: rgb(255, 255, 255);
+            border-radius: 24px;
+            padding: 40px; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: absolute; /* Position the box absolutely */
+            left: 0; /* Align the box to the left */
+            margin-left: 125px; /* Optional: adds space from the left edge */
+            z-index: 1; /* Ensure the hero section appears above the background */
         }
 
         .hero-section h1 {
-            font-size: 58px;
+            font-size: 36px;
             color: rgb(0, 0, 0);
             margin-bottom: 24px;
         }
 
         .hero-section p {
-            font-size: 18px;
+            font-size: 16px;
             color: rgb(50, 50, 50);
             line-height: 1.6;
             margin-bottom: 28px;
@@ -150,7 +185,4 @@
             <button class="hero-button" onclick="window.location.href='browse-owners.html'">Browse Owners</button>
         </div>
     </div>
-
-   
 </body>
-</html>
