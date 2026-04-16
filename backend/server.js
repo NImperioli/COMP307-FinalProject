@@ -6,9 +6,12 @@ const bookingRoutes = require("./src/routes/bookingRoutes");
 const authRoutes = require("./src/routes/authRoutes"); // Annie Huynh
 const slotRoutes = require("./src/routes/slotRoutes"); //Annie Huynh
 const dashboardRoutes = require("./src/routes/dashboardRoutes"); //Annie Huynh
+const cors = require('cors'); //wb
 
 const app = express();
 app.use(express.json());
+//app.use(cors({origin: 'http://FINAL.URL'})); // wb // change when site has its final url on mimi
+app.use(cors()); //wb
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/auth", authRoutes); // Annie Huynh
 app.use("/api/slots", slotRoutes); // Annie Huynh

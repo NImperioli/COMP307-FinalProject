@@ -117,5 +117,3 @@ exports.getOwnerAppointments = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-
-// William Borlase - 261143451

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Available Slots</title>
+</head>
+<body>
+
+    <div id="Slot_list">
+
+    </div>
+
+</body>
+
+<script>
+    // wb 261143451
+    //Owner-only page.
+    // List automatically, Create, Delete, edit
+    // from AH: Read the JWT from localStorage
+    const token = localStorage.getItem('token');
+    const role = localStorage.getItem('role');
+
+    // redirect to login page if token is missing
+    if (!token){
+        window.location.href = 'login.html'
+    }
+    else if (role !== "owner"){
+        window.location.href = 'dashboard.html'
+        // could put a 403 page instead? idk
+    }
+
+    const url = `http://http://localhost:3000/api/slots/`
+    const slot_container = document.getElementById("slot_container")
+
+    async function renderAll(options={show_repeating:true, sort:"start-time", filter:["active", "private"]}){
+        slot_container.innerHTML = "";
+
+        // sort options: start-time, creation-time
+        const response = await fetch(url + `/owner/${id}`, { headers: { 'Authorization': 'Bearer ' + token } });
+        const data = await response.json();
+
+        const filtered = [];
+        for (let slot in data){
+            console.log(slot + "/n");
+            if(options.show_repeating !== (slot.type === "recurring")){
+                continue;
+            }
+            if(!slot.status in filter){
+                continue;
+            }
+            filtered.append(slot);
+            // not sorting rn
+        }
+        for (let slot in filtered){
+            renderSlot(slot);
+        }
+
+    }
+
+    function renderSlot(slot_data){
+        let new_slot = document.createElement("div");
+        new_slot.innerText=`${slot_data.title}`;
+        let edit = document.createElement("button");
+        edit.setAttribute("onclick",`editSlot(${slot_data.id})`);
+        // actual design should be added here
+        slot_container.appendChild(new_slot);
+    }
+
+    function createSlot(){
+        // might need to be reworked to make it a better endpoint for a form
+
+    }
+
+    function editSlot(id){
+
+    }
+
+    function deleteSlot(){
+        alert("oh");
+    }
+
+    renderAll();
+
+</script>
+
+</html>

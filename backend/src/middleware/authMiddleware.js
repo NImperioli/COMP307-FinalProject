@@ -2,7 +2,7 @@
 // ref: https://www.digitalocean.com/community/tutorials/nodejs-jwt-expressjs
 
 
-import jwt from 'jsonwebtoken';
+const jwt = require('jsonwebtoken');
 
 exports.authenticateOwnerToken = async (req, res, next) => {
     // Note: Invalid for Owner

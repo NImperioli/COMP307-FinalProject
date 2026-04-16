@@ -149,6 +149,8 @@
             const response = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } }); // header for JWT handshake
             const data = await response.json();
 
+            console.log(data); // wb testing
+
             //clear hardcoded cards
             ownersList.innerHTML='';
            

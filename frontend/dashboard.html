@@ -179,7 +179,7 @@
             </div>
         </div>
 
-        <div class="right-panel">
+        <div class="right-panel" id="actions-menu">
             <h2 class="panel-title">Actions</h2>
             <button class="action-button" onclick="window.location.href='browse-owners.html'">Browse Owners</button>
             <button class="action-button">Book Another Appointment</button>
@@ -213,10 +213,25 @@
             for (const item of data){
                 renderCard(item, role);
             }
+
+            // some view stuff wb
+            if (role === 'owner'){
+                renderAction("Manage Slots", "owner-manage-slots");
+            }
         }
         loadDashboard();
 
         const appointmentsList = document.getElementById("appointmentsList");
+        const actionsBar = document.getElementById("actions-menu");
+
+        function renderAction(name, href){ //wb
+            const new_button = document.createElement("button");
+            new_button.setAttribute("class", "action-button");
+            new_button.setAttribute("onclick", `window.location.href='${href}'`);
+            new_button.innerHTML=name;
+
+            actionsBar.appendChild(new_button);
+        }
 
         // helper function to render item
         function renderCard(item, role){
