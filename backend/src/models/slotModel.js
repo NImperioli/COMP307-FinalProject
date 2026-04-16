@@ -11,7 +11,7 @@ function expandWeeklyOccurrences(baseTime, weeks) {
   return Array.from({ length: weeks }, (_, i) => new Date(base.getTime() + i * MS_PER_WEEK));
 }
 
-const createSlot = async (ownerId, { title, startTime, endTime }) => {
+const createSlot = async (ownerId,  title, startTime, endTime ) => {
   const db = getDB();
   return await db.collection(COLLECTION).insertOne({
     ownerId: new ObjectId(ownerId),

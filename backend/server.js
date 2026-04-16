@@ -11,7 +11,14 @@ const cors = require('cors'); //wb
 const app = express();
 app.use(express.json());
 //app.use(cors({origin: 'http://FINAL.URL'})); // wb // change when site has its final url on mimi
-app.use(cors()); //wb
+app.use(cors({
+  allowedHeaders: ["Content-Type", "Authorization"]
+})); //wb
+// disable server-side cache, stop sending stale data
+app.use((req, res, next) => {
+  res.setHeader("Cache-Control", "no-store");
+  next();
+});
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/auth", authRoutes); // Annie Huynh
 app.use("/api/slots", slotRoutes); // Annie Huynh

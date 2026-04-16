@@ -5,7 +5,9 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon src/server.js"
+    "stop": "node stop",
+    "dev": "nodemon src/server.js",
+    "rstart": "npm run stop && npm run start"
   },
   "keywords": [],
   "author": "",

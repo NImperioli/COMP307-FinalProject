@@ -5,8 +5,9 @@
     <title>Manage Available Slots</title>
 </head>
 <body>
+    <button onclick="createSlot('Evil office hours', Date.parse('2026-06-06'), Date.parse('2026-06-07'))">Create</button>
 
-    <div id="Slot_list">
+    <div id="slot_container">
 
     </div>
 
@@ -19,6 +20,7 @@
     // from AH: Read the JWT from localStorage
     const token = localStorage.getItem('token');
     const role = localStorage.getItem('role');
+    const id = localStorage.getItem('user._id');
 
     // redirect to login page if token is missing
     if (!token){
@@ -29,29 +31,39 @@
         // could put a 403 page instead? idk
     }
 
-    const url = `http://http://localhost:3000/api/slots/`
+    const url = `http://localhost:3000/api/slots/`
     const slot_container = document.getElementById("slot_container")
 
-    async function renderAll(options={show_repeating:true, sort:"start-time", filter:["active", "private"]}){
+    async function renderAll(options={show_repeating:true, range:[Date.now(), Date.parse("2099-12-31")], sort:"start-time", filter:["active", "private"]}){
         slot_container.innerHTML = "";
 
         // sort options: start-time, creation-time
-        const response = await fetch(url + `/owner/${id}`, { headers: { 'Authorization': 'Bearer ' + token } });
+        const response = await fetch(url + `owner/${id}`, {
+            method: 'GET',
+            headers: { "Authorization": 'Bearer ' + token },
+            cache: 'no-store'
+        });
+
         const data = await response.json();
+        console.log(data);
 
         const filtered = [];
-        for (let slot in data){
-            console.log(slot + "/n");
-            if(options.show_repeating !== (slot.type === "recurring")){
+        for (let slot of data){
+            console.log(slot.title);
+            if(!options.show_repeating && (slot.type === "recurring")){
                 continue;
             }
-            if(!slot.status in filter){
+
+            if(Date.parse(slot.endTime) < options.range[0] || Date.parse(slot.startTime) > options.range[1]){
                 continue;
             }
-            filtered.append(slot);
+            if(!slot.status in options.filter){
+                continue;
+            }
+            filtered.push(slot);
             // not sorting rn
         }
-        for (let slot in filtered){
+        for (let slot of filtered){
             renderSlot(slot);
         }
 
@@ -59,24 +71,96 @@
 
     function renderSlot(slot_data){
         let new_slot = document.createElement("div");
-        new_slot.innerText=`${slot_data.title}`;
-        let edit = document.createElement("button");
-        edit.setAttribute("onclick",`editSlot(${slot_data.id})`);
+        const string = slot_data.title + "; " + slot_data.status;
+        new_slot.innerText=`${string}`;
+        let del = document.createElement("button");
+        del.innerText="x";
+        del.onclick = () => {deleteSlot(slot_data._id)};
+        new_slot.appendChild(del);
+        let act = document.createElement("button");
+        act.innerText="a";
+        act.onclick = () => {activate(slot_data._id)};
+        new_slot.appendChild(act);
+        let dea = document.createElement("button");
+        dea.innerText="d";
+        dea.onclick = () => {deactivate(slot_data._id)};
+        new_slot.appendChild(dea);
         // actual design should be added here
         slot_container.appendChild(new_slot);
     }
 
-    function createSlot(){
+    async function createSlot(title, start, end){
         // might need to be reworked to make it a better endpoint for a form
+        let slot = await fetch(url + "create", {
+            headers: {
+                'Authorization': 'Bearer ' + token,
+                'Content-Type': 'application/json'
 
+            },
+            method: 'POST',
+            body: JSON.stringify({ownerId: id, title: title, start: start, end: end})
+        })
+        let response = await slot.json();
+
+        console.log("Slot created: ", response);
+
+        renderSlot(response);
     }
 
-    function editSlot(id){
+    // Not sure if slot editing is a good idea... Should slots have to be re-activated?
+    // Might be bad design as it could cause more confusion for students when they're booked for a slot
+    // they can't make.
+    //function editSlot(id, title, start, end){
+    //}
 
+    async function deleteSlot(slotId, options={warn:true}){
+        // I actully dk what the issue is here
+        let c = true;
+        if (options.warn){c = confirm("Confirm Delete?")}
+        if(c){
+            let slot = await fetch(url + slotId, {
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                    'Content-Type': 'application/json',
+                    'Access-Control-Request-Method': 'DELETE'
+                },
+                method: 'DELETE',
+                body: JSON.stringify({ownerId: id})
+            })
+            console.log(slot);
+            await renderAll();
+        }
+    }
+    async function activate(slotId){
+        let slot = await fetch(url + slotId + "/activate", {
+            headers: {
+                'Authorization': 'Bearer ' + token,
+                'Content-Type': 'application/json'
+
+            },
+            method: 'POST',
+            body: JSON.stringify({ownerId: id})
+        })
+        let response = await slot.json();
+
+        console.log("Activate response: ", response);
+        await renderAll();
     }
 
-    function deleteSlot(){
-        alert("oh");
+    async function deactivate(slotId){
+        let slot = await fetch(url + slotId + "/deactivate", {
+            headers: {
+                'Authorization': 'Bearer ' + token,
+                'Content-Type': 'application/json'
+
+            },
+            method: 'POST',
+            body: JSON.stringify({ownerId: id})
+        })
+        let response = await slot.json();
+
+        console.log("Deac response: ", response);
+        await renderAll();
     }
 
     renderAll();

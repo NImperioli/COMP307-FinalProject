@@ -1,5 +1,6 @@
 // Nicholas Imperioli - 261120345
 const {
+  createSlot,
   createRecurringSlots,
   activateSlot,
   activateSlotsByGroup,
@@ -33,7 +34,18 @@ const {
   buildInviteUrl,
 } = require("../services/notificationService");
 
-// Slot management (owner) 
+// Slot management (owner)
+
+exports.createSlot = async (req, res) => { //wb
+  try {
+    const {ownerId, title, start, end} = req.body;
+    let result = await createSlot(ownerId, title, start, end);
+    res.json(result);
+  } catch (err){
+    res.status(500).json({ error: err.message });
+  }
+}
+
 exports.createRecurringSlots = async (req, res) => {
   try {
     const { ownerId, weeklySlots, weeks } = req.body;
@@ -48,8 +60,9 @@ exports.createRecurringSlots = async (req, res) => {
 
 exports.activateSlot = async (req, res) => {
   try {
-    const { ownerId } = req.body;
+    const { ownerId } = req.body.ownerId;
     const result = await activateSlot(req.params.slotId, ownerId);
+    console.log("Activating: slot:" + req.params.slotId, " owner:" + ownerId);
     if (result.matchedCount === 0)
       return res.status(404).json({ error: "Slot not found or you are not the owner." });
     res.json(result);
@@ -80,7 +93,9 @@ exports.deactivateSlot = async (req, res) => {
 
 exports.deleteSlot = async (req, res) => {
   try {
-    const { ownerId } = req.body;
+    console.log(req.body);
+    console.log(req.params.slotId);
+    const { ownerId } = req.body.ownerId;
     const slot = await findSlotById(req.params.slotId);
     if (!slot) return res.status(404).json({ error: "Slot not found." });
 
@@ -126,6 +141,7 @@ exports.deleteSlotsByGroup = async (req, res) => {
 exports.findSlotsByOwner = async (req, res) => {
   try {
     const result = await findSlotsByOwner(req.params.ownerId);
+    console.log(result);
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });

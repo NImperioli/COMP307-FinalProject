@@ -5,7 +5,8 @@ const router     = express.Router();
 const controller = require("../controllers/slotController");
 const authToken = require("../middleware/authMiddleware");
 
-// Owner: slot management 
+// Owner: slot management
+router.post("/create",                             authToken.authenticateOwnerToken, controller.createSlot); //wb
 router.post("/recurring",                          authToken.authenticateOwnerToken, controller.createRecurringSlots);
 router.post("/:slotId/activate",                   authToken.authenticateOwnerToken, controller.activateSlot);
 router.post("/group/:groupToken/activate",         authToken.authenticateOwnerToken, controller.activateSlotsByGroup);
