@@ -3,14 +3,24 @@ const { getDB } = require("../config/db");
 const { ObjectId } = require("mongodb");
 const COLLECTION = "reservations";
 
+// Helper
+const toOid = (val, label = "id") => {
+  try {
+    return new ObjectId(val);
+  } catch {
+    throw new Error(`Invalid ${label}: "${val}"`);
+  }
+};
+
 const reserveSlot = async (slotId, userId) => {
   const db = getDB();
 
-  const slot = await db.collection("slots").findOne({ _id: new ObjectId(slotId) });
+  const slot = await db.collection("slots").findOne({ _id: toOid(slotId, "slotId") });
   if (!slot) throw new Error("Slot not found.");
   
+  // Integrity
   if (slot.ownerId.toString() === userId.toString()) {
-    throw new Error("Security Violation: Owners cannot reserve their own booking slots.");
+    throw new Error("Owners cannot reserve their own booking slots.");
   }
 
   if (slot.status !== "active") throw new Error("Slot is not available for booking.");
@@ -20,14 +30,14 @@ const reserveSlot = async (slotId, userId) => {
   }
 
   const existing = await db.collection(COLLECTION).findOne({
-    slotId: new ObjectId(slotId),
+    slotId: toOid(slotId, "slotId"),
     cancelledAt: { $exists: false },
   });
   if (existing) throw new Error("Slot is already reserved.");
 
   return await db.collection(COLLECTION).insertOne({
-    slotId: new ObjectId(slotId),
-    userId: new ObjectId(userId),
+    slotId: toOid(slotId, "slotId"),
+    userId: toOid(userId, "userId"),
     reservedAt: new Date(),
   });
 };
@@ -35,7 +45,9 @@ const reserveSlot = async (slotId, userId) => {
 const cancelReservation = async (reservationId, userId) => {
   const db = getDB();
   return await db.collection(COLLECTION).updateOne(
-    { _id: new ObjectId(reservationId), userId: new ObjectId(userId), cancelledAt: { $exists: false } },
+    { _id: toOid(reservationId, "reservationId"), 
+      userId: toOid(userId, "userId"), 
+      cancelledAt: { $exists: false } },
     { $set: { cancelledAt: new Date() } }
   );
 };
@@ -44,30 +56,34 @@ const cancelReservation = async (reservationId, userId) => {
 const findReservationBySlot = async (slotId) => {
   const db = getDB();
   const [result] = await db.collection(COLLECTION).aggregate([
-    { $match: { slotId: new ObjectId(slotId), cancelledAt: { $exists: false } } },
+    { $match: { slotId: toOid(slotId, "slotId"), cancelledAt: { $exists: false } } },
     { $lookup: { from: "users", localField: "userId", foreignField: "_id", as: "user" } },
     { $unwind: "$user" }
   ]).toArray();
-  return result || null;
+  return result ?? null;
+};
+
+// Notificaiton helper
+const findReservationWithDetails = async (reservationId) => {
+  const db = getDB();
+  const [result] = await db.collection(COLLECTION).aggregate([
+    { $match: { _id: toOid(reservationId, "reservationId") } },
+    { $lookup: { from: "slots", localField: "slotId",  foreignField: "_id", as: "slot"  } },
+    { $lookup: { from: "users", localField: "userId",  foreignField: "_id", as: "user"  } },
+    { $unwind: "$slot" },
+    { $unwind: "$user" },
+    { $limit: 1 },
+  ]).toArray();
+  return result ?? null;
 };
 
 // Owner view
 const findReservationsByOwner = async (ownerId) => {
   const db = getDB();
 
-  // Get all slot IDs belonging to this owner
-  const ownerSlots = await db.collection("slots")
-    .find({ ownerId: new ObjectId(ownerId) })
-    .project({ _id: 1 })
-    .toArray();
-
-  const slotIds = ownerSlots.map(s => s._id);
-  if (slotIds.length === 0) return [];
-
   return await db.collection(COLLECTION).aggregate([
     {
       $match: {
-        slotId:      { $in: slotIds },
         cancelledAt: { $exists: false },
       },
     },
@@ -79,6 +95,8 @@ const findReservationsByOwner = async (ownerId) => {
         as:           "slot",
       },
     },
+    { $unwind: "$slot" },
+    { $match: { "slot.ownerId": toOid(ownerId, "ownerId") } },
     {
       $lookup: {
         from:         "users",
@@ -87,7 +105,6 @@ const findReservationsByOwner = async (ownerId) => {
         as:           "user",
       },
     },
-    { $unwind: "$slot" },
     { $unwind: "$user" },
     { $sort: { "slot.startTime": 1 } },
   ]).toArray();
@@ -99,7 +116,7 @@ const findReservationsByUser = async (userId) => {
   return await db.collection(COLLECTION).aggregate([
     {
       $match: {
-        userId:      new ObjectId(userId),
+        userId:      toOid(userId, "userId"),
         cancelledAt: { $exists: false },
       },
     },
@@ -111,6 +128,8 @@ const findReservationsByUser = async (userId) => {
         as:           "slot",
       },
     },
+    { $match: { slot: { $ne: [] } } },
+    { $unwind: "$slot" },
     {
       $lookup: {
         from:         "users",
@@ -119,38 +138,29 @@ const findReservationsByUser = async (userId) => {
         as:           "owner",
       },
     },
-    { $unwind: "$slot" },
     { $unwind: "$owner" },
     { $sort: { "slot.startTime": 1 } },
   ]).toArray();
 };
 
-// Notification helper
-const findReservationWithDetails = async (reservationId) => {
+const findActiveReservationsBySlotIds = async (slotIds) => {
+  if (!slotIds || slotIds.length === 0) return new Map();
   const db = getDB();
-  const [result] = await db.collection(COLLECTION).aggregate([
-    { $match: { _id: new ObjectId(reservationId) } },
+
+  const oids = slotIds.map((id) => (id instanceof ObjectId ? id : toOid(id, "slotId")));
+
+  const results = await db.collection(COLLECTION).aggregate([
     {
-      $lookup: {
-        from:         "slots",
-        localField:   "slotId",
-        foreignField: "_id",
-        as:           "slot",
+      $match: {
+        slotId:      { $in: oids },
+        cancelledAt: { $exists: false },
       },
     },
-    {
-      $lookup: {
-        from:         "users",
-        localField:   "userId",
-        foreignField: "_id",
-        as:           "user",
-      },
-    },
-    { $unwind: "$slot" },
+    { $lookup: { from: "users", localField: "userId", foreignField: "_id", as: "user" } },
     { $unwind: "$user" },
   ]).toArray();
 
-  return result ?? null;
+  return new Map(results.map((r) => [r.slotId.toString(), r]));
 };
 
 module.exports = {
@@ -160,4 +170,5 @@ module.exports = {
   findReservationsByOwner,
   findReservationsByUser,
   findReservationWithDetails,
+  findActiveReservationsBySlotIds,
 };

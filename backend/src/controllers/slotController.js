@@ -7,11 +7,11 @@ const {
   deactivateSlot,
   deleteSlot,
   deleteSlotsByGroup,
+  findSlotsByGroup,
   findSlotsByOwner,
   findActiveSlotsByOwner,
   findSlotByToken,
   findSlotById,
-  findSlotsByGroup,
   findActiveOwners,
 } = require("../models/slotModel");
 
@@ -22,29 +22,31 @@ const {
   findReservationsByOwner,
   findReservationsByUser,
   findReservationWithDetails,
+  findActiveReservationsBySlotIds,
 } = require("../models/reservationModel");
 
 const {
   slotDeletedNotification,
-  recurringGroupDeletedNotification,
   reservationCancelledNotification,
   slotReservedNotification,
-  ownerMessageToBooker,
-  userMessageToOwner,
+  ownerMessageToBooker:  buildOwnerToBookerMailto,
+  userMessageToOwner:    buildUserToOwnerMailto,
   buildInviteUrl,
 } = require("../services/notificationService");
 
 // Slot management (owner)
 
-exports.createSlot = async (req, res) => { //wb
+exports.createSlot = async (req, res) => {
   try {
-    const {ownerId, title, start, end} = req.body;
-    let result = await createSlot(ownerId, title, start, end);
+    const { ownerId, title, start, end } = req.body;
+    if (!ownerId || !title || !start || !end)
+      return res.status(400).json({ error: "ownerId, title, start, and end are required." });
+    const result = await createSlot(ownerId, title, start, end);
     res.json(result);
-  } catch (err){
+  } catch (err) {
     res.status(500).json({ error: err.message });
   }
-}
+};
 
 exports.createRecurringSlots = async (req, res) => {
   try {
@@ -121,18 +123,20 @@ exports.deleteSlotsByGroup = async (req, res) => {
     const { ownerId } = req.body;
     const { groupToken } = req.params;
 
-    // Find reserved slots in the group before deleting
     const groupSlots = await findSlotsByGroup(groupToken);
+    const slotIds = groupSlots.map(s => s._id);
+    const reservationMap = await findActiveReservationsBySlotIds(slotIds);
+
     const notifyBookers = [];
     for (const slot of groupSlots) {
-      const reservation = await findReservationBySlot(slot._id.toString());
+      const reservation = reservationMap.get(slot._id.toString());
       if (reservation) {
         notifyBookers.push(slotDeletedNotification(reservation.user.email, slot));
       }
     }
 
-    const result = await deleteSlotsByGroup(groupToken, ownerId);
-    res.json({ result, notifyBookers });
+    const { deletedCount, skippedIds } = await deleteSlotsByGroup(groupToken, ownerId, reservationMap);
+    res.json({ result: { deletedCount, skippedIds }, notifyBookers });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -198,7 +202,7 @@ exports.getInviteUrl = async (req, res) => {
   try {
     const slot = await findSlotById(req.params.slotId);
     if (!slot) return res.status(404).json({ error: "Slot not found." });
-    const baseUrl = req.query.baseUrl || "http://localhost:3000";
+    const baseUrl = req.query.baseUrl || "http://localhost:3000";//Change URL when deployed on mimi
     const token   = slot.groupToken || slot.inviteToken;
     const url     = buildInviteUrl(baseUrl, token);
     res.json({ inviteUrl: url, token });
@@ -271,8 +275,7 @@ exports.userMessageToOwner = async (req, res) => {
     const db    = require("../config/db").getDB();
     const { ObjectId } = require("mongodb");
     const owner = await db.collection("users").findOne({ _id: new ObjectId(slot.ownerId) });
-    const mailto = userMessageToOwner(owner.email, slot);
-    res.json({ mailto });
+    res.json({ mailto: buildUserToOwnerMailto(owner.email, slot) });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -284,8 +287,7 @@ exports.ownerMessageToBooker = async (req, res) => {
     if (!slot) return res.status(404).json({ error: "Slot not found." });
     const reservation = await findReservationBySlot(req.params.slotId);
     if (!reservation) return res.status(404).json({ error: "No active reservation for this slot." });
-    const mailto = ownerMessageToBooker(reservation.user.email, slot);
-    res.json({ mailto });
+    res.json({ mailto: buildOwnerToBookerMailto(reservation.user.email, slot) });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

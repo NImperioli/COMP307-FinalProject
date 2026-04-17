@@ -4,21 +4,37 @@ const { ObjectId } = require("mongodb");
 const crypto = require("crypto");
 const COLLECTION = "slots";
 
-// Helper
+// Helpers
 function expandWeeklyOccurrences(baseTime, weeks) {
   const MS_PER_WEEK = 7 * 24 * 60 * 60 * 1000;
   const base = new Date(baseTime);
   return Array.from({ length: weeks }, (_, i) => new Date(base.getTime() + i * MS_PER_WEEK));
 }
 
+const toOid = (val, label = "id") => {
+  try {
+    return new ObjectId(val);
+  } catch {
+    throw new Error(`Invalid ${label}: "${val}"`);
+  }
+};
+
 const createSlot = async (ownerId,  title, startTime, endTime ) => {
   const db = getDB();
+
+  // Integrity
+  const start = new Date(startTime);
+  const end   = new Date(endTime);
+  if (isNaN(start.getTime())) throw new Error("startTime is not a valid date.");
+  if (isNaN(end.getTime()))   throw new Error("endTime is not a valid date.");
+  if (end <= start)           throw new Error("endTime must be after startTime.");
+
   return await db.collection(COLLECTION).insertOne({
-    ownerId: new ObjectId(ownerId),
-    title,
-     type: "single",
-    startTime: new Date(startTime),
-    endTime: new Date(endTime),
+    ownerId: toOid(ownerId, "ownerId"),
+    title:       title?.trim(),
+    type:        "single",
+    startTime:   start,
+    endTime:     end,
     status: "private",
     inviteToken: crypto.randomUUID(),
     createdAt: new Date()
@@ -41,6 +57,8 @@ const createRecurringSlots = async (ownerId, weeklySlots, weeks) => {
   for (const slot of weeklySlots) {
     const start = new Date(slot.startTime);
     const end = new Date(slot.endTime);
+    if (isNaN(start.getTime())) throw new Error(`Invalid startTime for slot "${slot.title}".`);
+    if (isNaN(end.getTime()))   throw new Error(`Invalid endTime for slot "${slot.title}".`);
     if (end <= start) {
       throw new Error(`Invalid time range for slot "${slot.title}": End time must be after start time.`);
     }
@@ -50,16 +68,16 @@ const createRecurringSlots = async (ownerId, weeklySlots, weeks) => {
 
     for (let w = 0; w < weeks; w++) {
       docs.push({
-        ownerId: new ObjectId(ownerId),
-        title: slot.title,
-        type: "recurring",
-        weekNumber: w + 1,
-        startTime: startOccurrences[w],
-        endTime: endOccurrences[w],
-        status: "private",
+        ownerId:     toOid(ownerId, "ownerId"),
+        title:       slot.title?.trim(),
+        type:        "recurring",
+        weekNumber:  w + 1,
+        startTime:   startOccurrences[w],
+        endTime:     endOccurrences[w],
+        status:      "private",
         groupToken,
         inviteToken: groupToken,
-        createdAt: new Date(),
+        createdAt:   new Date(),
       });
     }
   }
@@ -76,7 +94,7 @@ const createRecurringSlots = async (ownerId, weeklySlots, weeks) => {
 const activateSlot = async (slotId, ownerId) => {
   const db = getDB();
   return await db.collection(COLLECTION).updateOne(
-    { _id: new ObjectId(slotId), ownerId: new ObjectId(ownerId) },
+    { _id: toOid(slotId, "slotId"), ownerId: toOid(ownerId, "ownerId") },
     { $set: { status: "active" } }
   );
 };
@@ -84,29 +102,28 @@ const activateSlot = async (slotId, ownerId) => {
 const activateSlotsByGroup = async (groupToken, userId) => {
   const db = getDB();
 
-  const user = await db.collection("users").findOne({ _id: new ObjectId(userId) });
+  const user = await db.collection("users").findOne({ _id: toOid(userId, "userId") });
   if (!user || user.role !== "owner") {
     throw new Error("Unauthorized: Only registered owners can activate slots.");
   }
 
-  const result = await db.collection(COLLECTION).updateMany(
-    { groupToken, ownerId: new ObjectId(userId), status: "private" },
+  return await db.collection(COLLECTION).updateMany(
+    { groupToken, ownerId: toOid(userId, "userId"), status: "private" },
     { $set: { status: "active" } }
   );
 
-  return result;
 };
 
 const deactivateSlot = async (slotId, ownerId) => {
   const db = getDB();
   // Check for active reservation before deactivating
   const reservation = await db.collection("reservations").findOne({
-    slotId: new ObjectId(slotId),
+    slotId: toOid(slotId, "slotId"),
     cancelledAt: { $exists: false },
   });
   if (reservation) throw new Error("Cannot deactivate a slot that has an active reservation.");
   return await db.collection(COLLECTION).updateOne(
-    { _id: new ObjectId(slotId), ownerId: new ObjectId(ownerId), status: "active" },
+    { _id: toOid(slotId, "slotId"), ownerId: toOid(ownerId, "ownerId"), status: "active" },
     { $set: { status: "private" } }
   );
 };
@@ -114,37 +131,35 @@ const deactivateSlot = async (slotId, ownerId) => {
 const deleteSlot = async (slotId, ownerId) => {
   const db = getDB();
   return await db.collection(COLLECTION).deleteOne({
-    _id:     new ObjectId(slotId),
-    ownerId: new ObjectId(ownerId),
+    _id:     toOid(slotId, "slotId"),
+    ownerId: toOid(ownerId, "ownerId"),
   });
 };
 
-const deleteSlotsByGroup = async (groupToken, ownerId) => {
+const deleteSlotsByGroup = async (groupToken, ownerId, reservationMap = new Map()) => {
   const db = getDB();
-
-  // Find all slots in the group owned by this owner
   const groupSlots = await db.collection(COLLECTION)
-    .find({ groupToken, ownerId: new ObjectId(ownerId) })
+    .find({ groupToken, ownerId: toOid(ownerId, "ownerId") })
     .toArray();
 
   if (groupSlots.length === 0) return { deletedCount: 0, skippedIds: [] };
 
   const slotIds = groupSlots.map(s => s._id);
 
-  // Find which ones have active reservations
-  const reserved = await db.collection("reservations")
-    .find({ slotId: { $in: slotIds }, cancelledAt: { $exists: false } })
-    .toArray();
+  // If no map was provided, fetch reservations now
+  if (reservationMap.size === 0) {
+    const active = await db.collection("reservations")
+      .find({ slotId: { $in: slotIds }, cancelledAt: { $exists: false } })
+      .toArray();
+    for (const r of active) reservationMap.set(r.slotId.toString(), r);
+  }
 
-  const reservedSlotIds = new Set(reserved.map(r => r.slotId.toString()));
-  const deletableIds    = slotIds.filter(id => !reservedSlotIds.has(id.toString()));
-  const skippedIds      = slotIds.filter(id =>  reservedSlotIds.has(id.toString()));
+  const deletableIds = slotIds.filter(id => !reservationMap.has(id.toString()));
+  const skippedIds   = slotIds.filter(id =>  reservationMap.has(id.toString()));
 
   let deletedCount = 0;
   if (deletableIds.length > 0) {
-    const result = await db.collection(COLLECTION).deleteMany({
-      _id: { $in: deletableIds },
-    });
+    const result = await db.collection(COLLECTION).deleteMany({ _id: { $in: deletableIds } });
     deletedCount = result.deletedCount;
   }
 
@@ -155,7 +170,7 @@ const deleteSlotsByGroup = async (groupToken, ownerId) => {
 const findSlotsByOwner = async (ownerId) => {
   const db = getDB();
   return await db.collection(COLLECTION)
-    .find({ ownerId: new ObjectId(ownerId) })
+    .find({ ownerId: toOid(ownerId, "ownerId") })
     .sort({ startTime: 1 })
     .toArray();
 };
@@ -163,7 +178,7 @@ const findSlotsByOwner = async (ownerId) => {
 const findActiveSlotsByOwner = async (ownerId) => {
   const db = getDB();
   return await db.collection(COLLECTION)
-    .find({ ownerId: new ObjectId(ownerId), status: "active" })
+    .find({ ownerId: toOid(ownerId, "ownerId"), status: "active" })
     .sort({ startTime: 1 })
     .toArray();
 };
@@ -177,7 +192,7 @@ const findSlotByToken = async (inviteToken) => {
 
 const findSlotById = async (slotId) => {
   const db = getDB();
-  return await db.collection(COLLECTION).findOne({ _id: new ObjectId(slotId) });
+  return await db.collection(COLLECTION).findOne({ _id: toOid(slotId, "slotId") });
 };
 
 const findSlotsByGroup = async (groupToken) => {
