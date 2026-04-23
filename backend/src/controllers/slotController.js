@@ -62,7 +62,7 @@ exports.createRecurringSlots = async (req, res) => {
 
 exports.activateSlot = async (req, res) => {
   try {
-    const { ownerId } = req.body.ownerId;
+    const { ownerId } = req.body;
     const result = await activateSlot(req.params.slotId, ownerId);
     console.log("Activating: slot:" + req.params.slotId, " owner:" + ownerId);
     if (result.matchedCount === 0)
@@ -97,7 +97,7 @@ exports.deleteSlot = async (req, res) => {
   try {
     console.log(req.body);
     console.log(req.params.slotId);
-    const { ownerId } = req.body.ownerId;
+    const { ownerId } = req.body;
     const slot = await findSlotById(req.params.slotId);
     if (!slot) return res.status(404).json({ error: "Slot not found." });
 

@@ -107,8 +107,8 @@ const voteForSlots = async (bookingId, userId, slotTimes) => {
           slots: {
             $elemMatch: {
               time: {
-                $gte: new Date(time.getTime() - 1),
-                $lte: new Date(time.getTime() + 1),
+                $gte: new Date(time.getTime() - 1000),
+                $lte: new Date(time.getTime() + 1000),
               },
               voters: { $ne: userId },   // atomic 
             },
@@ -157,7 +157,7 @@ const finalizeGroupMeeting = async (bookingId, selectedTime, repeatWeeks = 1, ow
   // Integrity: selectedTime must be one of the proposed slots
   const selTime = new Date(selectedTime);
   const slotMatch = booking.slots.find(
-    (s) => Math.abs(new Date(s.time).getTime() - selTime.getTime()) <= 1
+    (s) => Math.abs(new Date(s.time).getTime() - selTime.getTime()) <= 1000
   );
   if (!slotMatch) {
     throw new Error("selectedTime does not match any of the proposed slot times.");
@@ -239,7 +239,7 @@ const reserveOfficeHour = async (bookingId, slotTime, userId) => {
   const { ObjectId } = require("mongodb");
   const db = require("../config/db").getDB();
   return await db.collection("bookings").updateOne(
-    { _id: new ObjectId(bookingId), "slots.time": slotTime, "slots.reservedBy": null },
+    { _id: new ObjectId(bookingId), "slots.time": new Date(slotTime), "slots.reservedBy": null },
     { $set: { "slots.$.reservedBy": userId } }
   );
 };
