@@ -19,7 +19,7 @@ exports.respondToRequest = async (req, res) => {
     const { bookingId, accepted } = req.body;
     if (!bookingId || accepted === undefined)
       return res.status(400).json({ error: "bookingId and accepted are required." });
-    const result = await bookingService.respondToRequest(bookingId, accepted);
+    const result = await bookingService.respondToRequest(bookingId, accepted, ownerId);
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });

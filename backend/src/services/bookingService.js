@@ -1,5 +1,10 @@
 //Nicholas Imperioli - 261120345
 const { createBooking, findBookings, updateBooking } = require("../models/bookingModel");
+const { ObjectId } = require("mongodb");
+
+const toOid = (val) => {
+  try { return new ObjectId(val); } catch { return val; }
+};
 
 // TYPE 1 — Request a Meeting 
 const requestMeeting = async (userId, ownerId, message, userEmail, ownerEmail) => {
@@ -9,8 +14,8 @@ const requestMeeting = async (userId, ownerId, message, userEmail, ownerEmail) =
 
   const booking = await createBooking({
     type:       "TYPE1",
-    userId,
-    ownerId,
+    userId:     toOid(userId),
+    ownerId:    toOid(ownerId),
     userEmail,
     ownerEmail,
     message,
@@ -27,19 +32,22 @@ const requestMeeting = async (userId, ownerId, message, userEmail, ownerEmail) =
   return { booking, notifyOwner };
 };
 
-const respondToRequest = async (bookingId, accepted) => {
-
-  const { ObjectId } = require("mongodb");
+const respondToRequest = async (bookingId, accepted, ownerId = null) => {
   const db = require("../config/db").getDB();
-
-  const booking = await db.collection("bookings").findOne({ _id: new ObjectId(bookingId) });
+  let booking = await db.collection("bookings").findOne({ _id: bookingId });
+  if (!booking) {
+    try {
+      const { ObjectId } = require("mongodb");
+      booking = await db.collection("bookings").findOne({ _id: new ObjectId(bookingId) });
+    } catch {}
+  }
   if (!booking) throw new Error("Booking not found.");
   if (booking.status !== "pending") {
     throw new Error(`Booking has already been ${booking.status} and cannot be updated.`);
   }
 
   const status = accepted ? "approved" : "declined";
-  const result = await updateBooking(bookingId, { status, respondedAt: new Date() });
+  const result = await updateBooking(booking._id, { status, respondedAt: new Date() });
 
   const notifyUser = `mailto:${booking.userEmail}?subject=${encodeURIComponent(
     `Your meeting request has been ${status}`
@@ -116,7 +124,7 @@ const voteForSlots = async (bookingId, userId, slotTimes) => {
         },
         update: {
           $inc:      { "slots.$.votes": 1 },
-          $addToSet: { "slots.$.voters": userId },
+          $addToSet: { "slots.$.voters": toOid(userId) },
         },
       },
     };
@@ -173,7 +181,9 @@ const finalizeGroupMeeting = async (bookingId, selectedTime, repeatWeeks = 1, ow
 
   const MS_PER_WEEK = 7 * 24 * 60 * 60 * 1000;
   const base        = selTime;
-  const allVoters   = [...new Set(booking.slots.flatMap((s) => s.voters))];
+  const allVoters   = [...new Set(booking.slots.flatMap((s) => s.voters))].map(v => {
+  try { return new ObjectId(v); } catch { return v; }
+});
 
   const appointments = Array.from({ length: weeks }, (_, w) => ({
     bookingId:   new ObjectId(bookingId),
