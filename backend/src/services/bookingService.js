@@ -35,13 +35,21 @@ const requestMeeting = async (userId, ownerId, message, userEmail, ownerEmail) =
 const respondToRequest = async (bookingId, accepted, ownerId = null) => {
   const db = require("../config/db").getDB();
   let booking = await db.collection("bookings").findOne({ _id: bookingId });
+
   if (!booking) {
     try {
       const { ObjectId } = require("mongodb");
       booking = await db.collection("bookings").findOne({ _id: new ObjectId(bookingId) });
     } catch {}
   }
+
   if (!booking) throw new Error("Booking not found.");
+  if (ownerId !== null && booking.ownerId.toString() !== ownerId.toString()) {
+    return {
+      result: { matchedCount: 0, modifiedCount: 0 },
+      notifyUser: null
+    };
+  }
   if (booking.status !== "pending") {
     throw new Error(`Booking has already been ${booking.status} and cannot be updated.`);
   }
@@ -101,8 +109,12 @@ const voteForSlots = async (bookingId, userId, slotTimes) => {
   const db = require("../config/db").getDB();
   const booking = await db.collection("bookings").findOne({ _id: new ObjectId(bookingId) });
   if (!booking) throw new Error("Booking not found.");
+
   if (booking.status !== "collecting_votes") {
-    throw new Error("Voting is no longer open for this booking.");
+  return slotTimes.map(slotTime => ({
+      slotTime,
+      modified: false
+    }));  
   }
   const now = new Date();
 
@@ -238,7 +250,7 @@ const createOfficeHours = async (ownerId, slots, weeks) => {
   return await createBooking({
     type:      "TYPE3",
     ownerId,
-    slots:     slots.map(s => ({ time: s, reservedBy: null })),
+    slots:     slots.map(s => ({ time: new Date(s), reservedBy: null })),
     weeks,
     status:    "open",
     createdAt: new Date(),
@@ -249,8 +261,20 @@ const reserveOfficeHour = async (bookingId, slotTime, userId) => {
   const { ObjectId } = require("mongodb");
   const db = require("../config/db").getDB();
   return await db.collection("bookings").updateOne(
-    { _id: new ObjectId(bookingId), "slots.time": new Date(slotTime), "slots.reservedBy": null },
-    { $set: { "slots.$.reservedBy": userId } }
+    {
+      _id: new ObjectId(bookingId),
+      slots: {
+        $elemMatch: {
+          time: new Date(slotTime),
+          reservedBy: null
+        }
+      }
+    },
+    {
+      $set: {
+        "slots.$.reservedBy": userId
+      }
+    }
   );
 };
 
