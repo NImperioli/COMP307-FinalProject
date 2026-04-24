@@ -45,7 +45,7 @@ exports.authenticateUserToken = async (req, res, next) => {
                 return res.status(403).json({message: "Invalid Token!"});
             }
             req.user = decoded;
-            if (req.user.role !== "user"){
+            if (req.user.role !== "student"){
                 // unauthorized role.
                 return res.status(403).json({message: "Unauthorized access"});
             }
