@@ -6,7 +6,7 @@ const bookingRoutes = require("./src/routes/bookingRoutes");
 const authRoutes = require("./src/routes/authRoutes"); // Annie Huynh
 const slotRoutes = require("./src/routes/slotRoutes"); //Annie Huynh
 const cors = require('cors'); //wb
-
+const path = require("path");
 const app = express();
 app.use(express.json());
 //app.use(cors({origin: 'http://FINAL.URL'})); // wb // change when site has its final url on mimi
@@ -18,6 +18,13 @@ app.use((req, res, next) => {
   res.setHeader("Cache-Control", "no-store");
   next();
 });
+
+app.use("/frontend", express.static(path.join(__dirname, "../frontend")));
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/landing.html"));
+});
+
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/auth", authRoutes); // Annie Huynh
 app.use("/api/slots", slotRoutes); // Annie Huynh
