@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+    <style>
+        request-card{}
+        accept-button{}
+        decline-button{}
+
+    </style>
+    <body>
+        <div id="requestsList"></div>
+        <!---- Annie Huynh ---->
+        <script>
+            // check if data is there, redirect if missing or is not owner
+            const token = localStorage.getItem('token');
+            const role = localStorage.getItem('role');
+            const id = localStorage.getItem('user._id');
+            if (!token || role != 'owner' || !id ){
+                window.location.href = 'login.html'
+            }
+
+            //fetch active owners on load
+            async function loadRequests(){
+                const url = `http://localhost:3000/api/bookings/requests/owner/${id}/pending`;
+
+                const response = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } }); // header for JWT handshake
+                const data = await response.json();
+
+                console.log(data); // wb testing
+
+                //clear hardcoded cards
+                document.getElementById('requestsList').innerHTML='';
+            
+                // render each owner card
+                for (const request of data){
+                    renderRequest(request);
+                }
+            }
+            loadRequests();
+
+            //helper function to render meeting requests
+            function renderRequest(request){
+                const newDiv = document.createElement("div");
+                newDiv.classList.add("request-card");   // MAKE SURE ITS IN HTML
+                newDiv.innerHTML='';
+
+                const buttonDiv = document.createElement("div")
+
+                const userRequest = document.createElement("p");
+                userRequest.textContent=request.message;
+                newDiv.appendChild(userRequest);
+
+                const userEmail = document.createElement("p");
+                userEmail.textContent=request.userEmail;
+                newDiv.appendChild(userEmail);
+
+                // accept button
+                const accept = document.createElement("button");
+                accept.classList.add("accept-button");
+                accept.textContent="Accept";
+                buttonDiv.appendChild(accept);
+                accept.onclick = async () => {
+                   const response = await fetch('http://localhost:3000/api/bookings/respond', 
+                    { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, 
+                    body: JSON.stringify({ bookingId: request._id, accepted: true }) })
+        
+                    const data = await response.json();
+                            if (response.ok) {
+                                window.open(data.notifyUser);
+                                loadRequests();
+                            } else {
+                                alert(data.error);
+                            }
+                    }
+
+                // decline button
+                const decline = document.createElement("button");
+                decline.classList.add("decline-button");
+                decline.textContent="Decline";
+                buttonDiv.appendChild(decline);
+                decline.onclick = async () => {
+                    const response = await fetch('http://localhost:3000/api/bookings/respond', 
+                    { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, 
+                    body: JSON.stringify({ bookingId: request._id, accepted: false }) })
+
+                    const data = await response.json();
+                            if (response.ok) {
+                                window.open(data.notifyUser);
+                                loadRequests();
+                            } else {
+                                alert(data.error);
+                            }
+                    }
+                newDiv.appendChild(buttonDiv)
+                document.getElementById('requestsList').appendChild(newDiv)
+            }
+
+        </script>
+    </body>
+</html>

@@ -137,8 +137,6 @@
         .action-button:hover {
             background: rgb(237, 27, 47);
         } 
-        
-        request-button{}  
     </style>
 </head>
 
@@ -219,12 +217,18 @@
             // some view stuff wb
             if (role === 'owner'){
                 renderAction("Manage Slots", "owner-manage-slots");
-                const viewRequests = document.createElement("button");
-                viewRequests.classList.add("request-button");
-                viewRequests.textContent="View Pending Requests";
                 renderAction("View Pending Requests", "pending-requests.html");
+                renderAction("Create Group Meeting", "create-group-meeting.html");
 
-                
+                // finalize needs a bookingId — prompt the owner to enter it
+                const finalizeBtn = document.createElement("button");
+                finalizeBtn.classList.add("action-button");
+                finalizeBtn.textContent = "Finalize Group Meeting";
+                finalizeBtn.onclick = () => {
+                    const bookingId = prompt("Enter the Booking ID to finalize:");
+                    if (bookingId) window.location.href = `finalize-group-meeting.html?bookingId=${bookingId}`;
+                };
+                actionsBar.appendChild(finalizeBtn);
             }
         }
         loadDashboard();

@@ -225,18 +225,23 @@
                 return;
             }
 
-            // send login request
-            const response = await fetch('http://localhost:3000/api/auth/register',
-                { method: 'POST', headers: {'Content-Type': 'application/json'}, 
-                    body: JSON.stringify({name, email, password}) })
+            // send register request
+            let response, data;
+            try {
+                response = await fetch('/api/auth/register',
+                    { method: 'POST', headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({name, email, password}) });
+                data = await response.json();
+            } catch (err) {
+                alert('Could not reach the server. Make sure the backend is running.');
+                return;
+            }
 
-            const data = await response.json();
-            if (response.ok){ 
-                // redirect to dashboard 
+            if (response.ok){
                 window.location.href = 'login.html';
             }
             else{
-                alert(data.error) // CHANGE TO SOMETHING NICER IF TIME PERMITS
+                alert(data.error);
                 return;
             }
         });

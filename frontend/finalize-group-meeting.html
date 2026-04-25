@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+    <body>
+        <!--- Annie Huynh --->
+        <h2>Finalize Group Meeting</h2>
+        <div id="slotsList"></div>
+
+        <script>
+            // check token and owner role, redirect if missing
+            const token = localStorage.getItem('token');
+            const role = localStorage.getItem('role');
+            const email = localStorage.getItem('email');
+            if (!token || role !== 'owner') {
+                window.location.href = 'login.html';
+            }
+
+            // read bookingId from URL
+            const bookingId = new URLSearchParams(window.location.search).get('bookingId');
+
+            const slotsList = document.getElementById('slotsList');
+
+            // fetch proposed slots and their vote counts
+            async function loadSlots() {
+                const response = await fetch(`http://localhost:3000/api/bookings/group/${bookingId}/votes`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const data = await response.json();
+
+                slotsList.innerHTML = '';
+                for (const slot of data) {
+                    renderSlot(slot);
+                }
+            }
+            loadSlots();
+
+            // render each slot with vote count and a Select button
+            function renderSlot(slot) {
+                const newDiv = document.createElement("div");
+
+                const time = document.createElement("p");
+                time.textContent = "Time: " + new Date(slot.time).toLocaleString();
+                newDiv.appendChild(time);
+
+                const votes = document.createElement("p");
+                votes.textContent = "Votes: " + slot.votes;
+                newDiv.appendChild(votes);
+
+                const selectBtn = document.createElement("button");
+                selectBtn.textContent = "Select this time";
+                selectBtn.onclick = async () => {
+                    const response = await fetch('http://localhost:3000/api/bookings/group/finalize', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                        body: JSON.stringify({ bookingId, selectedTime: slot.time, ownerEmail: email })
+                    });
+                    const data = await response.json();
+                    if (response.ok) {
+                        window.open(data.notifyOwner); // open confirmation mailto
+                        window.location.href = 'dashboard.html';
+                    } else {
+                        alert(data.error);
+                    }
+                };
+                newDiv.appendChild(selectBtn);
+
+                slotsList.appendChild(newDiv);
+            }
+        </script>
+    </body>
+</html>

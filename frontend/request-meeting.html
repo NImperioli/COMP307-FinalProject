@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+    <body>
+        <textarea id="message">
+        Blabla
+        </textarea>
+        <button id="submit"></button>
+    
+        <!---- Annie Huynh --->
+    <script>
+        // check if data is there, redirect if missing
+        const token = localStorage.getItem('token');
+        const role = localStorage.getItem('role');
+        const id = localStorage.getItem('user._id');
+        const email = localStorage.getItem('email');
+         if (!token || !role || !id || !email){
+            window.location.href = 'login.html'
+        }
+
+        // read owner's email and id 
+        const ownerId = new URLSearchParams(window.location.search).get('ownerId');
+        const ownerEmail = new URLSearchParams(window.location.search).get('ownerEmail');
+
+        const message = document.getElementById('message').value;
+        const submit = document.getElementById('submit');
+        submit.onclick = async() =>{
+            const message = document.getElementById('message').value;
+            const response = await fetch('http://localhost:3000/api/bookings/request', 
+            { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, 
+            body: JSON.stringify({ userId: id, ownerId, message, userEmail: email, ownerEmail }) })
+        
+            const data = await response.json();
+                    if (response.ok) {
+                        window.open(data.notifyOwner)
+                        window.location.href = 'dashboard.html';
+                    } else {
+                        alert(data.error);
+                    }
+        }
+    </script>
+    </body>
+</html>
