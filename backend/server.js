@@ -12,7 +12,8 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, '../frontend')));
 //app.use(cors({origin: 'http://FINAL.URL'})); // wb // change when site has its final url on mimi
 app.use(cors({
-  origin: 'http://winter2026-comp307-group38.cs.mcgill.ca',
+  origin: ['http://winter2026-comp307-group38.cs.mcgill.ca',
+           'https://winter2026-comp307-group38.cs.mcgill.ca'],
   allowedHeaders: ["Content-Type", "Authorization"]
 })); // wb
 // disable server-side cache, stop sending stale data
