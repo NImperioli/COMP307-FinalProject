@@ -141,13 +141,13 @@
         const API_BASE = window.location.origin;
          const id = localStorage.getItem('user._id');
          const email = localStorage.getItem('email');
-/**
+
         // read token and redirect if its missing
         const token = localStorage.getItem('token');
          if (!token){
             window.location.href = 'login.html'
         }
-            **/
+            
         // make sure that this page is only accessed from browse-owners
         const ownerId = new URLSearchParams(window.location.search).get('ownerId');
         if (!ownerId){
