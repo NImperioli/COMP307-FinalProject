@@ -7,7 +7,6 @@ const bookingRoutes = require("./src/routes/bookingRoutes");
 const authRoutes = require("./src/routes/authRoutes"); // Annie Huynh
 const slotRoutes = require("./src/routes/slotRoutes"); //Annie Huynh
 const cors = require('cors'); //wb
-const path = require("path");
 const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../frontend')));
