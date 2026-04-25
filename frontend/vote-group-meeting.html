@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+    <body>
+        <!--- Annie Huynh --->
+        <h2>Vote for a Meeting Time</h2>
+        <div id="slotsList"></div>
+
+        <script>
+            // check token and id, redirect if missing
+            const token = localStorage.getItem('token');
+            const id = localStorage.getItem('user._id');
+            if (!token || !id) {
+                window.location.href = 'login.html';
+            }
+
+            // read bookingId from URL
+            const bookingId = new URLSearchParams(window.location.search).get('bookingId');
+
+            const slotsList = document.getElementById('slotsList');
+
+            // fetch proposed slots and their vote counts
+            async function loadSlots() {
+                const response = await fetch(`http://localhost:3000/api/bookings/group/${bookingId}/votes`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const data = await response.json();
+
+                slotsList.innerHTML = '';
+                for (const slot of data) {
+                    renderSlot(slot);
+                }
+            }
+            loadSlots();
+
+            // render a card for each proposed slot
+            function renderSlot(slot) {
+                const newDiv = document.createElement("div");
+
+                const time = document.createElement("p");
+                time.textContent = "Time: " + new Date(slot.time).toLocaleString();
+                newDiv.appendChild(time);
+
+                const votes = document.createElement("p");
+                votes.textContent = "Votes: " + slot.votes;
+                newDiv.appendChild(votes);
+
+                const voteBtn = document.createElement("button");
+                voteBtn.textContent = "Vote";
+                voteBtn.onclick = async () => {
+                    const response = await fetch('http://localhost:3000/api/bookings/group/vote', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                        body: JSON.stringify({ bookingId, userId: id, slotTimes: [slot.time] })
+                    });
+                    const data = await response.json();
+                    if (response.ok) {
+                        alert('Vote submitted!');
+                        loadSlots(); // refresh to show updated counts
+                    } else {
+                        alert(data.error);
+                    }
+                };
+                newDiv.appendChild(voteBtn);
+
+                slotsList.appendChild(newDiv);
+            }
+        </script>
+    </body>
+</html>
