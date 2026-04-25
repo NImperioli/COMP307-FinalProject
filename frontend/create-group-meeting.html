@@ -12,6 +12,7 @@
         <button id="submit-btn">Create Meeting</button>
 
         <script>
+            const API_BASE = window.location.origin;
             // check token and owner role, redirect if missing
             const token = localStorage.getItem('token');
             const role = localStorage.getItem('role');
@@ -38,7 +39,7 @@
                 if (new Date(closesAt) <= new Date(opensAt)) return alert('Voting must close after it opens.');
                 if (slots.some(s => !s)) return alert('Please fill in all 3 time slots.');
 
-                const response = await fetch('http://localhost:3000/api/bookings/group/create', {
+                const response = await fetch(`${API_BASE}/api/bookings/group/create`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
                     body: JSON.stringify({

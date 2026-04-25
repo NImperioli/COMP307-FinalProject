@@ -10,7 +10,8 @@
         <div id="requestsList"></div>
         <!---- Annie Huynh ---->
         <script>
-            // check if data is there, redirect if missing or is not owner
+            const API_BASE = window.location.origin;
+            // checks
             const token = localStorage.getItem('token');
             const role = localStorage.getItem('role');
             const id = localStorage.getItem('user._id');
@@ -20,7 +21,7 @@
 
             //fetch active owners on load
             async function loadRequests(){
-                const url = `http://localhost:3000/api/bookings/requests/owner/${id}/pending`;
+                const url = `${API_BASE}/api/bookings/requests/owner/${id}/pending`;
 
                 const response = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } }); // header for JWT handshake
                 const data = await response.json();
@@ -59,7 +60,7 @@
                 accept.textContent="Accept";
                 buttonDiv.appendChild(accept);
                 accept.onclick = async () => {
-                   const response = await fetch('http://localhost:3000/api/bookings/respond', 
+                   const response = await fetch(`${API_BASE}/api/bookings/respond`, 
                     { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, 
                     body: JSON.stringify({ bookingId: request._id, accepted: true }) })
         
@@ -78,7 +79,7 @@
                 decline.textContent="Decline";
                 buttonDiv.appendChild(decline);
                 decline.onclick = async () => {
-                    const response = await fetch('http://localhost:3000/api/bookings/respond', 
+                    const response = await fetch(`${API_BASE}/api/bookings/respond`, 
                     { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, 
                     body: JSON.stringify({ bookingId: request._id, accepted: false }) })
 

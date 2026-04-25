@@ -115,15 +115,9 @@
             border-radius: 30px;
             cursor: pointer;
             transition: .3s;
-        }
-
-        .input-submit label {
-            position: absolute;
-            top: 45%;
-            left: 50%;
             color: white;
-            transform: translate(-50%, -50%);
-            cursor: pointer;
+            font-size: 17px;
+            font-family: "Outfit", sans-serif;
         }
 
         .submit-button:hover {
@@ -192,8 +186,7 @@
                     </div>
 
                     <div class="input-submit">
-                        <button class="submit-button" id="submit" type="submit"></button>
-                        <label for="submit">Register</label>
+                        <button class="submit-button" type="submit">Register</button>
                     </div>
                 </form>
                 
@@ -202,11 +195,13 @@
     </div>
     <!--- Annie Huynh --->
     <script>
+        const API_BASE = window.location.origin;
+
         let form = document.querySelector('#registerForm');
         form.addEventListener('submit', async(event) => {
             // stop page from reloading
-            event.preventDefault()
-            
+            event.preventDefault();
+
             // read input values
             const name = document.getElementById("name").value;
             const email = document.getElementById("email").value;
@@ -228,7 +223,7 @@
             // send register request
             let response, data;
             try {
-                response = await fetch('/api/auth/register',
+                response = await fetch(`${API_BASE}/api/auth/register`,
                     { method: 'POST', headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify({name, email, password}) });
                 data = await response.json();

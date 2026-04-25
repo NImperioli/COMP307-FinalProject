@@ -136,6 +136,7 @@
     </div>
     <!--- Annie Huynh --->
     <script>
+        const API_BASE = window.location.origin;
          const id = localStorage.getItem('user._id');
          const email = localStorage.getItem('email');
 
@@ -153,7 +154,7 @@
         const slotsList = document.getElementById('slotsList');
         //fetch active owners on load
         async function loadSlots(){
-            const url = `http://localhost:3000/api/slots/owner/${ownerId}/active`;
+            const url = `${API_BASE}/api/slots/owner/${ownerId}/active`;
 
             const response = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } }); // header for JWT handshake
             const data = await response.json();
@@ -192,7 +193,7 @@
             reserveSlot.textContent="Reserve Slot";
             buttonDiv.appendChild(reserveSlot);
             reserveSlot.onclick = async() => {
-                    const response = await fetch('http://localhost:3000/api/slots/reserve', {
+                    const response = await fetch(`${API_BASE}/api/slots/reserve`, {
                         method: 'POST',
                         headers: { 
                             'Content-Type': 'application/json',

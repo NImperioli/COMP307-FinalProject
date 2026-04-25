@@ -8,7 +8,8 @@
     
         <!---- Annie Huynh --->
     <script>
-        // check if data is there, redirect if missing
+        const API_BASE = window.location.origin;
+        // validation
         const token = localStorage.getItem('token');
         const role = localStorage.getItem('role');
         const id = localStorage.getItem('user._id');
@@ -21,11 +22,10 @@
         const ownerId = new URLSearchParams(window.location.search).get('ownerId');
         const ownerEmail = new URLSearchParams(window.location.search).get('ownerEmail');
 
-        const message = document.getElementById('message').value;
         const submit = document.getElementById('submit');
         submit.onclick = async() =>{
             const message = document.getElementById('message').value;
-            const response = await fetch('http://localhost:3000/api/bookings/request', 
+            const response = await fetch(`${API_BASE}/api/bookings/request`,
             { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, 
             body: JSON.stringify({ userId: id, ownerId, message, userEmail: email, ownerEmail }) })
         

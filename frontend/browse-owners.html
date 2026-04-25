@@ -135,6 +135,7 @@
     </div>
     <!--- Annie Huynh --->
     <script>
+        const API_BASE = window.location.origin;
         // read token and redirect if its missing
         const token = localStorage.getItem('token');
          if (!token){
@@ -144,7 +145,7 @@
         const ownersList = document.getElementById('ownersList');
         //fetch active owners on load
         async function loadOwners(){
-            const url = 'http://localhost:3000/api/slots/owners/active';
+            const url = `${API_BASE}/api/slots/owners/active`;
 
             const response = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } }); // header for JWT handshake
             const data = await response.json();

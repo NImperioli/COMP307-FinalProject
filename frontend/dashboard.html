@@ -188,6 +188,7 @@
     </div>
     <!--- Annie Huynh --->
     <script>
+        const API_BASE = window.location.origin;
         // Read the JWT from localStorage
         const token = localStorage.getItem('token');
         const role = localStorage.getItem('role');
@@ -202,8 +203,8 @@
       // fetch call for student and owner
         async function loadDashboard(){
             const url = role === 'owner'
-            ? `http://localhost:3000/api/slots/owner/${id}`
-            : `http://localhost:3000/api/slots/my-reservations/${id}`;
+            ? `${API_BASE}/api/slots/owner/${id}`
+            : `${API_BASE}/api/slots/my-reservations/${id}`;
 
             const response = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } }); // header for JWT handshake
             const data = await response.json();
@@ -297,7 +298,7 @@
                 messageOwner.textContent="Message Owner";
                 buttonDiv.appendChild(messageOwner);
                 messageOwner.onclick = async () => {
-                    const response = await fetch(`http://localhost:3000/api/slots/${item.slot._id}/message-owner`, {
+                    const response = await fetch(`${API_BASE}/api/slots/${item.slot._id}/message-owner`, {
                         headers: { 'Authorization': 'Bearer ' + token }
                     });
                     const data = await response.json();
@@ -313,7 +314,7 @@
                 cancel.textContent="Cancel Appointment";
                 buttonDiv.appendChild(cancel);
                 cancel.onclick = async() => {
-                    const response = await fetch('http://localhost:3000/api/slots/cancel', {
+                    const response = await fetch(`${API_BASE}/api/slots/cancel`, {
                         method: 'POST',
                         headers: { 
                             'Content-Type': 'application/json',

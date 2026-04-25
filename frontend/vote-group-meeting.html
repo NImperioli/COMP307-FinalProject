@@ -6,6 +6,7 @@
         <div id="slotsList"></div>
 
         <script>
+            const API_BASE = window.location.origin;
             // check token and id, redirect if missing
             const token = localStorage.getItem('token');
             const id = localStorage.getItem('user._id');
@@ -20,7 +21,7 @@
 
             // fetch proposed slots and their vote counts
             async function loadSlots() {
-                const response = await fetch(`http://localhost:3000/api/bookings/group/${bookingId}/votes`, {
+                const response = await fetch(`${API_BASE}/api/bookings/group/${bookingId}/votes`, {
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
                 const data = await response.json();
@@ -47,7 +48,7 @@
                 const voteBtn = document.createElement("button");
                 voteBtn.textContent = "Vote";
                 voteBtn.onclick = async () => {
-                    const response = await fetch('http://localhost:3000/api/bookings/group/vote', {
+                    const response = await fetch(`${API_BASE}/api/bookings/group/vote`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
                         body: JSON.stringify({ bookingId, userId: id, slotTimes: [slot.time] })

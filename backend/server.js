@@ -1,7 +1,8 @@
 //Nicholas Imperioli - 261120345
 require("dotenv").config();
 const express = require("express");
-const { connectDB } = require("./src/config/db"); 
+const path = require("path");
+const { connectDB } = require("./src/config/db");
 const bookingRoutes = require("./src/routes/bookingRoutes");
 const authRoutes = require("./src/routes/authRoutes"); // Annie Huynh
 const slotRoutes = require("./src/routes/slotRoutes"); //Annie Huynh
@@ -9,6 +10,7 @@ const cors = require('cors'); //wb
 
 const app = express();
 app.use(express.json());
+app.use(express.static(path.join(__dirname, '../frontend')));
 //app.use(cors({origin: 'http://FINAL.URL'})); // wb // change when site has its final url on mimi
 app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"]
