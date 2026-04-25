@@ -186,6 +186,14 @@
                 window.location.href = `owner-slots.html?ownerId=${owner._id}`;
             };
 
+            const requestMeeting = document.createElement("button");
+            requestMeeting.classList.add("view-button");
+            requestMeeting.textContent="Request Meeting";
+            buttonDiv.appendChild(requestMeeting);
+            requestMeeting.onclick = () => {
+                window.location.href = `request-meeting.html?ownerId=${owner._id}&ownerEmail=${owner.email}`;
+            };
+
             // append to html 
             newDiv.appendChild(buttonDiv);
             ownersList.appendChild(newDiv);

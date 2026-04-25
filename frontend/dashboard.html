@@ -136,7 +136,9 @@
 
         .action-button:hover {
             background: rgb(237, 27, 47);
-        }
+        } 
+        
+        request-button{}  
     </style>
 </head>
 
@@ -217,6 +219,12 @@
             // some view stuff wb
             if (role === 'owner'){
                 renderAction("Manage Slots", "owner-manage-slots");
+                const viewRequests = document.createElement("button");
+                viewRequests.classList.add("request-button");
+                viewRequests.textContent="View Pending Requests";
+                renderAction("View Pending Requests", "pending-requests.html");
+
+                
             }
         }
         loadDashboard();
