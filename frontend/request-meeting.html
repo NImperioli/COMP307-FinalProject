@@ -1,13 +1,147 @@
+<!-- TAYM ATRACH 261183855 -->
+
 <!DOCTYPE html>
 <html>
-    <body>
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+
+    <title>Request Meeting</title>
+
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Outfit", sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: rgb(255, 255, 255);
+            padding: 30px 40px;
+        }
+
+        h6 {
+            text-align: center;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 35px;
+        }
+
+        .page-header h1 {
+            font-size: 42px;
+            color: rgb(237, 27, 47);
+        }
+
+        .back-button {
+            width: 130px;
+            height: 50px;
+            background: rgb(0, 0, 0);
+            border: none;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            transition: .3s;
+        }
+
+        .back-button:hover {
+            background: rgb(237, 27, 47);
+        }
+
+        .main-panel {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 30px;
+            box-shadow: 0px 5px 10px 1px rgb(146, 146, 146);
+            padding: 30px;
+        }
+
+        .panel-title {
+            font-size: 28px;
+            margin-bottom: 15px;
+            color: black;
+        }
+
+        .panel-text {
+            font-size: 16px;
+            color: rgb(70, 70, 70);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        #message {
+            width: 100%;
+            min-height: 180px;
+            font-size: 17px;
+            padding: 20px 25px;
+            margin-bottom: 20px;
+            border-radius: 25px;
+            border: none;
+            box-shadow: 0px 5px 10px 1px rgb(146, 146, 146);
+            outline: none;
+            resize: vertical;
+            background: rgb(255, 255, 255);
+        }
+
+        #message:focus {
+            box-shadow: 0px 5px 12px 1px rgb(120, 120, 120);
+        }
+
+        #submit {
+            width: 180px;
+            height: 50px;
+            background: rgb(0, 0, 0);
+            border: none;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            transition: .3s;
+            font-size: 15px;
+        }
+
+        #submit::after {
+            content: "Send Request";
+        }
+
+        #submit:hover {
+            background: rgb(237, 27, 47);
+            transform: scale(1.03, 1);
+        }
+    </style>
+</head>
+
+<body>
+    <h6>MyBookings</h6>
+
+    <div class="page-header">
+        <h1>Request Meeting</h1>
+        <button class="back-button" onclick="window.location.href='dashboard.html'">Back</button>
+    </div>
+
+    <div class="main-panel">
+        <h2 class="panel-title">Send a Meeting Request</h2>
+        <p class="panel-text">Write a short message explaining why you want to request a meeting.</p>
+
         <textarea id="message">
         Blabla
         </textarea>
+
         <button id="submit"></button>
-    
-        <!---- Annie Huynh --->
+    </div>
+
+    <!---- Annie Huynh --->
     <script>
+        
+        
         // check if data is there, redirect if missing
         const token = localStorage.getItem('token');
         const role = localStorage.getItem('role');
@@ -16,6 +150,7 @@
          if (!token || !role || !id || !email){
             window.location.href = 'login.html'
         }
+            
 
         // read owner's email and id 
         const ownerId = new URLSearchParams(window.location.search).get('ownerId');
@@ -38,5 +173,5 @@
                     }
         }
     </script>
-    </body>
+</body>
 </html>

@@ -1,11 +1,181 @@
+<!-- TAYM ATRACH 261183855 -->
+
 <!DOCTYPE html>
 <html>
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+
+    <title>Finalize Group Meeting</title>
+
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Outfit", sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: rgb(255, 255, 255);
+            padding: 30px 40px;
+        }
+
+        h6 {
+            text-align: center;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .finalize-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 35px;
+        }
+
+        .finalize-header h1 {
+            font-size: 42px;
+            color: rgb(237, 27, 47);
+        }
+
+        .back-button {
+            width: 150px;
+            height: 50px;
+            background: rgb(0, 0, 0);
+            border: none;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            transition: .3s;
+            font-size: 15px;
+        }
+
+        .back-button:hover {
+            background: rgb(237, 27, 47);
+        }
+
+        .page-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .finalize-box {
+            width: 100%;
+            max-width: 720px;
+            background: rgb(255, 255, 255);
+            border-radius: 30px;
+            box-shadow: 0px 5px 10px 1px rgb(146, 146, 146);
+            padding: 35px 35px 30px 35px;
+        }
+
+        .finalize-title {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .finalize-title h2 {
+            font-size: 30px;
+            margin-bottom: 8px;
+            color: black;
+        }
+
+        .finalize-title p {
+            font-size: 16px;
+            color: rgb(70, 70, 70);
+        }
+
+        #slotsList {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        #slotsList > div {
+            padding: 22px;
+            border-radius: 25px;
+            box-shadow: 0px 3px 8px 1px rgb(220, 220, 220);
+            background: rgb(255, 255, 255);
+        }
+
+        #slotsList p {
+            color: rgb(70, 70, 70);
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        #slotsList p:first-child {
+            color: rgb(0, 0, 0);
+            font-size: 19px;
+            font-weight: 600;
+        }
+
+        #slotsList button {
+            height: 46px;
+            padding: 0 22px;
+            margin-top: 8px;
+            background: rgb(0, 0, 0);
+            border: none;
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            transition: .3s;
+            font-size: 15px;
+        }
+
+        #slotsList button:hover {
+            background: rgb(237, 27, 47);
+            transform: scale(1.04, 1);
+        }
+
+        @media (max-width: 700px) {
+            body {
+                padding: 24px 18px;
+            }
+
+            .finalize-header {
+                flex-direction: column;
+                gap: 18px;
+                text-align: center;
+            }
+
+            .finalize-header h1 {
+                font-size: 34px;
+            }
+
+            .finalize-box {
+                padding: 28px 22px;
+            }
+        }
+    </style>
+</head>
+
     <body>
-        <!--- Annie Huynh --->
-        <h2>Finalize Group Meeting</h2>
-        <div id="slotsList"></div>
+        <h6>MyBookings</h6>
+
+        <div class="finalize-header">
+            <h1>Finalize Group Meeting</h1>
+            <button class="back-button" onclick="window.location.href='dashboard.html'">Dashboard</button>
+        </div>
+
+        <div class="page-container">
+            <div class="finalize-box">
+                <div class="finalize-title">
+                    <h2>Choose Final Time</h2>
+                    <p>Review the voting results and select the meeting time.</p>
+                </div>
+
+                <!--- Annie Huynh --->
+                <div id="slotsList"></div>
+            </div>
+        </div>
 
         <script>
+            
             // check token and owner role, redirect if missing
             const token = localStorage.getItem('token');
             const role = localStorage.getItem('role');
@@ -13,6 +183,7 @@
             if (!token || role !== 'owner') {
                 window.location.href = 'login.html';
             }
+                
 
             // read bookingId from URL
             const bookingId = new URLSearchParams(window.location.search).get('bookingId');

@@ -1,17 +1,232 @@
+<!-- TAYM ATRACH 261183855 -->
+
 <!DOCTYPE html>
 <html>
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+
+    <title>Create Group Meeting</title>
+
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Outfit", sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: rgb(255, 255, 255);
+            padding: 30px 40px;
+        }
+
+        h6 {
+            text-align: center;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .create-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 35px;
+        }
+
+        .create-header h1 {
+            font-size: 42px;
+            color: rgb(237, 27, 47);
+        }
+
+        .back-button {
+            width: 150px;
+            height: 50px;
+            background: rgb(0, 0, 0);
+            border: none;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            transition: .3s;
+            font-size: 15px;
+        }
+
+        .back-button:hover {
+            background: rgb(237, 27, 47);
+        }
+
+        .page-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .meeting-box {
+            width: 100%;
+            max-width: 620px;
+            background: rgb(255, 255, 255);
+            border-radius: 30px;
+            box-shadow: 0px 5px 10px 1px rgb(146, 146, 146);
+            padding: 35px 35px 30px 35px;
+        }
+
+        .meeting-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .meeting-header h2 {
+            font-size: 30px;
+            margin-bottom: 8px;
+            color: black;
+        }
+
+        .meeting-header p {
+            font-size: 16px;
+            color: rgb(70, 70, 70);
+        }
+
+        .form-group {
+            margin-bottom: 17px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: rgb(0, 0, 0);
+        }
+
+        input {
+            width: 100%;
+            height: 58px;
+            font-size: 16px;
+            padding: 0 22px;
+            border-radius: 30px;
+            border: none;
+            box-shadow: 0px 5px 10px 1px rgb(220, 220, 220);
+            outline: none;
+            transition: .3s;
+            background: rgb(255, 255, 255);
+        }
+
+        input:focus {
+            box-shadow: 0px 5px 12px 1px rgb(146, 146, 146);
+            transform: scale(1.02, 1);
+        }
+
+        ::placeholder{
+            font-weight: 500;
+            color: rgb(0, 0, 0);
+        }
+
+        .section-title {
+            font-size: 20px;
+            margin: 25px 0 15px 0;
+            color: rgb(237, 27, 47);
+        }
+
+        #submit-btn {
+            width: 100%;
+            height: 60px;
+            margin-top: 12px;
+            background: rgb(0, 0, 0);
+            border: none;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            transition: .3s;
+            font-size: 16px;
+        }
+
+        #submit-btn:hover {
+            background: rgb(237, 27, 47);
+            transform: scale(1.03, 1);
+        }
+
+        @media (max-width: 700px) {
+            body {
+                padding: 24px 18px;
+            }
+
+            .create-header {
+                flex-direction: column;
+                gap: 18px;
+                text-align: center;
+            }
+
+            .create-header h1 {
+                font-size: 34px;
+            }
+
+            .meeting-box {
+                padding: 28px 22px;
+            }
+        }
+    </style>
+</head>
 
     <body>
-        <!--- Annie Huynh --->
-        <input type="text" id="title" placeholder="Meeting title" /><br>
-        <label>Voting opens: <input type="datetime-local" id="opensAt" /></label><br>
-        <label>Voting closes: <input type="datetime-local" id="closesAt" /></label><br>
-        <label>Slot 1: <input type="datetime-local" id="slot1" /></label><br>
-        <label>Slot 2: <input type="datetime-local" id="slot2" /></label><br>
-        <label>Slot 3: <input type="datetime-local" id="slot3" /></label><br>
-        <button id="submit-btn">Create Meeting</button>
+        <h6>MyBookings</h6>
+
+        <div class="create-header">
+            <h1>Create Group Meeting</h1>
+            <button class="back-button" onclick="window.location.href='dashboard.html'">Dashboard</button>
+        </div>
+
+        <div class="page-container">
+            <div class="meeting-box">
+                <div class="meeting-header">
+                    <h2>Meeting Details</h2>
+                    <p>Set the voting window and add three possible meeting times.</p>
+                </div>
+
+                <!--- Annie Huynh --->
+                <div class="form-group">
+                    <label for="title">Meeting Title</label>
+                    <input type="text" id="title" placeholder="Meeting title" />
+                </div>
+
+                <h3 class="section-title">Voting Period</h3>
+
+                <div class="form-group">
+                    <label for="opensAt">Voting opens</label>
+                    <input type="datetime-local" id="opensAt" />
+                </div>
+
+                <div class="form-group">
+                    <label for="closesAt">Voting closes</label>
+                    <input type="datetime-local" id="closesAt" />
+                </div>
+
+                <h3 class="section-title">Time Slots</h3>
+
+                <div class="form-group">
+                    <label for="slot1">Slot 1</label>
+                    <input type="datetime-local" id="slot1" />
+                </div>
+
+                <div class="form-group">
+                    <label for="slot2">Slot 2</label>
+                    <input type="datetime-local" id="slot2" />
+                </div>
+
+                <div class="form-group">
+                    <label for="slot3">Slot 3</label>
+                    <input type="datetime-local" id="slot3" />
+                </div>
+
+                <button id="submit-btn">Create Meeting</button>
+            </div>
+        </div>
 
         <script>
+            
+            
             // check token and owner role, redirect if missing
             const token = localStorage.getItem('token');
             const role = localStorage.getItem('role');
@@ -20,6 +235,9 @@
             if (!token || role != 'owner' || !id || !email){
                 window.location.href = 'login.html';
             }
+                
+
+
 
             document.getElementById('submit-btn').addEventListener('click', async () => {
                 const title    = document.getElementById('title').value.trim();
