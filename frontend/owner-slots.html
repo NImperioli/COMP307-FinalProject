@@ -96,6 +96,91 @@
         .reserve-button:hover {
             background: rgb(237, 27, 47);
         }
+
+        /* Modal - Annie Huynh */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-box {
+            background: white;
+            border-radius: 30px;
+            padding: 35px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 18px;
+            right: 22px;
+            background: none;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            color: black;
+        }
+
+        .modal-close:hover {
+            color: rgb(237, 27, 47);
+        }
+
+        .modal-title {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: black;
+        }
+
+        #voteSlotsList {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        #voteSlotsList > div {
+            padding: 20px;
+            border-radius: 25px;
+            box-shadow: 0px 3px 8px 1px rgb(220, 220, 220);
+            background: white;
+        }
+
+        #voteSlotsList p {
+            color: rgb(60, 60, 60);
+            margin-bottom: 6px;
+            font-size: 16px;
+        }
+
+        #voteSlotsList button {
+            height: 42px;
+            padding: 0 18px;
+            margin-top: 10px;
+            background: rgb(0, 0, 0);
+            border: none;
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            transition: .3s;
+        }
+
+        #voteSlotsList button:hover {
+            background: rgb(237, 27, 47);
+        }
     </style>
 </head>
 
@@ -137,10 +222,15 @@
         </div>
     </div>
 
+    <!-- Vote Group Meeting Modal - Annie Huynh -->
+    <div class="modal-overlay" id="voteModal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeVoteModal()">&#10005;</button>
+            <h2 class="modal-title">Vote for a Meeting Time</h2>
+            <div id="voteSlotsList"></div>
+        </div>
+    </div>
 
-
-
-    
     <!--- Annie Huynh --->
     <script>
         const API_BASE = window.location.origin;
@@ -155,7 +245,7 @@
             window.location.href = 'login.html'
         }
             **/
-            
+
         // make sure that this page is only accessed from browse-owners
         const ownerId = new URLSearchParams(window.location.search).get('ownerId');
         if (!ownerId){
@@ -172,7 +262,7 @@
 
             //clear hardcoded cards
             slotsList.innerHTML='';
-           
+
             // render each owner card
             for (const slot of data){
                 renderSlotCard(slot);
@@ -206,9 +296,9 @@
             reserveSlot.onclick = async() => {
                     const response = await fetch(`${API_BASE}/api/slots/reserve`, {
                         method: 'POST',
-                        headers: { 
+                        headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + token 
+                            'Authorization': 'Bearer ' + token
                         },
                         body: JSON.stringify({ slotId: slot._id, userId: id, userEmail: email })
                     });
@@ -217,7 +307,7 @@
                         // reload the dashboard to reflect the cancellation
                         loadSlots();
                         if (data.notifyOwner){
-                            window.location.href = data.notifyOwner; // notify owner 
+                            window.location.href = data.notifyOwner; // notify owner
                         }
                         window.location.href = 'dashboard.html';
                     } else {
@@ -225,9 +315,72 @@
                     }
                 }
 
-            // append to html 
+            // append to html
             newDiv.appendChild(buttonDiv);
             slotsList.appendChild(newDiv);
+        }
+
+        // Vote Modal - Annie Huynh
+        let voteBookingId = null;
+
+        function openVoteModal(bookingId) {
+            voteBookingId = bookingId;
+            document.getElementById('voteModal').classList.add('active');
+            loadVoteSlots();
+        }
+
+        function closeVoteModal() {
+            document.getElementById('voteModal').classList.remove('active');
+        }
+
+        async function loadVoteSlots() {
+            const response = await fetch(`${API_BASE}/api/bookings/group/${voteBookingId}/votes`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const data = await response.json();
+            const list = document.getElementById('voteSlotsList');
+            list.innerHTML = '';
+            if (Array.isArray(data)) {
+                for (const slot of data) renderVoteSlot(slot);
+            }
+        }
+
+        function renderVoteSlot(slot) {
+            const list = document.getElementById('voteSlotsList');
+            const newDiv = document.createElement("div");
+
+            const time = document.createElement("p");
+            time.textContent = "Time: " + new Date(slot.time).toLocaleString();
+            newDiv.appendChild(time);
+
+            const votes = document.createElement("p");
+            votes.textContent = "Votes: " + slot.votes;
+            newDiv.appendChild(votes);
+
+            const voteBtn = document.createElement("button");
+            voteBtn.textContent = "Vote";
+            voteBtn.onclick = async () => {
+                const response = await fetch(`${API_BASE}/api/bookings/group/vote`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ bookingId: voteBookingId, userId: id, slotTimes: [slot.time] })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    alert('Vote submitted!');
+                    loadVoteSlots();
+                } else {
+                    alert(data.error);
+                }
+            };
+            newDiv.appendChild(voteBtn);
+            list.appendChild(newDiv);
+        }
+
+        // auto-open vote modal if URL has openVote=true
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('openVote') === 'true' && params.get('bookingId')) {
+            openVoteModal(params.get('bookingId'));
         }
     </script>
 </body>
