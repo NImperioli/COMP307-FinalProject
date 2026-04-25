@@ -114,15 +114,9 @@
             border-radius: 30px;
             cursor: pointer;
             transition: .3s;
-        }
-
-        .input-submit label {
-            position: absolute;
-            top: 45%;
-            left: 50%;
             color: white;
-            transform: translate(-50%, -50%);
-            cursor: pointer;
+            font-size: 17px;
+            font-family: "Outfit", sans-serif;
         }
 
         .submit-button:hover {
@@ -177,8 +171,7 @@
                 </div>
 
                 <div class="input-submit">
-                    <button class="submit-button" id="submit" type="submit"></button>
-                    <label for="submit">Sign In</label>
+                    <button class="submit-button" type="submit">Sign In</button>
                 </div>
             </form>
         </div>
@@ -188,37 +181,42 @@
     
     <!--- Annie Huynh --->
     <script>
+        const API_BASE = window.location.origin;
+
         let form = document.querySelector('#login-form');
         form.addEventListener('submit', async(event) => {
             // stop page from reloading
-            event.preventDefault()
-            
+            event.preventDefault();
+
             // read email/password input values
             const email = document.getElementById("user").value;
-            const username = document.getElementById("user").value;
             const password = document.getElementById("pass").value;
 
             // send login request
-            const response = await fetch('http://localhost:3000/api/auth/login',
-                { method: 'POST', headers: {'Content-Type': 'application/json'}, 
-                    body: JSON.stringify({email, password}) })
+            let response, data;
+            try {
+                response = await fetch(`${API_BASE}/api/auth/login`,
+                    { method: 'POST', headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({email, password}) });
+                data = await response.json();
+            } catch (err) {
+                alert('Could not reach the server. Make sure the backend is running.');
+                return;
+            }
 
-            const data = await response.json();
-            if (response.ok){ 
+            if (response.ok){
                 localStorage.setItem('user._id', data.id);
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('role', data.role);
                 localStorage.setItem('name', data.name);
-                localStorage.setItem('email',data.email);
+                localStorage.setItem('email', data.email);
 
-                // redirect to dashboard 
                 window.location.href = 'dashboard.html';
             }
             else{
-                alert(data.error) // CHANGE TO SOMETHING NICER IF TIME PERMITS
+                alert(data.error);
                 return;
             }
-
         });
     </script>
 </body>

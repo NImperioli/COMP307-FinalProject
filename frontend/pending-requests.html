@@ -131,21 +131,19 @@
     <div class="main-panel">
         <h2 class="panel-title">Requests</h2>
         <div id="requestsList"></div>
-    </div>
+        <!---- Annie Huynh ---->
+        <script>
+            // check if data is there, redirect if missing or is not owner
+            const token = localStorage.getItem('token');
+            const role = localStorage.getItem('role');
+            const id = localStorage.getItem('user._id');
+            if (!token || role != 'owner' || !id ){
+                window.location.href = 'login.html'
+            }
 
-    <script>
-
-        
-        const token = localStorage.getItem('token');
-        const role = localStorage.getItem('role');
-        const id = localStorage.getItem('user._id');
-
-        if (!token || role != 'owner' || !id ){
-            window.location.href = 'login.html'
-        }
-        
-        async function loadRequests(){
-            const url = `http://localhost:3000/api/bookings/requests/owner/${id}/pending`;
+            //fetch active owners on load
+            async function loadRequests(){
+                const url = `http://localhost:3000/api/bookings/requests/owner/${id}/pending`;
 
             const response = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
             const data = await response.json();
@@ -179,7 +177,7 @@
             buttonDiv.appendChild(accept);
 
             accept.onclick = async () => {
-                const response = await fetch('http://localhost:3000/api/bookings/respond', 
+                const response = await fetch(`${API_BASE}/api/bookings/respond`, 
                 { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, 
                 body: JSON.stringify({ bookingId: request._id, accepted: true }) })
 
@@ -198,7 +196,7 @@
             buttonDiv.appendChild(decline);
 
             decline.onclick = async () => {
-                const response = await fetch('http://localhost:3000/api/bookings/respond', 
+                const response = await fetch(`${API_BASE}/api/bookings/respond`, 
                 { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, 
                 body: JSON.stringify({ bookingId: request._id, accepted: false }) })
 
