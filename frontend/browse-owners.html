@@ -82,6 +82,7 @@
 
         .view-button {
             margin-top: 15px;
+            margin-right: 10px;
             width: 170px;
             height: 48px;
             background: black;
@@ -93,6 +94,83 @@
         }
 
         .view-button:hover {
+            background: rgb(237, 27, 47);
+        }
+
+        /* Modal - Annie Huynh */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-box {
+            background: white;
+            border-radius: 30px;
+            padding: 35px;
+            max-width: 560px;
+            width: 90%;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 18px;
+            right: 22px;
+            background: none;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            color: black;
+        }
+
+        .modal-close:hover {
+            color: rgb(237, 27, 47);
+        }
+
+        .modal-box h2 {
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .modal-box textarea {
+            width: 100%;
+            height: 140px;
+            padding: 16px 20px;
+            border-radius: 20px;
+            border: none;
+            box-shadow: 0px 3px 8px 1px rgb(220, 220, 220);
+            font-family: "Outfit", sans-serif;
+            font-size: 15px;
+            resize: none;
+            outline: none;
+            margin-bottom: 18px;
+        }
+
+        .modal-submit {
+            width: 100%;
+            height: 55px;
+            background: black;
+            border: none;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            font-size: 15px;
+            transition: .3s;
+        }
+
+        .modal-submit:hover {
             background: rgb(237, 27, 47);
         }
     </style>
@@ -135,17 +213,37 @@
             <button class="view-button" onclick="window.location.href='owner-slots.html'">View Slots</button>
         </div>
     </div>
+
+    <!-- Request Meeting Modal - Annie Huynh -->
+    <div class="modal-overlay" id="requestModal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeRequestModal()">&#10005;</button>
+            <h2>Request Meeting</h2>
+            <textarea id="requestMessage" placeholder="Write your message to the owner..."></textarea>
+            <button class="modal-submit" id="requestSubmitBtn">Send Request</button>
+        </div>
+    </div>
+
     <!--- Annie Huynh --->
     <script>
         const API_BASE = window.location.origin;
         // read token and redirect if its missing
+
+        /**
         const token = localStorage.getItem('token');
          if (!token){
             window.location.href = 'login.html'
         }
-            
+        **/
+
+        const id = localStorage.getItem('user._id');
+        const userEmail = localStorage.getItem('email');
 
         const ownersList = document.getElementById('ownersList');
+
+        let currentOwnerId = null;
+        let currentOwnerEmail = null;
+
         //fetch active owners on load
         async function loadOwners(){
             const url = `${API_BASE}/api/slots/owners/active`;
@@ -157,7 +255,7 @@
 
             //clear hardcoded cards
             ownersList.innerHTML='';
-           
+
             // render each owner card
             for (const owner of data){
                 renderOwnerCard(owner);
@@ -195,13 +293,43 @@
             requestMeeting.textContent="Request Meeting";
             buttonDiv.appendChild(requestMeeting);
             requestMeeting.onclick = () => {
-                window.location.href = `request-meeting.html?ownerId=${owner._id}&ownerEmail=${owner.email}`;
+                currentOwnerId = owner._id;
+                currentOwnerEmail = owner.email;
+                openRequestModal();
             };
 
-            // append to html 
+            // append to html
             newDiv.appendChild(buttonDiv);
             ownersList.appendChild(newDiv);
         }
+
+        // Request Meeting Modal - Annie Huynh
+        function openRequestModal() {
+            document.getElementById('requestMessage').value = '';
+            document.getElementById('requestModal').classList.add('active');
+        }
+
+        function closeRequestModal() {
+            document.getElementById('requestModal').classList.remove('active');
+        }
+
+        document.getElementById('requestSubmitBtn').onclick = async () => {
+            const message = document.getElementById('requestMessage').value.trim();
+            if (!message) return alert('Please write a message.');
+
+            const response = await fetch(`${API_BASE}/api/bookings/request`,
+                { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify({ userId: id, ownerId: currentOwnerId, message, userEmail, ownerEmail: currentOwnerEmail }) });
+
+            const data = await response.json();
+            if (response.ok) {
+                closeRequestModal();
+                window.open(data.notifyOwner);
+                window.location.href = 'dashboard.html';
+            } else {
+                alert(data.error);
+            }
+        };
     </script>
 </body>
 </html>

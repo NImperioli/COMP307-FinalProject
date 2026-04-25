@@ -82,6 +82,7 @@
             cursor: pointer;
             transition: .3s;
             margin-bottom: 25px;
+            margin-right: 12px;
         }
 
         .create-button:hover {
@@ -124,6 +125,152 @@
         #slot_container button:hover {
             background: rgb(237, 27, 47);
         }
+
+        /* Modal - Annie Huynh */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-box {
+            background: white;
+            border-radius: 30px;
+            padding: 35px;
+            max-width: 620px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 18px;
+            right: 22px;
+            background: none;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            color: black;
+        }
+
+        .modal-close:hover {
+            color: rgb(237, 27, 47);
+        }
+
+        .modal-box h2 {
+            font-size: 28px;
+            margin-bottom: 6px;
+        }
+
+        .modal-box p {
+            color: rgb(70, 70, 70);
+            font-size: 15px;
+            margin-bottom: 22px;
+        }
+
+        .form-group {
+            margin-bottom: 17px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            height: 54px;
+            font-size: 15px;
+            padding: 0 20px;
+            border-radius: 30px;
+            border: none;
+            box-shadow: 0px 3px 8px 1px rgb(220, 220, 220);
+            outline: none;
+            transition: .3s;
+        }
+
+        .form-group input:focus {
+            box-shadow: 0px 5px 12px 1px rgb(146, 146, 146);
+        }
+
+        .section-title {
+            font-size: 18px;
+            color: rgb(237, 27, 47);
+            margin: 22px 0 14px 0;
+        }
+
+        .modal-submit {
+            width: 100%;
+            height: 55px;
+            background: black;
+            border: none;
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            font-size: 15px;
+            transition: .3s;
+            margin-top: 10px;
+        }
+
+        .modal-submit:hover {
+            background: rgb(237, 27, 47);
+        }
+
+        #finalizeSlotsList {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-top: 16px;
+        }
+
+        #finalizeSlotsList > div {
+            padding: 18px;
+            border-radius: 20px;
+            box-shadow: 0px 3px 8px 1px rgb(220, 220, 220);
+        }
+
+        #finalizeSlotsList p {
+            color: rgb(70, 70, 70);
+            margin-bottom: 6px;
+            font-size: 15px;
+        }
+
+        #finalizeSlotsList p:first-child {
+            color: black;
+            font-size: 17px;
+            font-weight: 600;
+        }
+
+        #finalizeSlotsList button {
+            height: 42px;
+            padding: 0 18px;
+            margin-top: 8px;
+            background: black;
+            border: none;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            transition: .3s;
+        }
+
+        #finalizeSlotsList button:hover {
+            background: rgb(237, 27, 47);
+        }
     </style>
 </head>
 
@@ -139,8 +286,72 @@
         <h2 class="panel-title">Available Slots</h2>
 
         <button class="create-button" onclick="createSlot('Evil office hours', Date.parse('2026-06-06'), Date.parse('2026-06-07'))">Create Slot</button>
+        <button class="create-button" onclick="openCreateModal()">Create Group Meeting</button>
+        <button class="create-button" onclick="openFinalizeModal()">Finalize Group Meeting</button>
 
         <div id="slot_container"></div>
+    </div>
+
+    <!-- Create Group Meeting Modal - Annie Huynh -->
+    <div class="modal-overlay" id="createModal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeCreateModal()">&#10005;</button>
+            <h2>Create Group Meeting</h2>
+            <p>Set the voting window and add three possible meeting times.</p>
+
+            <div class="form-group">
+                <label for="meetingTitle">Meeting Title</label>
+                <input type="text" id="meetingTitle" placeholder="Meeting title" />
+            </div>
+
+            <h3 class="section-title">Voting Period</h3>
+
+            <div class="form-group">
+                <label for="opensAt">Voting opens</label>
+                <input type="datetime-local" id="opensAt" />
+            </div>
+
+            <div class="form-group">
+                <label for="closesAt">Voting closes</label>
+                <input type="datetime-local" id="closesAt" />
+            </div>
+
+            <h3 class="section-title">Time Slots</h3>
+
+            <div class="form-group">
+                <label for="slot1">Slot 1</label>
+                <input type="datetime-local" id="slot1" />
+            </div>
+
+            <div class="form-group">
+                <label for="slot2">Slot 2</label>
+                <input type="datetime-local" id="slot2" />
+            </div>
+
+            <div class="form-group">
+                <label for="slot3">Slot 3</label>
+                <input type="datetime-local" id="slot3" />
+            </div>
+
+            <button class="modal-submit" id="createSubmitBtn">Create Meeting</button>
+        </div>
+    </div>
+
+    <!-- Finalize Group Meeting Modal - Annie Huynh -->
+    <div class="modal-overlay" id="finalizeModal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeFinalizeModal()">&#10005;</button>
+            <h2>Finalize Group Meeting</h2>
+            <p>Review the voting results and select the final meeting time.</p>
+
+            <div class="form-group">
+                <label for="finalizeBookingId">Booking ID</label>
+                <input type="text" id="finalizeBookingId" placeholder="Paste the booking ID" />
+            </div>
+            <button class="modal-submit" id="loadSlotsBtn">Load Slots</button>
+
+            <div id="finalizeSlotsList"></div>
+        </div>
     </div>
 </body>
 
@@ -151,12 +362,14 @@
     // List automatically, Create, Delete, edit
     // from AH: Read the JWT from localStorage
 
-    
     const token = localStorage.getItem('token');
     const role = localStorage.getItem('role');
     const id = localStorage.getItem('user._id');
+    const email = localStorage.getItem('email');
 
     // redirect to login page if token is missing
+
+    /**
     if (!token){
         window.location.href = 'login.html'
     }
@@ -164,7 +377,8 @@
         window.location.href = 'dashboard.html'
         // could put a 403 page instead? idk
     }
-        
+
+    **/
 
     const url = `${API_BASE}/api/slots/`
     const slot_container = document.getElementById("slot_container")
@@ -256,7 +470,7 @@
             let slot = await fetch(url + slotId, {
                 headers: {
                     'Authorization': 'Bearer ' + token,
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/json,',
                     'Access-Control-Request-Method': 'DELETE'
                 },
                 method: 'DELETE',
@@ -299,6 +513,121 @@
     }
 
     renderAll();
+
+    // Create Group Meeting Modal - Annie Huynh
+    function openCreateModal() {
+        document.getElementById('createModal').classList.add('active');
+    }
+
+    function closeCreateModal() {
+        document.getElementById('createModal').classList.remove('active');
+    }
+
+    document.getElementById('createSubmitBtn').onclick = async () => {
+        const title    = document.getElementById('meetingTitle').value.trim();
+        const opensAt  = document.getElementById('opensAt').value;
+        const closesAt = document.getElementById('closesAt').value;
+        const slots = [
+            document.getElementById('slot1').value,
+            document.getElementById('slot2').value,
+            document.getElementById('slot3').value
+        ];
+
+        if (!title)   return alert('Please enter a meeting title.');
+        if (!opensAt) return alert('Please set a voting open time.');
+        if (!closesAt) return alert('Please set a voting close time.');
+        if (new Date(closesAt) <= new Date(opensAt)) return alert('Voting must close after it opens.');
+        if (slots.some(s => !s)) return alert('Please fill in all 3 time slots.');
+
+        const response = await fetch(`${API_BASE}/api/bookings/group/create`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+            body: JSON.stringify({
+                ownerId: id,
+                ownerEmail: email,
+                title,
+                slots: slots.map(s => new Date(s).toISOString()),
+                opensAt: new Date(opensAt).toISOString(),
+                closesAt: new Date(closesAt).toISOString()
+            })
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+            const bookingId = data.insertedId;
+            closeCreateModal();
+            alert(`Meeting created!\n\nShare this vote link:\nowner-slots.html?ownerId=${id}&bookingId=${bookingId}&openVote=true`);
+        } else {
+            alert(data.error);
+        }
+    };
+
+    // Finalize Group Meeting Modal - Annie Huynh
+    function openFinalizeModal() {
+        document.getElementById('finalizeBookingId').value = '';
+        document.getElementById('finalizeSlotsList').innerHTML = '';
+        document.getElementById('finalizeModal').classList.add('active');
+    }
+
+    function closeFinalizeModal() {
+        document.getElementById('finalizeModal').classList.remove('active');
+    }
+
+    document.getElementById('loadSlotsBtn').onclick = async () => {
+        const bookingId = document.getElementById('finalizeBookingId').value.trim();
+        if (!bookingId) return alert('Please enter a booking ID.');
+
+        const response = await fetch(`${API_BASE}/api/bookings/group/${bookingId}/votes`, {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await response.json();
+        const list = document.getElementById('finalizeSlotsList');
+        list.innerHTML = '';
+
+        if (!response.ok) return alert(data.error);
+
+        for (const slot of data) {
+            renderFinalizeSlot(slot, bookingId);
+        }
+    };
+
+    function renderFinalizeSlot(slot, bookingId) {
+        const list = document.getElementById('finalizeSlotsList');
+        const newDiv = document.createElement("div");
+
+        const time = document.createElement("p");
+        time.textContent = "Time: " + new Date(slot.time).toLocaleString();
+        newDiv.appendChild(time);
+
+        const votes = document.createElement("p");
+        votes.textContent = "Votes: " + slot.votes;
+        newDiv.appendChild(votes);
+
+        const selectBtn = document.createElement("button");
+        selectBtn.textContent = "Select this time";
+        selectBtn.onclick = async () => {
+            const response = await fetch(`${API_BASE}/api/bookings/group/finalize`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify({ bookingId, selectedTime: slot.time, ownerEmail: email })
+            });
+            const data = await response.json();
+            if (response.ok) {
+                closeFinalizeModal();
+                window.open(data.notifyOwner);
+                window.location.href = 'dashboard.html';
+            } else {
+                alert(data.error);
+            }
+        };
+        newDiv.appendChild(selectBtn);
+        list.appendChild(newDiv);
+    }
+
+    // auto-open modals from URL params (e.g. dashboard navigation)
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('openCreate') === 'true') openCreateModal();
+    if (params.get('openFinalize') === 'true') openFinalizeModal();
 
 </script>
 
