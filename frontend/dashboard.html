@@ -283,7 +283,7 @@
                 const messageOwner = document.createElement("button");
                 messageOwner.classList.add("small-button");
                 messageOwner.textContent="Message Owner";
-                buttonDiv.appendChild(messageBooker);
+                buttonDiv.appendChild(messageOwner);
                 messageOwner.onclick = async () => {
                     const response = await fetch(`http://localhost:3000/api/slots/${item.slot._id}/message-owner`, {
                         headers: { 'Authorization': 'Bearer ' + token }
