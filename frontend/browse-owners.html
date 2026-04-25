@@ -139,11 +139,13 @@
     <script>
         const API_BASE = window.location.origin;
         // read token and redirect if its missing
+
+        /**
         const token = localStorage.getItem('token');
          if (!token){
             window.location.href = 'login.html'
         }
-            
+        **/
 
         const ownersList = document.getElementById('ownersList');
         //fetch active owners on load

@@ -178,13 +178,14 @@
             const API_BASE = window.location.origin;
             // check token and owner role, redirect if missing
             
+            /**
             const token = localStorage.getItem('token');
             const role = localStorage.getItem('role');
             const email = localStorage.getItem('email');
             if (!token || role !== 'owner') {
                 window.location.href = 'login.html';
             }
-            
+            **/
 
             // read bookingId from URL
             const bookingId = new URLSearchParams(window.location.search).get('bookingId');

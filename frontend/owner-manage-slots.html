@@ -157,6 +157,8 @@
     const id = localStorage.getItem('user._id');
 
     // redirect to login page if token is missing
+
+    /**
     if (!token){
         window.location.href = 'login.html'
     }
@@ -165,6 +167,7 @@
         // could put a 403 page instead? idk
     }
         
+    **/
 
     const url = `${API_BASE}/api/slots/`
     const slot_container = document.getElementById("slot_container")

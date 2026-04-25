@@ -143,9 +143,11 @@
     const role = localStorage.getItem('role');
     const id = localStorage.getItem('user._id');
 
+    /**
     if (!token || role != 'owner' || !id) {
         window.location.href = 'login.html';
     }
+        **/
 
     async function loadRequests() {
         const url = `${API_BASE}/api/bookings/requests/owner/${id}/pending`;
