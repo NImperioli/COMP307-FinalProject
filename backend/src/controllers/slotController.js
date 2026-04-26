@@ -55,8 +55,11 @@ exports.createRecurringSlots = async (req, res) => {
   try {
     const { weeklySlots, weeks } = req.body;  
     const ownerId = req.user.id;
-    if (!ownerId || !weeklySlots || !weeks)
-      return res.status(400).json({ error: "ownerId, weeklySlots, and weeks are required." });
+    if (!weeklySlots || !weeks) {
+      return res.status(400).json({
+        error: "weeklySlots and weeks are required."
+      });
+    }
     const result = await createRecurringSlots(ownerId, weeklySlots, weeks);
     res.json(result);
   } catch (err) {

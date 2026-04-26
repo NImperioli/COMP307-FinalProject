@@ -13,20 +13,35 @@ const logout = async (req, res) => {
   try {
     const header = req.headers["authorization"];
     const token = header && header.split(" ")[1];
-    if (!token) return res.status(400).json({ error: "No token provided." });
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!token) {
+      return res.status(400).json({ error: "No token provided." });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET, {
+        ignoreExpiration: true
+      });
+    } catch (err) {
+      return res.status(400).json({ error: "Invalid token." });
+    }
+
+    if (!decoded || !decoded.jti) {
+      return res.status(400).json({ error: "Token missing jti." });
+    }
+
     const db = getDB();
 
-    // Store the jti until the token would naturally expire
     await db.collection("invalidated_tokens").insertOne({
       jti: decoded.jti,
-      expiresAt: new Date(decoded.exp * 1000),  // TTL index on this field
+      createdAt: new Date()
     });
 
     res.json({ message: "Logged out successfully." });
+
   } catch (err) {
-    res.status(400).json({ error: "Invalid token." });
+    res.status(500).json({ error: err.message });
   }
 };
 
@@ -48,26 +63,36 @@ const login = async (req, res) => {
   try {
     const db = getDB();
 
-    // Find user
     const user = await db.collection(COLLECTION).findOne({ email });
     if (!user) {
       return res.status(400).json({ error: "Invalid email or password." });
     }
 
-    // Compare password
     const match = await bcrypt.compare(password, user.password);
     if (!match) {
       return res.status(400).json({ error: "Invalid email or password." });
     }
 
-    // Create JWT token
+    const jti = crypto.randomUUID();
+
     const token = jwt.sign(
-      { id: user._id, role: user.role, email: user.email },  // ADDED: email
+      {
+        id: user._id,
+        role: user.role,
+        email: user.email,
+        jti: jti
+      },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: "1d" }
     );
 
-    res.json({ token, role: user.role, name: user.name, id: user._id.toString(), email:user.email });
+    res.json({
+      token,
+      role: user.role,
+      name: user.name,
+      id: user._id.toString(),
+      email: user.email
+    });
 
   } catch (err) {
     res.status(500).json({ error: err.message });

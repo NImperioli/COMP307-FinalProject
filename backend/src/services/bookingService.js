@@ -7,7 +7,15 @@ const toOid = (val) => {
 };
 
 // TYPE 1 — Request a Meeting 
-const requestMeeting = async (userId, ownerId, message, userEmail, ownerEmail, proposedTime) => {
+const requestMeeting = async (
+  userId,
+  ownerId,
+  message,
+  userEmail,
+  ownerEmail,
+  proposedTime
+) => {
+
   if (userId.toString() === ownerId.toString()) {
     throw new Error("Cannot send a meeting request to yourself.");
   }
@@ -16,8 +24,12 @@ const requestMeeting = async (userId, ownerId, message, userEmail, ownerEmail, p
     type: "TYPE1",
     userId: toOid(userId),
     ownerId: toOid(ownerId),
-    userEmail, ownerEmail, message,
+    userEmail,
+    ownerEmail,
+    message,
+
     proposedTime: proposedTime ? new Date(proposedTime) : null,
+
     status: "pending",
     createdAt: new Date(),
   });
@@ -29,6 +41,21 @@ const requestMeeting = async (userId, ownerId, message, userEmail, ownerEmail, p
   )}`;
 
   return { booking, notifyOwner };
+};
+
+const buildMeetingTime = (proposedTime) => {
+  if (!proposedTime) {
+    throw new Error("proposedTime is required.");
+  }
+
+  const start = new Date(proposedTime);
+  if (isNaN(start.getTime())) {
+    throw new Error("Invalid proposedTime.");
+  }
+
+  const end = new Date(start.getTime() + 30 * 60000);
+
+  return { start, end };
 };
 
 const respondToRequest = async (bookingId, accepted, ownerId = null) => {
@@ -53,21 +80,27 @@ const respondToRequest = async (bookingId, accepted, ownerId = null) => {
   const status = accepted ? "approved" : "declined";
   const result = await updateBooking(booking._id, { status, respondedAt: new Date() });
 
-   if (accepted) {
-    const db = require("../config/db").getDB();
+  if (accepted) {
+
+    const start = new Date(booking.proposedTime);
+
+    const end = new Date(start.getTime() + 30 * 60000); // 30 min meeting
 
     await db.collection("slots").insertOne({
-      ownerId:     booking.ownerId,
-      bookedBy:    booking.userId,
-      title:       `Meeting with ${booking.userEmail}`,
-      type:        "requested",
-      status:      "active",
-      bookingId:   booking._id,
-      startTime:   booking.proposedTime || new Date(),  // use proposedTime if stored
-      endTime:     booking.proposedTime
-                   ? new Date(new Date(booking.proposedTime).getTime() + 30 * 60000)
-                   : new Date(),
-      createdAt:   new Date(),
+      ownerId: booking.ownerId,
+      bookedBy: booking.userId,
+      title: `Meeting with ${booking.userEmail}`,
+
+      type: "booked",
+      status: "active",
+
+      inviteToken: booking._id.toString(),
+      bookingId: booking._id,
+
+      startTime: start,
+      endTime: end,
+
+      createdAt: new Date(),
     });
   }
 
@@ -299,15 +332,43 @@ const reserveOfficeHour = async (bookingId, slotTime, userId) => {
 };
 const getUserAppointments = async (userId) => {
   const db = require("../config/db").getDB();
+  const { ObjectId } = require("mongodb");
+
   const [type1, type2, type3] = await Promise.all([
     db.collection("bookings")
-      .find({ type: "TYPE1", userId: toOid(userId), status: "approved" }).toArray(),
+      .find({ type: "TYPE1", userId: toOid(userId), status: "approved" })
+      .toArray(),
+
     db.collection("appointments")
-      .find({ type: "TYPE2", participants: toOid(userId) }).toArray(),
-    // TYPE3: find office-hour bookings where this user reserved a slot
-    db.collection("bookings")
-      .find({ type: "TYPE3", "slots.reservedBy": toOid(userId) }).toArray(),
+      .find({ type: "TYPE2", participants: toOid(userId) })
+      .toArray(),
+
+    db.collection("bookings").aggregate([
+      {
+        $match: {
+          type: "TYPE3",
+          "slots.reservedBy": toOid(userId)
+        }
+      },
+      {
+        $project: {
+          ownerId: 1,
+          weeks: 1,
+          status: 1,
+          slots: {
+            $filter: {
+              input: "$slots",
+              as: "s",
+              cond: {
+                $eq: ["$$s.reservedBy", toOid(userId)]
+              }
+            }
+          }
+        }
+      }
+    ]).toArray(),
   ]);
+
   return { type1, type2, type3 };
 };
 
