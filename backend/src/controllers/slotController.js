@@ -34,13 +34,16 @@ const {
   buildInviteUrl,
 } = require("../services/notificationService");
 
+const { buildICS } = require("../services/icalService");
+
 // Slot management (owner)
 
 exports.createSlot = async (req, res) => {
   try {
-    const { ownerId, title, start, end } = req.body;
-    if (!ownerId || !title || !start || !end)
-      return res.status(400).json({ error: "ownerId, title, start, and end are required." });
+    const { title, start, end } = req.body;
+    const ownerId = req.user.id;          // from JWT
+    if (!title || !start || !end)
+      return res.status(400).json({ error: "title, start, and end are required." });
     const result = await createSlot(ownerId, title, start, end);
     res.json(result);
   } catch (err) {
@@ -62,9 +65,8 @@ exports.createRecurringSlots = async (req, res) => {
 
 exports.activateSlot = async (req, res) => {
   try {
-    const { ownerId } = req.body;
+    const ownerId = req.user.id;          // from JWT
     const result = await activateSlot(req.params.slotId, ownerId);
-    console.log("Activating: slot:" + req.params.slotId, " owner:" + ownerId);
     if (result.matchedCount === 0)
       return res.status(404).json({ error: "Slot not found or you are not the owner." });
     res.json(result);
@@ -85,7 +87,7 @@ exports.activateSlotsByGroup = async (req, res) => {
 
 exports.deactivateSlot = async (req, res) => {
   try {
-    const { ownerId } = req.body;
+    const ownerId = req.user.id;          // from JWT
     const result = await deactivateSlot(req.params.slotId, ownerId);
     res.json(result);
   } catch (err) {
@@ -95,13 +97,10 @@ exports.deactivateSlot = async (req, res) => {
 
 exports.deleteSlot = async (req, res) => {
   try {
-    console.log(req.body);
-    console.log(req.params.slotId);
-    const { ownerId } = req.body;
+    const ownerId = req.user.id;          // from JWT
     const slot = await findSlotById(req.params.slotId);
     if (!slot) return res.status(404).json({ error: "Slot not found." });
 
-    // Check for active reservation and build notification if needed
     const reservation = await findReservationBySlot(req.params.slotId);
     let notifyBooker = null;
     if (reservation) {
@@ -205,7 +204,8 @@ exports.getInviteUrl = async (req, res) => {
   try {
     const slot = await findSlotById(req.params.slotId);
     if (!slot) return res.status(404).json({ error: "Slot not found." });
-    const baseUrl = req.query.baseUrl || "http://localhost:3000";//Change URL when deployed on mimi
+    // FIXED: use env var, fall back to request origin, never localhost
+    const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
     const token   = slot.groupToken || slot.inviteToken;
     const url     = buildInviteUrl(baseUrl, token);
     res.json({ inviteUrl: url, token });
@@ -291,6 +291,48 @@ exports.ownerMessageToBooker = async (req, res) => {
     const reservation = await findReservationBySlot(req.params.slotId);
     if (!reservation) return res.status(404).json({ error: "No active reservation for this slot." });
     res.json({ mailto: buildOwnerToBookerMailto(reservation.user.email, slot) });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.exportSlotICS = async (req, res) => {
+  try {
+    const slot = await findSlotById(req.params.slotId);
+    if (!slot) return res.status(404).json({ error: "Slot not found." });
+
+    const ics = buildICS([{
+      title:       slot.title,
+      start:       slot.startTime,
+      end:         slot.endTime,
+      description: `Booking slot managed via MyBookings`,
+    }]);
+
+    res.setHeader("Content-Type",        "text/calendar; charset=utf-8");
+    res.setHeader("Content-Disposition", `attachment; filename="${slot.title}.ics"`);
+    res.send(ics);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.exportReservationsICS = async (req, res) => {
+  try {
+    const reservations = await findReservationsByUser(req.params.userId);
+
+    const events = reservations.map(r => ({
+      title:       r.slot.title,
+      start:       r.slot.startTime,
+      end:         r.slot.endTime,
+      description: `Booked via MyBookings with ${r.owner.name}`,
+      organizer:   r.owner.email,
+    }));
+
+    const ics = buildICS(events);
+
+    res.setHeader("Content-Type",        "text/calendar; charset=utf-8");
+    res.setHeader("Content-Disposition", `attachment; filename="my-bookings.ics"`);
+    res.send(ics);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

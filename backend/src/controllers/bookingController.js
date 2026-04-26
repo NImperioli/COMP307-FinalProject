@@ -1,12 +1,14 @@
 // Nicholas Imperioli - 261120345
 const bookingService = require("../services/bookingService");
 
-// TYPE 1 
+// TYPE 1
 exports.requestMeeting = async (req, res) => {
   try {
-    const { userId, ownerId, message, userEmail, ownerEmail } = req.body;
-    if (!userId || !ownerId || !message || !userEmail || !ownerEmail)
-      return res.status(400).json({ error: "userId, ownerId, message, userEmail, ownerEmail are all required." });
+    const { ownerId, message, ownerEmail } = req.body;
+    const userId    = req.user.id;        // from JWT
+    const userEmail = req.user.email;     // injected by middleware 
+    if (!ownerId || !message || !ownerEmail)
+      return res.status(400).json({ error: "ownerId, message, and ownerEmail are required." });
     const result = await bookingService.requestMeeting(userId, ownerId, message, userEmail, ownerEmail);
     res.json(result);
   } catch (err) {
@@ -16,9 +18,10 @@ exports.requestMeeting = async (req, res) => {
 
 exports.respondToRequest = async (req, res) => {
   try {
-    const { bookingId, accepted, ownerId } = req.body;
-    if (!bookingId || accepted === undefined || !ownerId)
-      return res.status(400).json({ error: "bookingId, accepted, and ownerId are required." });
+    const { bookingId, accepted } = req.body;
+    const ownerId = req.user.id;          // from JWT — cannot be spoofed
+    if (!bookingId || accepted === undefined)
+      return res.status(400).json({ error: "bookingId and accepted are required." });
     const result = await bookingService.respondToRequest(bookingId, accepted, ownerId);
     res.json(result);
   } catch (err) {
@@ -53,13 +56,13 @@ exports.getOwnerPendingRequests = async (req, res) => {
   }
 };
 
-// TYPE 2 
-
+// TYPE 2
 exports.createGroupMeeting = async (req, res) => {
   try {
-    const { ownerId, ownerEmail, title, slots, opensAt, closesAt } = req.body;
-    if (!ownerId || !ownerEmail || !title || !slots || !opensAt || !closesAt)
-      return res.status(400).json({ error: "ownerId, ownerEmail, title, slots, opensAt, closesAt are all required." });
+    const { ownerEmail, title, slots, opensAt, closesAt } = req.body;
+    const ownerId = req.user.id;          // from JWT
+    if (!ownerEmail || !title || !slots || !opensAt || !closesAt)
+      return res.status(400).json({ error: "ownerEmail, title, slots, opensAt, closesAt are required." });
     const result = await bookingService.createGroupMeeting(ownerId, ownerEmail, title, slots, opensAt, closesAt);
     res.json(result);
   } catch (err) {
@@ -69,10 +72,11 @@ exports.createGroupMeeting = async (req, res) => {
 
 exports.voteForSlots = async (req, res) => {
   try {
-    const { bookingId, userId, slotTimes, ownerId } = req.body;
-    if (!bookingId || !userId || !Array.isArray(slotTimes) || slotTimes.length === 0 || !ownerId)
-      return res.status(400).json({ error: "bookingId, userId, slotTimes (array), and ownerId are required." });
-    const result = await bookingService.voteForSlots(bookingId, userId, slotTimes, ownerId);
+    const { bookingId, slotTimes } = req.body;
+    const userId = req.user.id;           // from JWT
+    if (!bookingId || !Array.isArray(slotTimes) || slotTimes.length === 0)
+      return res.status(400).json({ error: "bookingId and slotTimes (array) are required." });
+    const result = await bookingService.voteForSlots(bookingId, userId, slotTimes); // FIXED: 3 args
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -90,9 +94,10 @@ exports.getSlotVoteCounts = async (req, res) => {
 
 exports.finalizeGroupMeeting = async (req, res) => {
   try {
-    const { bookingId, selectedTime, repeatWeeks, ownerEmail, ownerId } = req.body;
-    if (!bookingId || !selectedTime || !ownerEmail || !ownerId)
-      return res.status(400).json({ error: "bookingId, selectedTime, ownerEmail, and ownerId are required." });
+    const { bookingId, selectedTime, repeatWeeks, ownerEmail } = req.body;
+    const ownerId = req.user.id;          // from JWT
+    if (!bookingId || !selectedTime || !ownerEmail)
+      return res.status(400).json({ error: "bookingId, selectedTime, and ownerEmail are required." });
     const result = await bookingService.finalizeGroupMeeting(bookingId, selectedTime, repeatWeeks, ownerEmail, ownerId);
     res.json(result);
   } catch (err) {
@@ -112,6 +117,33 @@ exports.getUserAppointments = async (req, res) => {
 exports.getOwnerAppointments = async (req, res) => {
   try {
     const result = await bookingService.getOwnerAppointments(req.params.ownerId);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// TYPE 3 — Recurring Office Hours 
+exports.createOfficeHours = async (req, res) => {
+  try {
+    const { slots, weeks } = req.body;
+    const ownerId = req.user.id;          // from JWT
+    if (!slots || !weeks)
+      return res.status(400).json({ error: "slots and weeks are required." });
+    const result = await bookingService.createOfficeHours(ownerId, slots, weeks);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.reserveOfficeHour = async (req, res) => {
+  try {
+    const { bookingId, slotTime } = req.body;
+    const userId = req.user.id;           // from JWT
+    if (!bookingId || !slotTime)
+      return res.status(400).json({ error: "bookingId and slotTime are required." });
+    const result = await bookingService.reserveOfficeHour(bookingId, slotTime, userId);
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });

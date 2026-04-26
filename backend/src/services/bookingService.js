@@ -101,7 +101,7 @@ const createGroupMeeting = async (ownerId, ownerEmail, title, slots, opensAt, cl
   });
 };
 
-const voteForSlots = async (bookingId, userId, slotTimes) => {
+const voteForSlots = async (bookingId, userId, slotTimes) => {  // FIXED: removed unused ownerId param
   const { ObjectId } = require("mongodb");
   const db = require("../config/db").getDB();
   const booking = await db.collection("bookings").findOne({ _id: new ObjectId(bookingId) });
@@ -109,28 +109,27 @@ const voteForSlots = async (bookingId, userId, slotTimes) => {
 
   const now = new Date();
 
+  // FIXED: enforce voting window
+  if (now < new Date(booking.opensAt))  throw new Error("Voting has not opened yet.");
+  if (now > new Date(booking.closesAt)) throw new Error("Voting has closed.");
 
   if (booking.status !== "collecting_votes") {
-  return slotTimes.map(slotTime => ({
-      slotTime,
-      modified: false
-    }));  
+    return slotTimes.map(slotTime => ({ slotTime, modified: false }));
   }
-
 
   const ops = slotTimes.map((slotTime) => {
     const time = new Date(slotTime);
     return {
       updateOne: {
         filter: {
-          _id:    new ObjectId(bookingId),
+          _id: new ObjectId(bookingId),
           slots: {
             $elemMatch: {
               time: {
                 $gte: new Date(time.getTime() - 1000),
                 $lte: new Date(time.getTime() + 1000),
               },
-              voters: { $ne: toOid(userId) },   // atomic 
+              voters: { $ne: toOid(userId) },
             },
           },
         },
@@ -143,14 +142,10 @@ const voteForSlots = async (bookingId, userId, slotTimes) => {
   });
 
   if (ops.length === 0) return [];
-
   const bulkResult = await db.collection("bookings").bulkWrite(ops, { ordered: false });
-
-  return slotTimes.map((slotTime, i) => ({
-    slotTime,
-    modified: bulkResult.modifiedCount > 0,
-  }));
+  return slotTimes.map((slotTime) => ({ slotTime, modified: bulkResult.modifiedCount > 0 }));
 };
+
 
 const getSlotVoteCounts = async (bookingId) => {
   const { ObjectId } = require("mongodb");
@@ -164,24 +159,28 @@ const getSlotVoteCounts = async (bookingId) => {
     .sort((a, b) => b.votes - a.votes);
 };
 
-const finalizeGroupMeeting = async (bookingId, selectedTime, repeatWeeks = 1, ownerEmail) => {
+const finalizeGroupMeeting = async (bookingId, selectedTime, repeatWeeks = 1, ownerEmail, ownerId) => { // FIXED: added ownerId param
   const { ObjectId } = require("mongodb");
   const db = require("../config/db").getDB();
 
   const booking = await db.collection("bookings").findOne({ _id: new ObjectId(bookingId) });
   if (!booking) throw new Error("Booking not found.");
+
+  // FIXED: ownership verification
+  if (booking.ownerId.toString() !== ownerId.toString()) {
+    throw new Error("You are not authorized to finalize this meeting.");
+  }
+
   if (booking.status !== "collecting_votes") {
     throw new Error("This group meeting has already been finalized or is in an unexpected state.");
   }
 
-  // Integrity: selectedTime must be one of the proposed slots
   const selTime = new Date(selectedTime);
   const slotMatch = booking.slots.find(
     (s) => Math.abs(new Date(s.time).getTime() - selTime.getTime()) <= 1000
   );
-  if (!slotMatch) {
-    throw new Error("selectedTime does not match any of the proposed slot times.");
-  }
+  if (!slotMatch) throw new Error("selectedTime does not match any of the proposed slot times.");
+
   const weeks = Number.isInteger(repeatWeeks) && repeatWeeks >= 1 ? repeatWeeks : 1;
 
   const result = await updateBooking(bookingId, {
@@ -192,22 +191,22 @@ const finalizeGroupMeeting = async (bookingId, selectedTime, repeatWeeks = 1, ow
   });
 
   const MS_PER_WEEK = 7 * 24 * 60 * 60 * 1000;
-  const base        = selTime;
-  const allVoters   = [...new Set(booking.slots.flatMap((s) => s.voters))].map(v => {
-  try { return new ObjectId(v); } catch { return v; }
-});
+  const base = selTime;
+  const allVoters = [...new Set(booking.slots.flatMap((s) => s.voters))].map(v => {
+    try { return new ObjectId(v); } catch { return v; }
+  });
 
   const appointments = Array.from({ length: weeks }, (_, w) => ({
-    bookingId:   new ObjectId(bookingId),
-    type:        "TYPE2",
-    ownerId:     booking.ownerId,
-    ownerEmail:  booking.ownerEmail,
-    title:       booking.title,
-    time:        new Date(base.getTime() + w * MS_PER_WEEK),
-    weekNumber:  w + 1,
-    isRecurring: weeks > 1,
+    bookingId:    new ObjectId(bookingId),
+    type:         "TYPE2",
+    ownerId:      booking.ownerId,
+    ownerEmail:   booking.ownerEmail,
+    title:        booking.title,
+    time:         new Date(base.getTime() + w * MS_PER_WEEK),
+    weekNumber:   w + 1,
+    isRecurring:  weeks > 1,
     participants: allVoters,
-    createdAt:   new Date(),
+    createdAt:    new Date(),
   }));
 
   if (appointments.length > 0) {
@@ -221,7 +220,7 @@ const finalizeGroupMeeting = async (bookingId, selectedTime, repeatWeeks = 1, ow
   const notifyOwner = `mailto:${ownerEmail}?subject=${encodeURIComponent(
     `Group meeting finalized — "${booking.title}"`
   )}&body=${encodeURIComponent(
-    `Hi,\n\nYou finalized the group meeting "${booking.title}".\n\nSelected time: ${base.toLocaleString()}\n\n${recurrenceNote}\n\n${appointments.length} appointment(s) created on both your and participants' dashboards.`
+    `Hi,\n\nYou finalized the group meeting "${booking.title}".\n\nSelected time: ${base.toLocaleString()}\n\n${recurrenceNote}\n\n${appointments.length} appointment(s) created.`
   )}`;
 
   return { result, appointments, notifyOwner };
