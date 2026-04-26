@@ -26,6 +26,13 @@
             align-items: center;
             padding: 0 80px;
             gap: 60px;
+
+             background: 
+        linear-gradient(to left, rgba(255,255,255,0) 10%, rgba(255,255,255,1) 60%),
+        url('Images/landing_bg.jpg');
+
+        background-size: cover;
+        background-position: center;
         }
 
         .page-container {
@@ -157,6 +164,28 @@
             font-weight: 600;
         }
 
+        .sign-up-link a:hover {
+            color:red;
+        }
+
+        .back-btn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    padding: 10px 15px;
+    border: none;
+    background: black;
+    color: white;
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+.back-btn:hover {
+    transition: .3s;
+    background: red;
+    transform: scale(1.05,1);
+}
+
 
     </style>
 </head>
@@ -176,6 +205,8 @@
                 browse and reserve active appointments.
             </p>
         </div>
+
+        <button class="back-btn" onclick="goBack()">Back</button>
 
         <div class="right-section">
             <div class="login-box">
@@ -205,7 +236,7 @@
                     </div>
 
                     <div class="sign-up-link">
-                        <p>Already have an account? <a href="\login.html">Log In</a></p>
+                        <p>Already have an account? <a href="/login.html">Log In</a></p>
                     </div>
                 </form>
                 
@@ -264,6 +295,11 @@
                 return;
             }
         });
+
+
+        function goBack() {
+    window.history.back();
+}
     </script>
 </body>
 </html>
