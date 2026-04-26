@@ -1,6 +1,5 @@
 // Nicholas Imperioli - 261120345
 
-// Generates a minimal RFC 5545 .ics file
 const formatDate = (date) => {
   const d = new Date(date);
   return d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
