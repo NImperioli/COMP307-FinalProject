@@ -53,7 +53,8 @@ exports.createSlot = async (req, res) => {
 
 exports.createRecurringSlots = async (req, res) => {
   try {
-    const { ownerId, weeklySlots, weeks } = req.body;
+    const { weeklySlots, weeks } = req.body;  
+    const ownerId = req.user.id;
     if (!ownerId || !weeklySlots || !weeks)
       return res.status(400).json({ error: "ownerId, weeklySlots, and weeks are required." });
     const result = await createRecurringSlots(ownerId, weeklySlots, weeks);
@@ -77,7 +78,7 @@ exports.activateSlot = async (req, res) => {
 
 exports.activateSlotsByGroup = async (req, res) => {
   try {
-    const { ownerId } = req.body;
+    const ownerId = req.user.id;
     const result = await activateSlotsByGroup(req.params.groupToken, ownerId);
     res.json(result);
   } catch (err) {
@@ -119,7 +120,7 @@ exports.deleteSlot = async (req, res) => {
 
 exports.deleteSlotsByGroup = async (req, res) => {
   try {
-    const { ownerId } = req.body;
+    const ownerId = req.user.id;
     const { groupToken } = req.params;
 
     const groupSlots = await findSlotsByGroup(groupToken);
@@ -217,9 +218,11 @@ exports.getInviteUrl = async (req, res) => {
 // Reservations (user) 
 exports.reserveSlot = async (req, res) => {
   try {
-    const { slotId, userId, userEmail } = req.body;
-    if (!slotId || !userId || !userEmail)
-      return res.status(400).json({ error: "slotId, userId, and userEmail are required." });
+    const { slotId } = req.body;
+    const userId    = req.user.id;     // from JWT
+    const userEmail = req.user.email;  // from JWT
+    if (!slotId)
+      return res.status(400).json({ error: "slotId is required." });
 
     const result = await reserveSlot(slotId, userId);
 
@@ -238,9 +241,10 @@ exports.reserveSlot = async (req, res) => {
 
 exports.cancelReservation = async (req, res) => {
   try {
-    const { reservationId, userId } = req.body;
-    if (!reservationId || !userId)
-      return res.status(400).json({ error: "reservationId and userId are required." });
+    const { reservationId } = req.body;
+    const userId = req.user.id;  // from JWT
+    if (!reservationId)
+      return res.status(400).json({ error: "reservationId is required." });
 
     // Get details before cancelling so we can build the notification
     const details = await findReservationWithDetails(reservationId);

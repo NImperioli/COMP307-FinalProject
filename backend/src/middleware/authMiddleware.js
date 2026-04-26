@@ -4,57 +4,44 @@
 //TODO: Errors may not be properly handled. Something like this? https://www.geeksforgeeks.org/node-js/how-to-return-an-error-back-to-expressjs-from-middleware/
 
 const jwt = require('jsonwebtoken');
+const { getDB } = require('../config/db');
 
-
-const verify = (token, res, next, rolePredicate) => {
-  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-    if (err) return res.status(403).json({ message: "Invalid Token!" });
-    if (!rolePredicate(decoded.role))
-      return res.status(403).json({ message: "Unauthorized access" });
-    req.user = decoded;   // decoded contains { id, role, email } 
-    next();
-  });
-};
-
-const extractToken = (req, res) => {
+const authenticate = async (req, res, next, rolePredicate) => {
   const header = req.headers['authorization'];
   const token  = header && header.split(' ')[1];
-  if (!token) {
-    res.status(401).json({ message: "Auth Token not Found!" });
-    return null;
+  if (!token) return res.status(401).json({ message: "Auth Token not Found!" });
+
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET);
+  } catch (err) {
+    return res.status(403).json({ message: "Invalid Token!" });
   }
-  return token;
+
+  if (!rolePredicate(decoded.role)) {
+    return res.status(403).json({ message: "Unauthorized access" });
+  }
+
+  try {
+    const db = getDB();
+    const blocked = await db.collection("invalidated_tokens").findOne({ jti: decoded.jti });
+    if (blocked) return res.status(401).json({ message: "Token has been invalidated." });
+  } catch (err) {
+    return res.status(500).json({ message: "Auth check failed." });
+  }
+
+  req.user = decoded;
+  next();
 };
 
 exports.authenticateOwnerToken = (req, res, next) => {
-  const token = extractToken(req, res);
-  if (!token) return;
-  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-    if (err) return res.status(403).json({ message: "Invalid Token!" });
-    if (decoded.role !== "owner") return res.status(403).json({ message: "Unauthorized access" });
-    req.user = decoded;
-    next();
-  });
+  authenticate(req, res, next, role => role === "owner");
 };
 
 exports.authenticateUserToken = (req, res, next) => {
-  const token = extractToken(req, res);
-  if (!token) return;
-  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-    if (err) return res.status(403).json({ message: "Invalid Token!" });
-    if (decoded.role !== "student") return res.status(403).json({ message: "Unauthorized access" });
-    req.user = decoded;
-    next();
-  });
+  authenticate(req, res, next, role => role === "owner" || role === "student");
 };
 
-// NEW: accepts both owners and students
 exports.authenticateAnyToken = (req, res, next) => {
-  const token = extractToken(req, res);
-  if (!token) return;
-  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-    if (err) return res.status(403).json({ message: "Invalid Token!" });
-    req.user = decoded;
-    next();
-  });
+  authenticate(req, res, next, () => true);
 };

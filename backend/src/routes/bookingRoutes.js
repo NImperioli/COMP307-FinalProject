@@ -18,6 +18,7 @@ router.get("/group/:bookingId/votes",            auth.authenticateUserToken, con
 router.post("/group/finalize",                   auth.authenticateOwnerToken, controller.finalizeGroupMeeting);
 router.get("/appointments/user/:userId",         auth.authenticateUserToken, controller.getUserAppointments);
 router.get("/appointments/owner/:ownerId",       auth.authenticateOwnerToken, controller.getOwnerAppointments);
+router.get("/group/:bookingId/invite-url", auth.authenticateOwnerToken, controller.getGroupInviteUrl);
 
 // TYPE 3 — Recurring Office Hours 
 router.post("/office-hours/create",              auth.authenticateOwnerToken, controller.createOfficeHours);

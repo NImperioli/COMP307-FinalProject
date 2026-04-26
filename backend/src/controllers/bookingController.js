@@ -4,13 +4,15 @@ const bookingService = require("../services/bookingService");
 // TYPE 1
 exports.requestMeeting = async (req, res) => {
   try {
-    const { ownerId, message, ownerEmail } = req.body;
+    const { ownerId, message, ownerEmail, proposedTime } = req.body;
     const userId    = req.user.id;        // from JWT
     const userEmail = req.user.email;     // injected by middleware 
     if (!ownerId || !message || !ownerEmail)
       return res.status(400).json({ error: "ownerId, message, and ownerEmail are required." });
-    const result = await bookingService.requestMeeting(userId, ownerId, message, userEmail, ownerEmail);
-    res.json(result);
+    const result = await bookingService.requestMeeting(
+      userId, ownerId, message, userEmail, ownerEmail, proposedTime
+    );    
+  res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -123,6 +125,24 @@ exports.getOwnerAppointments = async (req, res) => {
   }
 };
 
+exports.getGroupInviteUrl = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+    const ownerId = req.user.id;
+    const db = require("../config/db").getDB();
+    const { ObjectId } = require("mongodb");
+    const booking = await db.collection("bookings").findOne({ _id: new ObjectId(bookingId) });
+    if (!booking) return res.status(404).json({ error: "Booking not found." });
+    if (booking.ownerId.toString() !== ownerId)
+      return res.status(403).json({ error: "Not your booking." });
+    const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
+    const url = `${baseUrl}/owner-slots.html?ownerId=${booking.ownerId}&bookingId=${bookingId}&openVote=true`;
+    res.json({ inviteUrl: url });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 // TYPE 3 — Recurring Office Hours 
 exports.createOfficeHours = async (req, res) => {
   try {
@@ -140,7 +160,7 @@ exports.createOfficeHours = async (req, res) => {
 exports.reserveOfficeHour = async (req, res) => {
   try {
     const { bookingId, slotTime } = req.body;
-    const userId = req.user.id;           // from JWT
+    const userId = req.user.id;  // also fix this to use JWT
     if (!bookingId || !slotTime)
       return res.status(400).json({ error: "bookingId and slotTime are required." });
     const result = await bookingService.reserveOfficeHour(bookingId, slotTime, userId);

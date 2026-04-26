@@ -7,20 +7,19 @@ const toOid = (val) => {
 };
 
 // TYPE 1 — Request a Meeting 
-const requestMeeting = async (userId, ownerId, message, userEmail, ownerEmail) => {
+const requestMeeting = async (userId, ownerId, message, userEmail, ownerEmail, proposedTime) => {
   if (userId.toString() === ownerId.toString()) {
     throw new Error("Cannot send a meeting request to yourself.");
   }
 
   const booking = await createBooking({
-    type:       "TYPE1",
-    userId:     toOid(userId),
-    ownerId:    toOid(ownerId),
-    userEmail,
-    ownerEmail,
-    message,
-    status:     "pending",
-    createdAt:  new Date(),
+    type: "TYPE1",
+    userId: toOid(userId),
+    ownerId: toOid(ownerId),
+    userEmail, ownerEmail, message,
+    proposedTime: proposedTime ? new Date(proposedTime) : null,
+    status: "pending",
+    createdAt: new Date(),
   });
 
   const notifyOwner = `mailto:${ownerEmail}?subject=${encodeURIComponent(
@@ -54,15 +53,31 @@ const respondToRequest = async (bookingId, accepted, ownerId = null) => {
   const status = accepted ? "approved" : "declined";
   const result = await updateBooking(booking._id, { status, respondedAt: new Date() });
 
-  const notifyUser = `mailto:${booking.userEmail}?subject=${encodeURIComponent(
-    `Your meeting request has been ${status}`
-  )}&body=${encodeURIComponent(
-    accepted
-      ? `Hi,\n\nYour meeting request has been approved by ${booking.ownerEmail}.\n\nThe appointment now appears on your dashboard.`
-      : `Hi,\n\nUnfortunately your meeting request was declined by ${booking.ownerEmail}.`
-  )}`;
+   if (accepted) {
+    const db = require("../config/db").getDB();
 
-  return { result, notifyUser };
+    await db.collection("slots").insertOne({
+      ownerId:     booking.ownerId,
+      bookedBy:    booking.userId,
+      title:       `Meeting with ${booking.userEmail}`,
+      type:        "requested",
+      status:      "active",
+      bookingId:   booking._id,
+      startTime:   booking.proposedTime || new Date(),  // use proposedTime if stored
+      endTime:     booking.proposedTime
+                   ? new Date(new Date(booking.proposedTime).getTime() + 30 * 60000)
+                   : new Date(),
+      createdAt:   new Date(),
+    });
+  }
+
+  const notifyUser = `mailto:${booking.userEmail}?subject=${encodeURIComponent(
+  `Your meeting request has been ${status}`
+  )}&body=${encodeURIComponent(
+    `Hi,\n\nYour meeting request has been ${status.toUpperCase()} by ${booking.ownerEmail}.\n\nPlease check your dashboard for details.`
+  )}`; 
+  
+return { result, notifyUser };
 };
 
 const getUserMeetingRequests = async (userId) =>
@@ -217,31 +232,26 @@ const finalizeGroupMeeting = async (bookingId, selectedTime, repeatWeeks = 1, ow
     ? `This meeting repeats for ${weeks} consecutive weeks.`
     : "This is a one-time meeting.";
 
-  const notifyOwner = `mailto:${ownerEmail}?subject=${encodeURIComponent(
-    `Group meeting finalized — "${booking.title}"`
+  const participantDocs = await db.collection("users")
+    .find({ _id: { $in: allVoters } })
+    .project({ email: 1 })
+    .toArray();
+
+  const notifyParticipants = participantDocs.map(p =>
+    `mailto:${p.email}?subject=${encodeURIComponent(
+      `Group meeting confirmed — "${booking.title}"`
+    )}&body=${encodeURIComponent(
+      `Hi,\n\nThe group meeting "${booking.title}" has been scheduled for ${base.toLocaleString()}.\n\n${recurrenceNote}`
+    )}`
+  );
+
+  const notifyOwner = `mailto:${booking.ownerEmail}?subject=${encodeURIComponent(
+  `Group meeting confirmed — "${booking.title}"`
   )}&body=${encodeURIComponent(
-    `Hi,\n\nYou finalized the group meeting "${booking.title}".\n\nSelected time: ${base.toLocaleString()}\n\n${recurrenceNote}\n\n${appointments.length} appointment(s) created.`
+    `Hi,\n\nYour group meeting "${booking.title}" has been finalized.\n\nTime: ${base.toLocaleString()}\n\n${recurrenceNote}`
   )}`;
 
-  return { result, appointments, notifyOwner };
-};
-
-const getUserAppointments = async (userId) => {
-  const db = require("../config/db").getDB();
-  const [type1, type2] = await Promise.all([
-    db.collection("bookings").find({ type: "TYPE1", userId: toOid(userId), status: "approved" }).toArray(),
-    db.collection("appointments").find({ type: "TYPE2", participants: toOid(userId) }).toArray(),
-  ]);
-  return { type1, type2 };
-};
-
-const getOwnerAppointments = async (ownerId) => {
-  const db = require("../config/db").getDB();
-  const [type1, type2] = await Promise.all([
-    db.collection("bookings").find({ type: "TYPE1", ownerId: toOid(ownerId), status: "approved" }).toArray(),
-    db.collection("appointments").find({ type: "TYPE2", ownerId: toOid(ownerId) }).toArray(),
-  ]);
-  return { type1, type2 };
+  return { result, appointments, notifyOwner, notifyParticipants };
 };
 
 // TYPE 3 — Recurring Office Hours 
@@ -259,22 +269,60 @@ const createOfficeHours = async (ownerId, slots, weeks) => {
 const reserveOfficeHour = async (bookingId, slotTime, userId) => {
   const { ObjectId } = require("mongodb");
   const db = require("../config/db").getDB();
-  return await db.collection("bookings").updateOne(
+
+  const result = await db.collection("bookings").updateOne(
     {
       _id: new ObjectId(bookingId),
-      slots: {
-        $elemMatch: {
-          time: new Date(slotTime),
-          reservedBy: null
-        }
-      }
+      slots: { $elemMatch: { time: new Date(slotTime), reservedBy: null } }
     },
-    {
-      $set: {
-        "slots.$.reservedBy": toOid(userId)
-      }
-    }
+    { $set: { "slots.$.reservedBy": toOid(userId) } }
   );
+
+  if (result.modifiedCount === 0) {
+    throw new Error("Slot not found, already reserved, or not available.");
+  }
+
+  // Fetch booking and user to build notification
+  const booking = await db.collection("bookings").findOne({ _id: new ObjectId(bookingId) });
+  const [owner, user] = await Promise.all([
+    db.collection("users").findOne({ _id: booking.ownerId }),
+    db.collection("users").findOne({ _id: toOid(userId) }),
+  ]);
+
+  const notifyOwner = `mailto:${owner.email}?subject=${encodeURIComponent(
+    "Office hour reserved"
+  )}&body=${encodeURIComponent(
+    `Hi,\n\n${user.email} has reserved your office hour slot on ${new Date(slotTime).toLocaleString()}.\n\nThis appears on both your dashboards.`
+  )}`;
+
+  return { result, notifyOwner };
+};
+const getUserAppointments = async (userId) => {
+  const db = require("../config/db").getDB();
+  const [type1, type2, type3] = await Promise.all([
+    db.collection("bookings")
+      .find({ type: "TYPE1", userId: toOid(userId), status: "approved" }).toArray(),
+    db.collection("appointments")
+      .find({ type: "TYPE2", participants: toOid(userId) }).toArray(),
+    // TYPE3: find office-hour bookings where this user reserved a slot
+    db.collection("bookings")
+      .find({ type: "TYPE3", "slots.reservedBy": toOid(userId) }).toArray(),
+  ]);
+  return { type1, type2, type3 };
+};
+
+const getOwnerAppointments = async (ownerId) => {
+  const db = require("../config/db").getDB();
+  const [type1, type2, type3] = await Promise.all([
+    db.collection("bookings")
+      .find({ type: "TYPE1", ownerId: toOid(ownerId), status: "approved" }).toArray(),
+    db.collection("appointments")
+      .find({ type: "TYPE2", ownerId: toOid(ownerId) }).toArray(),
+    // TYPE3: all office-hour bookings owned by this owner
+    db.collection("bookings")
+      .find({ type: "TYPE3", ownerId: toOid(ownerId) }).toArray(),
+  ]);
+  return { type1, type2, type3 };
 };
 
 module.exports = {

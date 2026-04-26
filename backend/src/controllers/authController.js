@@ -3,43 +3,42 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { getDB } = require("../config/db");
 const { getRoleFromEmail } = require("../models/userModel");
+const { createUser } = require("../models/userModel");
+const crypto = require("crypto");
 
 const COLLECTION = "users";
 
-const register = async (req, res) => {
-  const { email, name, password } = req.body;
-
+// Create a new route: POST /api/auth/logout
+const logout = async (req, res) => {
   try {
-    // Validate email domain
-    const role = getRoleFromEmail(email);
-    if (!role) {
-      return res.status(400).json({ error: "Only @mcgill.ca or @mail.mcgill.ca emails can register." });
-    }
+    const header = req.headers["authorization"];
+    const token = header && header.split(" ")[1];
+    if (!token) return res.status(400).json({ error: "No token provided." });
 
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const db = getDB();
 
-    // Check if email already exists
-    const existing = await db.collection(COLLECTION).findOne({ email });
-    if (existing) {
-      return res.status(400).json({ error: "Email already registered." });
-    }
-
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Insert the new user
-    await db.collection(COLLECTION).insertOne({
-      email,
-      name,
-      password: hashedPassword,
-      role,
-      createdAt: new Date()
+    // Store the jti until the token would naturally expire
+    await db.collection("invalidated_tokens").insertOne({
+      jti: decoded.jti,
+      expiresAt: new Date(decoded.exp * 1000),  // TTL index on this field
     });
 
-    res.status(201).json({ message: "User registered successfully." });
-
+    res.json({ message: "Logged out successfully." });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(400).json({ error: "Invalid token." });
+  }
+};
+
+const register = async (req, res) => {
+  const { email, name, password } = req.body;
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    // createUser handles domain validation and duplicate check internally
+    await createUser({ email, name, password: hashedPassword });
+    res.status(201).json({ message: "User registered successfully." });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
   }
 };
 
@@ -75,4 +74,4 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = { register, login };
+module.exports = { register, login, logout };
