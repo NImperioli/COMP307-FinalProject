@@ -28,6 +28,7 @@ const createSlot = async (ownerId,  title, startTime, endTime ) => {
   if (isNaN(start.getTime())) throw new Error("startTime is not a valid date.");
   if (isNaN(end.getTime()))   throw new Error("endTime is not a valid date.");
   if (end <= start)           throw new Error("endTime must be after startTime.");
+  if (start < new Date())     throw new Error("startTime must be in the future.");
 
   return await db.collection(COLLECTION).insertOne({
     ownerId: toOid(ownerId, "ownerId"),
@@ -101,11 +102,6 @@ const activateSlot = async (slotId, ownerId) => {
 
 const activateSlotsByGroup = async (groupToken, userId) => {
   const db = getDB();
-
-  const user = await db.collection("users").findOne({ _id: toOid(userId, "userId") });
-  if (!user || user.role !== "owner") {
-    throw new Error("Unauthorized: Only registered owners can activate slots.");
-  }
 
   return await db.collection(COLLECTION).updateMany(
     { groupToken, ownerId: toOid(userId, "userId"), status: "private" },

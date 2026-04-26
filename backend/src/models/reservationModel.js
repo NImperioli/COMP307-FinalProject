@@ -78,7 +78,7 @@ const findReservationWithDetails = async (reservationId) => {
 };
 
 // Owner view
-const findReservationsByOwner = async (ownerId) => {
+const findReservationsByOwner = async (ownerId, { limit = 50, skip = 0 } = {}) => {
   const db = getDB();
 
   return await db.collection(COLLECTION).aggregate([
@@ -107,11 +107,13 @@ const findReservationsByOwner = async (ownerId) => {
     },
     { $unwind: "$user" },
     { $sort: { "slot.startTime": 1 } },
+    { $skip: skip },
+    { $limit: limit },
   ]).toArray();
 };
 
 // User view 
-const findReservationsByUser = async (userId) => {
+const findReservationsByUser = async (userId, { limit = 50, skip = 0 } = {}) => {
   const db = getDB();
   return await db.collection(COLLECTION).aggregate([
     {
@@ -128,7 +130,7 @@ const findReservationsByUser = async (userId) => {
         as:           "slot",
       },
     },
-    { $match: { slot: { $ne: [] } } },
+    { $match: { "slot.0": { $exists: true } } },
     { $unwind: "$slot" },
     {
       $lookup: {
@@ -140,6 +142,8 @@ const findReservationsByUser = async (userId) => {
     },
     { $unwind: "$owner" },
     { $sort: { "slot.startTime": 1 } },
+    { $skip: skip },
+    { $limit: limit },
   ]).toArray();
 };
 

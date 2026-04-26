@@ -16,9 +16,9 @@ exports.requestMeeting = async (req, res) => {
 
 exports.respondToRequest = async (req, res) => {
   try {
-    const { bookingId, accepted } = req.body;
-    if (!bookingId || accepted === undefined)
-      return res.status(400).json({ error: "bookingId and accepted are required." });
+    const { bookingId, accepted, ownerId } = req.body;
+    if (!bookingId || accepted === undefined || !ownerId)
+      return res.status(400).json({ error: "bookingId, accepted, and ownerId are required." });
     const result = await bookingService.respondToRequest(bookingId, accepted, ownerId);
     res.json(result);
   } catch (err) {
@@ -69,10 +69,10 @@ exports.createGroupMeeting = async (req, res) => {
 
 exports.voteForSlots = async (req, res) => {
   try {
-    const { bookingId, userId, slotTimes } = req.body;
-    if (!bookingId || !userId || !Array.isArray(slotTimes) || slotTimes.length === 0)
-      return res.status(400).json({ error: "bookingId, userId, and slotTimes (array) are required." });
-    const result = await bookingService.voteForSlots(bookingId, userId, slotTimes);
+    const { bookingId, userId, slotTimes, ownerId } = req.body;
+    if (!bookingId || !userId || !Array.isArray(slotTimes) || slotTimes.length === 0 || !ownerId)
+      return res.status(400).json({ error: "bookingId, userId, slotTimes (array), and ownerId are required." });
+    const result = await bookingService.voteForSlots(bookingId, userId, slotTimes, ownerId);
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -90,10 +90,10 @@ exports.getSlotVoteCounts = async (req, res) => {
 
 exports.finalizeGroupMeeting = async (req, res) => {
   try {
-    const { bookingId, selectedTime, repeatWeeks, ownerEmail } = req.body;
-    if (!bookingId || !selectedTime || !ownerEmail)
-      return res.status(400).json({ error: "bookingId, selectedTime, and ownerEmail are required." });
-    const result = await bookingService.finalizeGroupMeeting(bookingId, selectedTime, repeatWeeks, ownerEmail);
+    const { bookingId, selectedTime, repeatWeeks, ownerEmail, ownerId } = req.body;
+    if (!bookingId || !selectedTime || !ownerEmail || !ownerId)
+      return res.status(400).json({ error: "bookingId, selectedTime, ownerEmail, and ownerId are required." });
+    const result = await bookingService.finalizeGroupMeeting(bookingId, selectedTime, repeatWeeks, ownerEmail, ownerId);
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });

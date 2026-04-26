@@ -34,14 +34,11 @@ const requestMeeting = async (userId, ownerId, message, userEmail, ownerEmail) =
 
 const respondToRequest = async (bookingId, accepted, ownerId = null) => {
   const db = require("../config/db").getDB();
-  let booking = await db.collection("bookings").findOne({ _id: bookingId });
 
-  if (!booking) {
-    try {
-      const { ObjectId } = require("mongodb");
-      booking = await db.collection("bookings").findOne({ _id: new ObjectId(bookingId) });
-    } catch {}
-  }
+  let bookingOid;
+  try { bookingOid = new ObjectId(bookingId); }
+  catch { throw new Error("Invalid bookingId format."); }
+  const booking = await db.collection("bookings").findOne({ _id: bookingOid });
 
   if (!booking) throw new Error("Booking not found.");
   if (ownerId !== null && booking.ownerId.toString() !== ownerId.toString()) {
@@ -69,13 +66,13 @@ const respondToRequest = async (bookingId, accepted, ownerId = null) => {
 };
 
 const getUserMeetingRequests = async (userId) =>
-  await findBookings({ type: "TYPE1", userId });
+  await findBookings({ type: "TYPE1", userId: toOid(userId) });
 
 const getOwnerMeetingRequests = async (ownerId) =>
-  await findBookings({ type: "TYPE1", ownerId });
+  await findBookings({ type: "TYPE1", ownerId: toOid(ownerId) });
 
 const getOwnerPendingRequests = async (ownerId) =>
-  await findBookings({ type: "TYPE1", ownerId, status: "pending" });
+  await findBookings({ type: "TYPE1", ownerId: toOid(ownerId), status: "pending" });
 
 // TYPE 2 — Group Meeting (Calendar Method)
 const createGroupMeeting = async (ownerId, ownerEmail, title, slots, opensAt, closesAt) => {
@@ -89,7 +86,7 @@ const createGroupMeeting = async (ownerId, ownerEmail, title, slots, opensAt, cl
 
   return await createBooking({
     type:      "TYPE2",
-    ownerId,
+    ownerId:   toOid(ownerId),
     ownerEmail,
     title,
     slots: slots.map(s => ({
@@ -110,13 +107,16 @@ const voteForSlots = async (bookingId, userId, slotTimes) => {
   const booking = await db.collection("bookings").findOne({ _id: new ObjectId(bookingId) });
   if (!booking) throw new Error("Booking not found.");
 
+  const now = new Date();
+
+
   if (booking.status !== "collecting_votes") {
   return slotTimes.map(slotTime => ({
       slotTime,
       modified: false
     }));  
   }
-  const now = new Date();
+
 
   const ops = slotTimes.map((slotTime) => {
     const time = new Date(slotTime);
@@ -130,7 +130,7 @@ const voteForSlots = async (bookingId, userId, slotTimes) => {
                 $gte: new Date(time.getTime() - 1000),
                 $lte: new Date(time.getTime() + 1000),
               },
-              voters: { $ne: userId },   // atomic 
+              voters: { $ne: toOid(userId) },   // atomic 
             },
           },
         },
@@ -230,8 +230,8 @@ const finalizeGroupMeeting = async (bookingId, selectedTime, repeatWeeks = 1, ow
 const getUserAppointments = async (userId) => {
   const db = require("../config/db").getDB();
   const [type1, type2] = await Promise.all([
-    db.collection("bookings").find({ type: "TYPE1", userId, status: "approved" }).toArray(),
-    db.collection("appointments").find({ type: "TYPE2", participants: userId }).toArray(),
+    db.collection("bookings").find({ type: "TYPE1", userId: toOid(userId), status: "approved" }).toArray(),
+    db.collection("appointments").find({ type: "TYPE2", participants: toOid(userId) }).toArray(),
   ]);
   return { type1, type2 };
 };
@@ -239,8 +239,8 @@ const getUserAppointments = async (userId) => {
 const getOwnerAppointments = async (ownerId) => {
   const db = require("../config/db").getDB();
   const [type1, type2] = await Promise.all([
-    db.collection("bookings").find({ type: "TYPE1", ownerId, status: "approved" }).toArray(),
-    db.collection("appointments").find({ type: "TYPE2", ownerId }).toArray(),
+    db.collection("bookings").find({ type: "TYPE1", ownerId: toOid(ownerId), status: "approved" }).toArray(),
+    db.collection("appointments").find({ type: "TYPE2", ownerId: toOid(ownerId) }).toArray(),
   ]);
   return { type1, type2 };
 };
@@ -249,7 +249,7 @@ const getOwnerAppointments = async (ownerId) => {
 const createOfficeHours = async (ownerId, slots, weeks) => {
   return await createBooking({
     type:      "TYPE3",
-    ownerId,
+    ownerId:   toOid(ownerId),
     slots:     slots.map(s => ({ time: new Date(s), reservedBy: null })),
     weeks,
     status:    "open",
@@ -272,7 +272,7 @@ const reserveOfficeHour = async (bookingId, slotTime, userId) => {
     },
     {
       $set: {
-        "slots.$.reservedBy": userId
+        "slots.$.reservedBy": toOid(userId)
       }
     }
   );

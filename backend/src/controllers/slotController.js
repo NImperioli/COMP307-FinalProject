@@ -136,7 +136,10 @@ exports.deleteSlotsByGroup = async (req, res) => {
     }
 
     const { deletedCount, skippedIds } = await deleteSlotsByGroup(groupToken, ownerId, reservationMap);
-    res.json({ result: { deletedCount, skippedIds }, notifyBookers });
+    const warning = skippedIds.length > 0
+      ? `${skippedIds.length} slot(s) could not be deleted because they have active reservations.`
+      : null;
+    res.json({ result: { deletedCount, skippedIds, warning }, notifyBookers });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
