@@ -10,6 +10,12 @@ const connectDB = async () => {
   db = client.db(process.env.DB_NAME);
   clearTimeout(mongoTimeout);
   console.log("MongoDB connected");
+
+  await db.collection("invalidated_tokens").createIndex(
+    { expiresAt: 1 },
+    { expireAfterSeconds: 0, name: "ttl_expires_at" }
+  );
+  console.log("TTL index ensured on invalidated_tokens");
 };
 
 const getDB = () => db;

@@ -34,15 +34,21 @@ const {
   buildInviteUrl,
 } = require("../services/notificationService");
 
+const { buildICS } = require("../services/icalService");
+
 // Slot management (owner)
 
 exports.createSlot = async (req, res) => {
   try {
-    const { ownerId, title, start, end } = req.body;
-    if (!ownerId || !title || !start || !end)
-      return res.status(400).json({ error: "ownerId, title, start, and end are required." });
+    const { title, start, end } = req.body;
+    const ownerId = req.user.id;          // from JWT
+    if (!title || !start || !end)
+      return res.status(400).json({ error: "title, start, and end are required." });
     const result = await createSlot(ownerId, title, start, end);
-    res.json(result);
+    const db = require("../config/db").getDB();
+    const { ObjectId } = require("mongodb");
+    const inserted = await db.collection("slots").findOne({ _id: result.insertedId });
+    res.json(inserted);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -50,9 +56,13 @@ exports.createSlot = async (req, res) => {
 
 exports.createRecurringSlots = async (req, res) => {
   try {
-    const { ownerId, weeklySlots, weeks } = req.body;
-    if (!ownerId || !weeklySlots || !weeks)
-      return res.status(400).json({ error: "ownerId, weeklySlots, and weeks are required." });
+    const { weeklySlots, weeks } = req.body;  
+    const ownerId = req.user.id;
+    if (!weeklySlots || !weeks) {
+      return res.status(400).json({
+        error: "weeklySlots and weeks are required."
+      });
+    }
     const result = await createRecurringSlots(ownerId, weeklySlots, weeks);
     res.json(result);
   } catch (err) {
@@ -62,9 +72,8 @@ exports.createRecurringSlots = async (req, res) => {
 
 exports.activateSlot = async (req, res) => {
   try {
-    const { ownerId } = req.body;
+    const ownerId = req.user.id;          // from JWT
     const result = await activateSlot(req.params.slotId, ownerId);
-    console.log("Activating: slot:" + req.params.slotId, " owner:" + ownerId);
     if (result.matchedCount === 0)
       return res.status(404).json({ error: "Slot not found or you are not the owner." });
     res.json(result);
@@ -75,7 +84,7 @@ exports.activateSlot = async (req, res) => {
 
 exports.activateSlotsByGroup = async (req, res) => {
   try {
-    const { ownerId } = req.body;
+    const ownerId = req.user.id;
     const result = await activateSlotsByGroup(req.params.groupToken, ownerId);
     res.json(result);
   } catch (err) {
@@ -85,7 +94,7 @@ exports.activateSlotsByGroup = async (req, res) => {
 
 exports.deactivateSlot = async (req, res) => {
   try {
-    const { ownerId } = req.body;
+    const ownerId = req.user.id;          // from JWT
     const result = await deactivateSlot(req.params.slotId, ownerId);
     res.json(result);
   } catch (err) {
@@ -95,13 +104,10 @@ exports.deactivateSlot = async (req, res) => {
 
 exports.deleteSlot = async (req, res) => {
   try {
-    console.log(req.body);
-    console.log(req.params.slotId);
-    const { ownerId } = req.body;
+    const ownerId = req.user.id;          // from JWT
     const slot = await findSlotById(req.params.slotId);
     if (!slot) return res.status(404).json({ error: "Slot not found." });
 
-    // Check for active reservation and build notification if needed
     const reservation = await findReservationBySlot(req.params.slotId);
     let notifyBooker = null;
     if (reservation) {
@@ -120,7 +126,7 @@ exports.deleteSlot = async (req, res) => {
 
 exports.deleteSlotsByGroup = async (req, res) => {
   try {
-    const { ownerId } = req.body;
+    const ownerId = req.user.id;
     const { groupToken } = req.params;
 
     const groupSlots = await findSlotsByGroup(groupToken);
@@ -136,7 +142,10 @@ exports.deleteSlotsByGroup = async (req, res) => {
     }
 
     const { deletedCount, skippedIds } = await deleteSlotsByGroup(groupToken, ownerId, reservationMap);
-    res.json({ result: { deletedCount, skippedIds }, notifyBookers });
+    const warning = skippedIds.length > 0
+      ? `${skippedIds.length} slot(s) could not be deleted because they have active reservations.`
+      : null;
+    res.json({ result: { deletedCount, skippedIds, warning }, notifyBookers });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -144,6 +153,8 @@ exports.deleteSlotsByGroup = async (req, res) => {
 
 exports.findSlotsByOwner = async (req, res) => {
   try {
+    if (req.user.id.toString() !== req.params.ownerId.toString())
+      return res.status(403).json({ error: "Forbidden." });
     const result = await findSlotsByOwner(req.params.ownerId);
     console.log(result);
     res.json(result);
@@ -202,7 +213,8 @@ exports.getInviteUrl = async (req, res) => {
   try {
     const slot = await findSlotById(req.params.slotId);
     if (!slot) return res.status(404).json({ error: "Slot not found." });
-    const baseUrl = req.query.baseUrl || "http://localhost:3000";//Change URL when deployed on mimi
+    // FIXED: use env var, fall back to request origin, never localhost
+    const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
     const token   = slot.groupToken || slot.inviteToken;
     const url     = buildInviteUrl(baseUrl, token);
     res.json({ inviteUrl: url, token });
@@ -214,9 +226,11 @@ exports.getInviteUrl = async (req, res) => {
 // Reservations (user) 
 exports.reserveSlot = async (req, res) => {
   try {
-    const { slotId, userId, userEmail } = req.body;
-    if (!slotId || !userId || !userEmail)
-      return res.status(400).json({ error: "slotId, userId, and userEmail are required." });
+    const { slotId } = req.body;
+    const userId    = req.user.id;     // from JWT
+    const userEmail = req.user.email;  // from JWT
+    if (!slotId)
+      return res.status(400).json({ error: "slotId is required." });
 
     const result = await reserveSlot(slotId, userId);
 
@@ -235,9 +249,10 @@ exports.reserveSlot = async (req, res) => {
 
 exports.cancelReservation = async (req, res) => {
   try {
-    const { reservationId, userId } = req.body;
-    if (!reservationId || !userId)
-      return res.status(400).json({ error: "reservationId and userId are required." });
+    const { reservationId } = req.body;
+    const userId = req.user.id;  // from JWT
+    if (!reservationId)
+      return res.status(400).json({ error: "reservationId is required." });
 
     // Get details before cancelling so we can build the notification
     const details = await findReservationWithDetails(reservationId);
@@ -260,6 +275,8 @@ exports.cancelReservation = async (req, res) => {
 
 exports.findReservationsByUser = async (req, res) => {
   try {
+    if (req.user.id.toString() !== req.params.userId.toString())
+      return res.status(403).json({ error: "Forbidden." });
     const result = await findReservationsByUser(req.params.userId);
     res.json(result);
   } catch (err) {
@@ -288,6 +305,48 @@ exports.ownerMessageToBooker = async (req, res) => {
     const reservation = await findReservationBySlot(req.params.slotId);
     if (!reservation) return res.status(404).json({ error: "No active reservation for this slot." });
     res.json({ mailto: buildOwnerToBookerMailto(reservation.user.email, slot) });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.exportSlotICS = async (req, res) => {
+  try {
+    const slot = await findSlotById(req.params.slotId);
+    if (!slot) return res.status(404).json({ error: "Slot not found." });
+
+    const ics = buildICS([{
+      title:       slot.title,
+      start:       slot.startTime,
+      end:         slot.endTime,
+      description: `Booking slot managed via MyBookings`,
+    }]);
+
+    res.setHeader("Content-Type",        "text/calendar; charset=utf-8");
+    res.setHeader("Content-Disposition", `attachment; filename="${slot.title}.ics"`);
+    res.send(ics);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.exportReservationsICS = async (req, res) => {
+  try {
+    const reservations = await findReservationsByUser(req.params.userId);
+
+    const events = reservations.map(r => ({
+      title:       r.slot.title,
+      start:       r.slot.startTime,
+      end:         r.slot.endTime,
+      description: `Booked via MyBookings with ${r.owner.name}`,
+      organizer:   r.owner.email,
+    }));
+
+    const ics = buildICS(events);
+
+    res.setHeader("Content-Type",        "text/calendar; charset=utf-8");
+    res.setHeader("Content-Disposition", `attachment; filename="my-bookings.ics"`);
+    res.send(ics);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

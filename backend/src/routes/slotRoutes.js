@@ -15,7 +15,7 @@ router.delete("/:slotId",                          authToken.authenticateOwnerTo
 router.delete("/group/:groupToken",                authToken.authenticateOwnerToken, controller.deleteSlotsByGroup);
 
 // Owner: queries 
-router.get("/owners/active",                       authToken.authenticateOwnerToken, controller.findActiveOwners);
+router.get("/owners/active",                       authToken.authenticateAnyToken, controller.findActiveOwners);
 router.get("/owner/:ownerId",                      authToken.authenticateOwnerToken, controller.findSlotsByOwner);
 router.get("/owner/:ownerId/active",               authToken.authenticateOwnerToken, controller.findActiveSlotsByOwner);
 router.get("/owner/:ownerId/reservations",         authToken.authenticateOwnerToken, controller.findReservationsByOwner);
@@ -33,5 +33,8 @@ router.get("/my-reservations/:userId",             authToken.authenticateUserTok
 // Mailto helpers 
 router.get("/:slotId/message-owner",               authToken.authenticateUserToken, controller.userMessageToOwner);
 router.get("/:slotId/message-booker",              authToken.authenticateOwnerToken, controller.ownerMessageToBooker);
+
+router.get("/:slotId/export.ics",                  authToken.authenticateAnyToken, controller.exportSlotICS);
+router.get("/my-reservations/:userId/export.ics",  authToken.authenticateUserToken, controller.exportReservationsICS);
 
 module.exports = router;

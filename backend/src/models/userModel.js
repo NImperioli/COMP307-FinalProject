@@ -10,13 +10,15 @@ const getRoleFromEmail = (email) => {
   return null;
 };
 
-const createUser = async ({ email, name }) => {
+const createUser = async ({ email, name, password }) => {
   const db = getDB();
   const role = getRoleFromEmail(email);
   if (!role) throw new Error("Only @mcgill.ca or @mail.mcgill.ca emails can register.");
   const existing = await db.collection(COLLECTION).findOne({ email });
   if (existing) throw new Error("Email already registered.");
-  return await db.collection(COLLECTION).insertOne({ email, name, role, createdAt: new Date() });
+  return await db.collection(COLLECTION).insertOne({
+    email, name, password, role, createdAt: new Date()
+  });
 };
 
 const findUserByEmail = async (email) => {

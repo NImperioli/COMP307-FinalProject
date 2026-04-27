@@ -78,40 +78,47 @@ const findReservationWithDetails = async (reservationId) => {
 };
 
 // Owner view
-const findReservationsByOwner = async (ownerId) => {
+const findReservationsByOwner = async (ownerId, { limit = 50, skip = 0 } = {}) => {
   const db = getDB();
-
-  return await db.collection(COLLECTION).aggregate([
-    {
-      $match: {
-        cancelledAt: { $exists: false },
-      },
-    },
+  // FIXED: filter slots by ownerId in the lookup pipeline before the full scan
+  return await db.collection("slots").aggregate([
+    { $match: { ownerId: toOid(ownerId, "ownerId") } },  // start from slots, not reservations
     {
       $lookup: {
-        from:         "slots",
-        localField:   "slotId",
-        foreignField: "_id",
-        as:           "slot",
+        from:         "reservations",
+        localField:   "_id",
+        foreignField: "slotId",
+        as:           "reservation",
+        pipeline: [{ $match: { cancelledAt: { $exists: false } } }],
       },
     },
-    { $unwind: "$slot" },
-    { $match: { "slot.ownerId": toOid(ownerId, "ownerId") } },
+    { $unwind: "$reservation" },
     {
       $lookup: {
         from:         "users",
-        localField:   "userId",
+        localField:   "reservation.userId",
         foreignField: "_id",
         as:           "user",
       },
     },
     { $unwind: "$user" },
-    { $sort: { "slot.startTime": 1 } },
+    {
+      $project: {
+        _id:          "$reservation._id",
+        slotId:       "$_id",
+        slot:         "$$ROOT",
+        user:         1,
+        reservedAt:   "$reservation.reservedAt",
+      },
+    },
+    { $sort:  { startTime: 1 } },
+    { $skip:  skip },
+    { $limit: limit },
   ]).toArray();
 };
 
 // User view 
-const findReservationsByUser = async (userId) => {
+const findReservationsByUser = async (userId, { limit = 50, skip = 0 } = {}) => {
   const db = getDB();
   return await db.collection(COLLECTION).aggregate([
     {
@@ -128,7 +135,7 @@ const findReservationsByUser = async (userId) => {
         as:           "slot",
       },
     },
-    { $match: { slot: { $ne: [] } } },
+    { $match: { "slot.0": { $exists: true } } },
     { $unwind: "$slot" },
     {
       $lookup: {
@@ -140,6 +147,8 @@ const findReservationsByUser = async (userId) => {
     },
     { $unwind: "$owner" },
     { $sort: { "slot.startTime": 1 } },
+    { $skip: skip },
+    { $limit: limit },
   ]).toArray();
 };
 
