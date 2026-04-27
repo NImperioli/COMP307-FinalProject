@@ -45,7 +45,10 @@ exports.createSlot = async (req, res) => {
     if (!title || !start || !end)
       return res.status(400).json({ error: "title, start, and end are required." });
     const result = await createSlot(ownerId, title, start, end);
-    res.json(result);
+    const db = require("../config/db").getDB();
+    const { ObjectId } = require("mongodb");
+    const inserted = await db.collection("slots").findOne({ _id: result.insertedId });
+    res.json(inserted);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -150,6 +153,8 @@ exports.deleteSlotsByGroup = async (req, res) => {
 
 exports.findSlotsByOwner = async (req, res) => {
   try {
+    if (req.user.id.toString() !== req.params.ownerId.toString())
+      return res.status(403).json({ error: "Forbidden." });
     const result = await findSlotsByOwner(req.params.ownerId);
     console.log(result);
     res.json(result);
@@ -270,6 +275,8 @@ exports.cancelReservation = async (req, res) => {
 
 exports.findReservationsByUser = async (req, res) => {
   try {
+    if (req.user.id.toString() !== req.params.userId.toString())
+      return res.status(403).json({ error: "Forbidden." });
     const result = await findReservationsByUser(req.params.userId);
     res.json(result);
   } catch (err) {

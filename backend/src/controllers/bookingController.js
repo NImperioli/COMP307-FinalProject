@@ -101,7 +101,7 @@ exports.finalizeGroupMeeting = async (req, res) => {
     if (!bookingId || !selectedTime || !ownerEmail)
       return res.status(400).json({ error: "bookingId, selectedTime, and ownerEmail are required." });
     const result = await bookingService.finalizeGroupMeeting(bookingId, selectedTime, repeatWeeks, ownerEmail, ownerId);
-    res.json(result);
+    res.json(result);  
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -138,33 +138,6 @@ exports.getGroupInviteUrl = async (req, res) => {
     const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
     const url = `${baseUrl}/owner-slots.html?ownerId=${booking.ownerId}&bookingId=${bookingId}&openVote=true`;
     res.json({ inviteUrl: url });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-// TYPE 3 — Recurring Office Hours 
-exports.createOfficeHours = async (req, res) => {
-  try {
-    const { slots, weeks } = req.body;
-    const ownerId = req.user.id;          // from JWT
-    if (!slots || !weeks)
-      return res.status(400).json({ error: "slots and weeks are required." });
-    const result = await bookingService.createOfficeHours(ownerId, slots, weeks);
-    res.json(result);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-exports.reserveOfficeHour = async (req, res) => {
-  try {
-    const { bookingId, slotTime } = req.body;
-    const userId = req.user.id;  // also fix this to use JWT
-    if (!bookingId || !slotTime)
-      return res.status(400).json({ error: "bookingId and slotTime are required." });
-    const result = await bookingService.reserveOfficeHour(bookingId, slotTime, userId);
-    res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

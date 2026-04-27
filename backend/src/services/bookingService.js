@@ -80,11 +80,8 @@ const respondToRequest = async (bookingId, accepted, ownerId = null) => {
   const status = accepted ? "approved" : "declined";
   const result = await updateBooking(booking._id, { status, respondedAt: new Date() });
 
-  if (accepted) {
-
-    const start = new Date(booking.proposedTime);
-
-    const end = new Date(start.getTime() + 30 * 60000); // 30 min meeting
+  if (accepted && booking.proposedTime) {
+    const { start, end } = buildMeetingTime(booking.proposedTime);
 
     await db.collection("slots").insertOne({
       ownerId: booking.ownerId,
@@ -284,7 +281,12 @@ const finalizeGroupMeeting = async (bookingId, selectedTime, repeatWeeks = 1, ow
     `Hi,\n\nYour group meeting "${booking.title}" has been finalized.\n\nTime: ${base.toLocaleString()}\n\n${recurrenceNote}`
   )}`;
 
-  return { result, appointments, notifyOwner, notifyParticipants };
+  return {
+  result,
+  appointments,
+  notifyParticipants,
+  notifyOwner
+  };
 };
 
 // TYPE 3 — Recurring Office Hours 

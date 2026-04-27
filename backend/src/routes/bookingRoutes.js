@@ -20,8 +20,4 @@ router.get("/appointments/user/:userId",         auth.authenticateUserToken, con
 router.get("/appointments/owner/:ownerId",       auth.authenticateOwnerToken, controller.getOwnerAppointments);
 router.get("/group/:bookingId/invite-url", auth.authenticateOwnerToken, controller.getGroupInviteUrl);
 
-// TYPE 3 — Recurring Office Hours 
-router.post("/office-hours/create",              auth.authenticateOwnerToken, controller.createOfficeHours);
-router.post("/office-hours/reserve",             auth.authenticateUserToken,  controller.reserveOfficeHour);
-
 module.exports = router;
