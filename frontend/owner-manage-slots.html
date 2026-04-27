@@ -479,15 +479,15 @@
         const string = slot_data.title + "; " + slot_data.status + "; " + startTime + " - " + endTime;
         new_slot.append(string);
         let del = document.createElement("button");
-        del.innerText="x";
+        del.innerText="Delete";
         del.onclick = () => {deleteSlot(slot_data._id)};
         new_slot.appendChild(del);
         let act = document.createElement("button");
-        act.innerText="a";
+        act.innerText="Activate";
         act.onclick = () => {activate(slot_data._id)};
         new_slot.appendChild(act);
         let dea = document.createElement("button");
-        dea.innerText="d";
+        dea.innerText="Deactivate";
         dea.onclick = () => {deactivate(slot_data._id)};
         new_slot.appendChild(dea);
         slot_container.appendChild(new_slot);
