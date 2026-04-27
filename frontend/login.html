@@ -24,6 +24,13 @@
             align-items: center;
             padding: 0 80px;
             gap: 60px;
+
+            background: 
+        linear-gradient(to left, rgba(255,255,255,0) 10%, rgba(255,255,255,1) 60%),
+        url('Images/landing_bg.jpg');
+
+        background-size: cover;
+        background-position: center;
         }
 
         .page-container {
@@ -137,20 +144,52 @@
            
         }
 
+         .sign-up-link {
+            text-align: center;
+            font-size: 15px; 
+            margin-top: 20px;
+        }
+
+        .sign-up-link a{
+            color: black;
+            font-weight: 600;
+        }
+
+        .sign-up-link a:hover {
+          
+            color:red;
+        }
+
+        .back-btn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    padding: 10px 15px;
+    border: none;
+    background: black;
+    color: white;
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+.back-btn:hover {
+    transition: .3s;
+    background: red;
+    transform: scale(1.05,1);
+}
 
     </style>
 </head>
 
 <body>
-    <h6>NAME OF APPLICATION</h6>
+    <h6>MyBookings</h6>
 <div class="page-container">
     <div class="left-section">
-        <h1 class="mcgill">Booking Application</h1>
+        <h1 class="mcgill">MyBookings</h1>
         <p>
-           Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-           Integer in lorem viverra, pellentesque eros in, fermentum 
-           urna. Nulla eget lectus non mauris pretium pellentesque id 
-           nec arcu. Aliquam erat volutpat. 
+           <p>
+Book meetings with ease using MyBookings. Designed for McGill students, professors, and teaching assistants, this platform allows you to schedule, manage, and reserve appointment slots seamlessly. Stay organized, save time, and never miss an important meeting again.
+</p>
          
         </p>
     </div>
@@ -160,6 +199,9 @@
             <div class="login-header">
                 <header><b>Login</b></header>
             </div>
+
+             <button class="back-btn" onclick="goBack()">Back</button>
+
 
             <form id="login-form">
                 <div class="info-box">
@@ -173,6 +215,10 @@
                 <div class="input-submit">
                     <button class="submit-button" type="submit">Sign In</button>
                 </div>
+
+                <div class="sign-up-link">
+                        <p>Don't have an account? <a href="\register.html">Sign Up</a></p>
+                    </div>
             </form>
         </div>
     </div>
@@ -218,6 +264,10 @@
                 return;
             }
         });
+
+         function goBack() {
+    window.history.back();
+}
     </script>
 </body>
 </html>

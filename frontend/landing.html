@@ -167,9 +167,8 @@
     <div class="top-bar">
         <div class="logo">MyBookings</div>
 
-        <div class="top-buttons">
-            <button class="top-button" onclick="window.location.href='login.html'">Login</button>
-            <button class="top-button" onclick="window.location.href='register.html'">Register</button>
+        <div class="top-buttons" id="top-buttons">
+            <button class="top-button" id="login-btn" onclick="window.location.href='login.html'">Login</button>
         </div>
     </div>
 
@@ -179,9 +178,38 @@
             Book office hours, request meetings, and manage recurring appointments in one simple place.
         </p>
 
-        <div class="hero-buttons">
-            <button class="hero-button" onclick="window.location.href='register.html'">Get Started</button>
-            <button class="hero-button" onclick="window.location.href='browse-owners.html'">Browse Owners</button>
+        <div class="hero-buttons" id="hero-buttons">
+            <button class="hero-button" id="register-btn" onclick="window.location.href='register.html'">Get Started</button>
+            <button class="hero-button" id="dashboard-btn" onclick="window.location.href='dashboard.html'" style="display:none">Dashboard</button>            
         </div>
     </div>
+
+    <!--- Annie Huynh 261182881--->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            showCorrectButtons();
+        });
+
+        const API_BASE = '';
+        // Read the JWT from localStorage
+        const token = localStorage.getItem('token');
+        const name = localStorage.getItem('name');
+
+        function showCorrectButtons(){
+            if (localStorage.getItem('token')){ //logged in
+                document.getElementById('login-btn').style.display = 'none';
+                document.getElementById('register-btn').style.display = 'none';
+                document.getElementById('dashboard-btn').style.display = '';
+                const topCorner = document.getElementById('top-buttons');
+                const userName = document.createTextNode(name);
+                topCorner.appendChild(userName);
+            }
+            else{ //not logged in
+                document.getElementById('login-btn').style.display = '';
+                document.getElementById('register-btn').style.display = '';
+                document.getElementById('dashboard-btn').style.display = 'none';
+            }
+        }
+    </script>
 </body>
+</html>
