@@ -126,6 +126,21 @@ const deactivateSlot = async (slotId, ownerId) => {
 
 const deleteSlot = async (slotId, ownerId) => {
   const db = getDB();
+  const slotObjectId = toOid(slotId, "slotId");
+
+  await db.collection("reservations").updateMany(
+    {
+      slotId: slotObjectId,
+      cancelledAt: { $exists: false }
+    },
+    {
+      $set: {
+        cancelledAt: new Date(),
+        cancellationReason: "Slot deleted by owner"
+      }
+    }
+  );
+  
   return await db.collection(COLLECTION).deleteOne({
     _id:     toOid(slotId, "slotId"),
     ownerId: toOid(ownerId, "ownerId"),

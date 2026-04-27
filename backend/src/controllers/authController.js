@@ -33,9 +33,12 @@ const logout = async (req, res) => {
 
     const db = getDB();
 
+    const expiresAt = new Date(decoded.exp * 1000); 
+
     await db.collection("invalidated_tokens").insertOne({
       jti: decoded.jti,
-      createdAt: new Date()
+      createdAt: new Date(),
+      expiresAt: expiresAt
     });
 
     res.json({ message: "Logged out successfully." });
