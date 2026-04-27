@@ -216,47 +216,22 @@
 </head>
 
 <body>
-    <h6>MyBookings</h6>
+    <h6><a href="landing.html">MyBookings</a></h6>
 
     <div class="dashboard-header">
         <h1>Dashboard</h1>
-        <button class="logout-button" onclick="window.location.href='landing.html'">Logout</button>
+        <button class="logout-button" onclick="localStorage.clear(); window.location.href='landing.html'">Logout</button>
     </div>
 
     <div class="dashboard-grid">
         <div class="left-panel">
             <h2 class="panel-title">My Appointments</h2>
 
-            <div id="appointmentsList">
-                <div class="appointment-card">
-                    <h3>Office Hours with Prof. Smith</h3>
-                    <p>Date: Monday, April 15</p>
-                    <p>Time: 10:00 AM - 10:30 AM</p>
-                    <p>Status: Confirmed</p>
-
-                    <div class="card-actions">
-                        <button class="small-button">Message Owner</button>
-                        <button class="small-button">Cancel Appointment</button>
-                    </div>
-                </div>
-
-                <div class="appointment-card">
-                    <h3>Group Meeting</h3>
-                    <p>Date: Wednesday, April 17</p>
-                    <p>Time: 2:00 PM - 3:00 PM</p>
-                    <p>Status: Pending</p>
-
-                    <div class="card-actions">
-                        <button class="small-button">Message Owner</button>
-                        <button class="small-button">Cancel Appointment</button>
-                    </div>
-                </div>
-            </div>
+            <div id="appointmentsList"></div>
         </div>
 
         <div class="right-panel" id="actions-menu">
             <h2 class="panel-title">Actions</h2>
-            <button class="action-button" onclick="window.location.href='browse-owners.html'">Browse Owners</button>
             <button class="action-button" id="viewRequestsBtn" onclick="openMyRequestsModal()">View Requests</button>
         </div>
     </div>
@@ -281,7 +256,7 @@
 
     <!--- Annie Huynh --->
     <script>
-        const API_BASE = 'http://winter2026-comp307-group38.cs.mcgill.ca:3000';
+        const API_BASE = '';
         // Read the JWT from localStorage
         const token = localStorage.getItem('token');
         const role = localStorage.getItem('role');
@@ -337,6 +312,10 @@
                 pendingBtn.textContent = "View Pending Requests";
                 pendingBtn.onclick = () => openPendingModal();
                 actionsBar.appendChild(pendingBtn);
+            }
+
+            if (role === 'student'){
+                renderAction("Book Another Appointment", "browse-owners.html");
             }
         }
         loadDashboard();

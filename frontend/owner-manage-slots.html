@@ -275,7 +275,7 @@
 </head>
 
 <body>
-    <h6>MyBookings</h6>
+    <h6><a href="landing.html">MyBookings</a></h6>
 
     <div class="page-header">
         <h1>Manage Slots</h1>
@@ -414,7 +414,7 @@
 </body>
 
 <script>
-    const API_BASE = 'http://winter2026-comp307-group38.cs.mcgill.ca:3000';
+    const API_BASE = '';
     // wb 261143451
     //Owner-only page.
     // List automatically, Create, Delete, edit
@@ -460,7 +460,7 @@
             if(Date.parse(slot.endTime) < options.range[0] || Date.parse(slot.startTime) > options.range[1]){
                 continue;
             }
-            if(!slot.status in options.filter){
+            if(!options.filter.includes(slot.status)){
                 continue;
             }
             filtered.push(slot);
@@ -614,7 +614,11 @@
             method: 'POST',
             body: JSON.stringify({ownerId: id})
         })
+        //parsa json res\ponse 
         let response = await slot.json();
+        if (response.matchedCount === 0){
+            alert("Couldn't activate slot - check owner ID");
+        }
 
         console.log("Activate response: ", response);
         await renderAll();
@@ -631,6 +635,9 @@
             body: JSON.stringify({ownerId: id})
         })
         let response = await slot.json();
+        if (response.matchedCount === 0){
+            alert("Couldn't deactivate slot - check owner ID");
+        }
 
         console.log("Deac response: ", response);
         await renderAll();
@@ -747,13 +754,16 @@
         });
 
         const data = await response.json();
-        if (response.ok) {
-            const bookingId = data.insertedId;
-            closeCreateModal();
-            alert(`Meeting created!\n\nShare this vote link:\nowner-slots.html?ownerId=${id}&bookingId=${bookingId}&openVote=true`);
-        } else {
-            alert(data.error);
-        }
+            if (response.ok) {
+                const bookingId = data.insertedId;
+                closeCreateModal();
+                navigator.clipboard.writeText(`\nowner-slots.html?ownerId=${id}&bookingId=${bookingId}&openVote=true`).then(() => {
+                    alert("Meeting created and url copied!");
+                });
+            } else {
+                alert(data.error || 'URL not found');
+            }
+        
     };
 
     // Finalize Group Meeting Modal - Annie Huynh
