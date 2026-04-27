@@ -17,7 +17,7 @@ router.delete("/group/:groupToken",                authToken.authenticateOwnerTo
 // Owner: queries 
 router.get("/owners/active",                       authToken.authenticateAnyToken, controller.findActiveOwners);
 router.get("/owner/:ownerId",                      authToken.authenticateOwnerToken, controller.findSlotsByOwner);
-router.get("/owner/:ownerId/active",               authToken.authenticateOwnerToken, controller.findActiveSlotsByOwner);
+router.get("/owner/:ownerId/active",               authToken.authenticateAnyToken, controller.findActiveSlotsByOwner);
 router.get("/owner/:ownerId/reservations",         authToken.authenticateOwnerToken, controller.findReservationsByOwner);
 router.get("/:slotId/reservation",                 authToken.authenticateOwnerToken, controller.findReservationBySlot);
 router.get("/:slotId/invite-url",                  authToken.authenticateOwnerToken, controller.getInviteUrl);
