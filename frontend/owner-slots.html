@@ -185,7 +185,7 @@
 </head>
 
 <body>
-    <h6>MyBookings</h6>
+   <h6><a href="landing.html">MyBookings</a></h6>
 
     <div class="page-header">
         <h1>Available Slots</h1>
@@ -222,9 +222,9 @@
         </div>
     </div>
 
-    <!-- Vote Group Meeting Modal - Annie Huynh -->
+    <!-- Vote for meeting time - Annie Huynh -->
     <div class="modal-overlay" id="voteModal">
-        <div class="modal-box">
+        <div class="modal-box">    
             <button class="modal-close" onclick="closeVoteModal()">&#10005;</button>
             <h2 class="modal-title">Vote for a Meeting Time</h2>
             <div id="voteSlotsList"></div>
@@ -233,29 +233,30 @@
 
     <!--- Annie Huynh --->
     <script>
-        const API_BASE = 'http://winter2026-comp307-group38.cs.mcgill.ca:3000';
+        const API_BASE = '';
          const id = localStorage.getItem('user._id');
          const email = localStorage.getItem('email');
 
         // read token and redirect if its missing
-
-        /**
         const token = localStorage.getItem('token');
          if (!token){
             window.location.href = 'login.html'
         }
-            **/
 
-        // make sure that this page is only accessed from browse-owners
-        const ownerId = new URLSearchParams(window.location.search).get('ownerId');
-        if (!ownerId){
+        // make sure that this page is only accessed from browse-owners or via invite link
+        const urlParams = new URLSearchParams(window.location.search);
+        const ownerId = urlParams.get('ownerId');
+        const inviteToken = urlParams.get('token');
+        if (!ownerId && !inviteToken){
             window.location.href='browse-owners.html';
         }
 
         const slotsList = document.getElementById('slotsList');
         //fetch active owners on load
         async function loadSlots(){
-            const url = `${API_BASE}/api/slots/owner/${ownerId}/active`;
+            const url = inviteToken
+                ? `${API_BASE}/api/slots/token/${inviteToken}`
+                : `${API_BASE}/api/slots/owner/${ownerId}/active`;
 
             const response = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } }); // header for JWT handshake
             const data = await response.json();
@@ -315,12 +316,29 @@
                     }
                 }
 
+            // Message owner button
+            const messageOwner = document.createElement("button");
+            messageOwner.classList.add("reserve-button");
+            messageOwner.textContent="Message Owner";
+            buttonDiv.appendChild(messageOwner);
+            messageOwner.onclick = async() => {
+                const response = await fetch(`${API_BASE}/api/slots/${slot._id}/message-owner`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    window.location.href = data.mailto;
+                } else {
+                    alert(data.error);
+                }
+            }
+
             // append to html
             newDiv.appendChild(buttonDiv);
             slotsList.appendChild(newDiv);
         }
 
-        // Vote Modal - Annie Huynh
+        // select slots
         let voteBookingId = null;
 
         function openVoteModal(bookingId) {

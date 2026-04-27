@@ -275,7 +275,7 @@
 </head>
 
 <body>
-    <h6>MyBookings</h6>
+    <h6><a href="landing.html">MyBookings</a></h6>
 
     <div class="page-header">
         <h1>Manage Slots</h1>
@@ -285,14 +285,15 @@
     <div class="main-panel">
         <h2 class="panel-title">Available Slots</h2>
 
-        <button class="create-button" onclick="createSlot('Evil office hours', Date.parse('2026-06-06'), Date.parse('2026-06-07'))">Create Slot</button>
+        <button class="create-button" onclick="openCreateSlotModal()">Create Slot</button>
+        <button class="create-button" onclick="openRecurringModal()">Create Recurring Slots</button>
         <button class="create-button" onclick="openCreateModal()">Create Group Meeting</button>
         <button class="create-button" onclick="openFinalizeModal()">Finalize Group Meeting</button>
 
         <div id="slot_container"></div>
     </div>
 
-    <!-- Create Group Meeting Modal - Annie Huynh -->
+    <!-- Creating goup meeting - Annie Huynh -->
     <div class="modal-overlay" id="createModal">
         <div class="modal-box">
             <button class="modal-close" onclick="closeCreateModal()">&#10005;</button>
@@ -333,11 +334,37 @@
                 <input type="datetime-local" id="slot3" />
             </div>
 
-            <button class="modal-submit" id="createSubmitBtn">Create Meeting</button>
+            <button class="modal-submit" id="createSubmitBtn" >Create Meeting</button>
         </div>
     </div>
 
-    <!-- Finalize Group Meeting Modal - Annie Huynh -->
+    <!-- Create Slot Modal - Annie Huynh -->
+    <div class="modal-overlay" id="createSlotModal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeCreateSlotModal()">&#10005;</button>
+            <h2>Create Slot</h2>
+            <p>Set your availability slot.</p>
+
+            <div class="form-group">
+                <label for="slotTitle">Title</label>
+                <input type="text" id="slotTitle" placeholder="e.g. Office Hours" />
+            </div>
+
+            <div class="form-group">
+                <label for="slotStart">Start</label>
+                <input type="datetime-local" id="slotStart" />
+            </div>
+
+            <div class="form-group">
+                <label for="slotEnd">End</label>
+                <input type="datetime-local" id="slotEnd" />
+            </div>
+
+            <button class="modal-submit" id="createSlotSubmitBtn">Create Slot</button>
+        </div>
+    </div>
+
+    <!-- Finalize group meeting - Annie Huynh -->
     <div class="modal-overlay" id="finalizeModal">
         <div class="modal-box">
             <button class="modal-close" onclick="closeFinalizeModal()">&#10005;</button>
@@ -353,10 +380,41 @@
             <div id="finalizeSlotsList"></div>
         </div>
     </div>
+
+    <!-- Recurring office hours slot creation - Annie Huynh -->
+    <div class="modal-overlay" id="recurringModal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeRecurringModal()">&#10005;</button>
+            <h2>Create Recurring Slots</h2>
+            <p>Set your office availabilities.</p>
+
+            <div class="form-group">
+                <label for="recurTitle">Title</label>
+                <input type="text" id="recurTitle" placeholder="e.g. Office Hours" />
+            </div>
+
+            <div class="form-group">
+                <label for="recurStart">Start</label>
+                <input type="datetime-local" id="recurStart" />
+            </div>
+
+            <div class="form-group">
+                <label for="recurEnd">End</label>
+                <input type="datetime-local" id="recurEnd" />
+            </div>
+
+            <div class="form-group">
+                <label for="recurWeeks">Number of weeks</label>
+                <input type="number" id="recurWeeks" min="1" />
+            </div>
+
+            <button class="modal-submit" id="recurSubmitBtn">Create Recurring Slots</button>
+        </div>
+    </div>
 </body>
 
 <script>
-    const API_BASE = 'http://winter2026-comp307-group38.cs.mcgill.ca:3000';
+    const API_BASE = '';
     // wb 261143451
     //Owner-only page.
     // List automatically, Create, Delete, edit
@@ -368,17 +426,13 @@
     const email = localStorage.getItem('email');
 
     // redirect to login page if token is missing
-
-    /**
     if (!token){
         window.location.href = 'login.html'
     }
     else if (role !== "owner"){
         window.location.href = 'dashboard.html'
-        // could put a 403 page instead? idk
     }
 
-    **/
 
     const url = `${API_BASE}/api/slots/`
     const slot_container = document.getElementById("slot_container")
@@ -406,22 +460,24 @@
             if(Date.parse(slot.endTime) < options.range[0] || Date.parse(slot.startTime) > options.range[1]){
                 continue;
             }
-            if(!slot.status in options.filter){
+            if(!options.filter.includes(slot.status)){
                 continue;
             }
             filtered.push(slot);
             // not sorting rn
         }
         for (let slot of filtered){
-            renderSlot(slot);
+            await renderSlot(slot);
         }
 
     }
 
-    function renderSlot(slot_data){
+    async function renderSlot(slot_data){
         let new_slot = document.createElement("div");
-        const string = slot_data.title + "; " + slot_data.status;
-        new_slot.innerText=`${string}`;
+        const startTime = new Date(slot_data.startTime).toLocaleString();
+        const endTime = new Date(slot_data.endTime).toLocaleString();
+        const string = slot_data.title + "; " + slot_data.status + "; " + startTime + " - " + endTime;
+        new_slot.append(string);
         let del = document.createElement("button");
         del.innerText="x";
         del.onclick = () => {deleteSlot(slot_data._id)};
@@ -434,8 +490,76 @@
         dea.innerText="d";
         dea.onclick = () => {deactivate(slot_data._id)};
         new_slot.appendChild(dea);
-        // actual design should be added here
         slot_container.appendChild(new_slot);
+
+        // fetch reservation for this slot
+        const resResponse = await fetch(`${API_BASE}/api/slots/${slot_data._id}/reservation`, {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const resData = await resResponse.json();
+        const booker = document.createElement("p");
+        if (resResponse.ok && resData.user) {
+            booker.textContent = "Booked by: " + resData.user.email;
+        } else {
+            booker.textContent = "Available";
+        }
+        new_slot.appendChild(booker);
+
+        const inviteBtn = document.createElement("button");
+        inviteBtn.textContent = "Get Invite URL";
+        inviteBtn.onclick = async () => {
+            const inviteResponse = await fetch(`${API_BASE}/api/slots/${slot_data._id}/invite-url`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const data = await inviteResponse.json();
+            if (inviteResponse.ok) {
+                navigator.clipboard.writeText(data.inviteUrl).then(() => {
+                    alert("Invite URL copied to clipboard!");
+                });
+            } else {
+                alert(data.error || 'URL not found');
+            }
+        };
+        new_slot.appendChild(inviteBtn);
+
+        if (slot_data.groupToken) {
+            const activateGroupBtn = document.createElement("button");
+            activateGroupBtn.textContent = "Activate Group";
+            activateGroupBtn.onclick = async () => {
+                const res = await fetch(`${API_BASE}/api/slots/group/${slot_data.groupToken}/activate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ ownerId: id })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    alert(`Activated ${data.modifiedCount} slot(s).`);
+                    await renderAll();
+                } else {
+                    alert(data.error);
+                }
+            };
+            new_slot.appendChild(activateGroupBtn);
+
+            const deleteGroupBtn = document.createElement("button");
+            deleteGroupBtn.textContent = "Delete Group";
+            deleteGroupBtn.onclick = async () => {
+                if (!confirm("Delete all slots in this group?")) return;
+                const res = await fetch(`${API_BASE}/api/slots/group/${slot_data.groupToken}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ ownerId: id })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    await renderAll();
+                } else {
+                    alert(data.error);
+                }
+            };
+            new_slot.appendChild(deleteGroupBtn);
+        }
+
     }
 
     async function createSlot(title, start, end){
@@ -453,7 +577,7 @@
 
         console.log("Slot created: ", response);
 
-        renderSlot(response);
+        await renderAll();
     }
 
     // Not sure if slot editing is a good idea... Should slots have to be re-activated?
@@ -490,7 +614,11 @@
             method: 'POST',
             body: JSON.stringify({ownerId: id})
         })
+        //parsa json res\ponse 
         let response = await slot.json();
+        if (response.matchedCount === 0){
+            alert("Couldn't activate slot - check owner ID");
+        }
 
         console.log("Activate response: ", response);
         await renderAll();
@@ -507,12 +635,85 @@
             body: JSON.stringify({ownerId: id})
         })
         let response = await slot.json();
+        if (response.matchedCount === 0){
+            alert("Couldn't deactivate slot - check owner ID");
+        }
 
         console.log("Deac response: ", response);
         await renderAll();
     }
 
     renderAll();
+
+    // Recurring Slots Modal - Annie Huynh
+    function openRecurringModal() {
+        document.getElementById('recurTitle').value = '';
+        document.getElementById('recurStart').value = '';
+        document.getElementById('recurEnd').value = '';
+        document.getElementById('recurWeeks').value = '';
+        document.getElementById('recurringModal').classList.add('active');
+    }
+
+    function closeRecurringModal() {
+        document.getElementById('recurringModal').classList.remove('active');
+    }
+
+    document.getElementById('recurSubmitBtn').onclick = async () => {
+        const title = document.getElementById('recurTitle').value.trim();
+        const start = document.getElementById('recurStart').value;
+        const end   = document.getElementById('recurEnd').value;
+        const weeks = parseInt(document.getElementById('recurWeeks').value);
+
+        if (!title)        return alert('Please enter a title.');
+        if (!start)        return alert('Please set a start time.');
+        if (!end)          return alert('Please set an end time.');
+        if (new Date(end) <= new Date(start)) return alert('End must be after start.');
+        if (!weeks || weeks < 1) return alert('Please enter a valid number of weeks.');
+
+        const response = await fetch(`${API_BASE}/api/slots/recurring`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+            body: JSON.stringify({
+                ownerId: id,
+                weeklySlots: [{ title, startTime: new Date(start).toISOString(), endTime: new Date(end).toISOString() }],
+                weeks
+            })
+        });
+        const data = await response.json();
+        if (response.ok) {
+            closeRecurringModal();
+            alert(`Created ${data.insertedCount} recurring slots.`);
+            await renderAll();
+        } else {
+            alert(data.error);
+        }
+    };
+
+    // Create Slot Modal - Annie Huynh
+    function openCreateSlotModal() {
+        document.getElementById('slotTitle').value = '';
+        document.getElementById('slotStart').value = '';
+        document.getElementById('slotEnd').value = '';
+        document.getElementById('createSlotModal').classList.add('active');
+    }
+
+    function closeCreateSlotModal() {
+        document.getElementById('createSlotModal').classList.remove('active');
+    }
+
+    document.getElementById('createSlotSubmitBtn').onclick = async () => {
+        const title = document.getElementById('slotTitle').value.trim();
+        const start = document.getElementById('slotStart').value;
+        const end   = document.getElementById('slotEnd').value;
+
+        if (!title) return alert('Please enter a title.');
+        if (!start) return alert('Please set a start time.');
+        if (!end)   return alert('Please set an end time.');
+        if (new Date(end) <= new Date(start)) return alert('End must be after start.');
+
+        await createSlot(title, new Date(start).getTime(), new Date(end).getTime());
+        closeCreateSlotModal();
+    };
 
     // Create Group Meeting Modal - Annie Huynh
     function openCreateModal() {
@@ -553,13 +754,16 @@
         });
 
         const data = await response.json();
-        if (response.ok) {
-            const bookingId = data.insertedId;
-            closeCreateModal();
-            alert(`Meeting created!\n\nShare this vote link:\nowner-slots.html?ownerId=${id}&bookingId=${bookingId}&openVote=true`);
-        } else {
-            alert(data.error);
-        }
+            if (response.ok) {
+                const bookingId = data.insertedId;
+                closeCreateModal();
+                navigator.clipboard.writeText(`\nowner-slots.html?ownerId=${id}&bookingId=${bookingId}&openVote=true`).then(() => {
+                    alert("Meeting created and url copied!");
+                });
+            } else {
+                alert(data.error || 'URL not found');
+            }
+        
     };
 
     // Finalize Group Meeting Modal - Annie Huynh

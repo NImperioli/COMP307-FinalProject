@@ -216,53 +216,27 @@
 </head>
 
 <body>
-    <h6>MyBookings</h6>
+    <h6><a href="landing.html">MyBookings</a></h6>
 
     <div class="dashboard-header">
         <h1>Dashboard</h1>
-        <button class="logout-button" onclick="window.location.href='landing.html'">Logout</button>
+        <button class="logout-button" onclick="localStorage.clear(); window.location.href='landing.html'">Logout</button>
     </div>
 
     <div class="dashboard-grid">
         <div class="left-panel">
             <h2 class="panel-title">My Appointments</h2>
 
-            <div id="appointmentsList">
-                <div class="appointment-card">
-                    <h3>Office Hours with Prof. Smith</h3>
-                    <p>Date: Monday, April 15</p>
-                    <p>Time: 10:00 AM - 10:30 AM</p>
-                    <p>Status: Confirmed</p>
-
-                    <div class="card-actions">
-                        <button class="small-button">Message Owner</button>
-                        <button class="small-button">Cancel Appointment</button>
-                    </div>
-                </div>
-
-                <div class="appointment-card">
-                    <h3>Group Meeting</h3>
-                    <p>Date: Wednesday, April 17</p>
-                    <p>Time: 2:00 PM - 3:00 PM</p>
-                    <p>Status: Pending</p>
-
-                    <div class="card-actions">
-                        <button class="small-button">Message Owner</button>
-                        <button class="small-button">Cancel Appointment</button>
-                    </div>
-                </div>
-            </div>
+            <div id="appointmentsList"></div>
         </div>
 
         <div class="right-panel" id="actions-menu">
             <h2 class="panel-title">Actions</h2>
-            <button class="action-button" onclick="window.location.href='browse-owners.html'">Browse Owners</button>
-            <button class="action-button">Book Another Appointment</button>
-            <button class="action-button">View Requests</button>
+            <button class="action-button" id="viewRequestsBtn" onclick="openMyRequestsModal()">View Requests</button>
         </div>
     </div>
 
-    <!-- Pending Requests Modal - Annie Huynh -->
+    <!-- Owner's pending requests modals  - Annie Huynh -->
     <div class="modal-overlay" id="pendingModal">
         <div class="modal-box">
             <button class="modal-close" onclick="closePendingModal()">&#10005;</button>
@@ -271,9 +245,18 @@
         </div>
     </div>
 
+    <!-- Students' request view - Annie Huynh -->
+    <div class="modal-overlay" id="myRequestsModal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeMyRequestsModal()">&#10005;</button>
+            <h2 class="panel-title">My Requests</h2>
+            <div id="myRequestsList"></div>
+        </div>
+    </div>
+
     <!--- Annie Huynh --->
     <script>
-        const API_BASE = 'http://winter2026-comp307-group38.cs.mcgill.ca:3000';
+        const API_BASE = '';
         // Read the JWT from localStorage
         const token = localStorage.getItem('token');
         const role = localStorage.getItem('role');
@@ -281,30 +264,45 @@
         const id = localStorage.getItem('user._id');
 
         // redirect to login page if token is missing
-
-        /**
         if (!token){
             window.location.href = 'login.html'
         }
-            **/
 
       // fetch call for student and owner
         async function loadDashboard(){
             const url = role === 'owner'
-            ? `${API_BASE}/api/slots/owner/${id}`
+            ? `${API_BASE}/api/slots/owner/${id}/reservations`
             : `${API_BASE}/api/slots/my-reservations/${id}`;
 
-            const response = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } }); // header for JWT handshake
-            const data = await response.json();
+            const response1 = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } }); // header for JWT handshake
+            const data1 = await response1.json();
 
             // render data as cards using helper
             appointmentsList.innerHTML='';
-            for (const item of data){
+            for (const item of data1){
                 renderCard(item, role);
             }
 
+            // second call to load Type 1 and 2 appointments for the student/owner
+            const apptUrl = role === 'owner'
+                ? `${API_BASE}/api/bookings/appointments/owner/${id}`
+                : `${API_BASE}/api/bookings/appointments/user/${id}`;
+            const response2 = await fetch(apptUrl, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const data2 = await response2.json();
+            // data2 is { type1: [...], type2: [...] }
+            for (const item of data2.type1){
+                renderType1Card(item, role);
+            }
+            for (const item of data2.type2){
+                renderType2Card(item);
+            }
+
+
             // some view stuff wb
             if (role === 'owner'){
+                document.getElementById('viewRequestsBtn').style.display = 'none';
                 renderAction("Manage Slots", "owner-manage-slots.html");
                 renderAction("Create Group Meeting", "owner-manage-slots.html?openCreate=true");
                 renderAction("Finalize Group Meeting", "owner-manage-slots.html?openFinalize=true");
@@ -314,6 +312,10 @@
                 pendingBtn.textContent = "View Pending Requests";
                 pendingBtn.onclick = () => openPendingModal();
                 actionsBar.appendChild(pendingBtn);
+            }
+
+            if (role === 'student'){
+                renderAction("Book Another Appointment", "browse-owners.html");
             }
         }
         loadDashboard();
@@ -343,23 +345,34 @@
             // check if its a student or owner
             if (role === 'owner'){
                 const heading = document.createElement("h3");
-                heading.textContent=item.title;
+                heading.textContent=item.slot.title;
                 newDiv.appendChild(heading);
 
                 const time = document.createElement("p");
-                const startTime = new Date(item.startTime).toLocaleString();
-                const endTime = new Date(item.endTime).toLocaleString()
+                const startTime = new Date(item.slot.startTime).toLocaleString();
+                const endTime = new Date(item.slot.endTime).toLocaleString()
                 time.textContent = "Time: " + startTime + " - " + endTime;
                 newDiv.appendChild(time);
 
                 const status = document.createElement("p");
-                status.textContent = "Status: " + item.status;
+                status.textContent = "Status: " + item.slot.status;
                 newDiv.appendChild(status);
 
                 const messageBooker = document.createElement("button");
                 messageBooker.classList.add("small-button");
                 messageBooker.textContent="Message Booker";
                 buttonDiv.appendChild(messageBooker);
+                messageBooker.onclick = async() => {
+                const response = await fetch(`${API_BASE}/api/slots/${item.slot._id}/message-booker`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    window.location.href = data.mailto;
+                } else {
+                    alert(data.error);
+                }
+            }
 
             }
             else{ // is a student
@@ -423,6 +436,58 @@
             appointmentsList.appendChild(newDiv);
         }
 
+        // Render a Type 1 approved meeting request
+        function renderType1Card(item, role) {
+            const newDiv = document.createElement("div");
+            newDiv.classList.add("appointment-card");
+
+            const heading = document.createElement("h3");
+            heading.textContent = item.title || "Meeting Request";
+            newDiv.appendChild(heading);
+
+            const other = document.createElement("p");
+            other.textContent = role === 'owner'
+                ? "From: " + item.userEmail
+                : "With: " + item.ownerEmail;
+            newDiv.appendChild(other);
+
+            const status = document.createElement("p");
+            status.textContent = "Status: " + item.status;
+            newDiv.appendChild(status);
+
+            const type = document.createElement("p");
+            type.textContent = "Type: Meeting Request";
+            newDiv.appendChild(type);
+
+            appointmentsList.appendChild(newDiv);
+        }
+
+        // Render a Type 2 finalized group meeting appointment
+        function renderType2Card(item) {
+            const newDiv = document.createElement("div");
+            newDiv.classList.add("appointment-card");
+
+            const heading = document.createElement("h3");
+            heading.textContent = item.title || "Group Meeting";
+            newDiv.appendChild(heading);
+
+            const time = document.createElement("p");
+            time.textContent = "Time: " + new Date(item.time).toLocaleString();
+            newDiv.appendChild(time);
+
+            if (item.isRecurring) {
+                const week = document.createElement("p");
+                week.textContent = "Week: " + item.weekNumber;
+                newDiv.appendChild(week);
+            }
+
+            const type = document.createElement("p");
+            type.textContent = "Type: Group Meeting";
+            newDiv.appendChild(type);
+
+            appointmentsList.appendChild(newDiv);
+        }
+
         // Pending Requests Modal - Annie Huynh
         function openPendingModal() {
             document.getElementById('pendingModal').classList.add('active');
@@ -431,6 +496,43 @@
 
         function closePendingModal() {
             document.getElementById('pendingModal').classList.remove('active');
+        }
+
+        // My Requests Modal (student) - Annie Huynh
+        function openMyRequestsModal() {
+            document.getElementById('myRequestsModal').classList.add('active');
+            loadMyRequests();
+        }
+
+        function closeMyRequestsModal() {
+            document.getElementById('myRequestsModal').classList.remove('active');
+        }
+
+        async function loadMyRequests() {
+            const response = await fetch(`${API_BASE}/api/bookings/requests/user/${id}`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const data = await response.json();
+            const list = document.getElementById('myRequestsList');
+            list.innerHTML = '';
+            for (const request of data) {
+                const card = document.createElement("div");
+                card.classList.add("request-card");
+
+                const to = document.createElement("p");
+                to.textContent = "To: " + request.ownerEmail;
+                card.appendChild(to);
+
+                const msg = document.createElement("p");
+                msg.textContent = request.message;
+                card.appendChild(msg);
+
+                const status = document.createElement("p");
+                status.textContent = "Status: " + request.status;
+                card.appendChild(status);
+
+                list.appendChild(card);
+            }
         }
 
         async function loadRequests() {

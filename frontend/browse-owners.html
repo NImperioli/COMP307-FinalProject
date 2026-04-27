@@ -173,11 +173,18 @@
         .modal-submit:hover {
             background: rgb(237, 27, 47);
         }
+
+        .section-title {
+            font-size: 18px;
+            color: rgb(237, 27, 47);
+            margin: 22px 0 14px 0;
+        }
+
     </style>
 </head>
 
 <body>
-    <h6>MyBookings</h6>
+    <h6><a href="landing.html">MyBookings</a></h6>
 
     <div class="page-header">
         <h1>Browse Owners</h1>
@@ -214,36 +221,51 @@
         </div>
     </div>
 
-    <!-- Request Meeting Modal - Annie Huynh -->
+    <!-- Requesting meeting - Annie Huynh -->
+     <!--- TAYM ->  MAKE INTO A POP UP BOX --->
     <div class="modal-overlay" id="requestModal">
         <div class="modal-box">
             <button class="modal-close" onclick="closeRequestModal()">&#10005;</button>
             <h2>Request Meeting</h2>
-            <textarea id="requestMessage" placeholder="Write your message to the owner..."></textarea>
+            <div class="form-group">
+                <label for="meetingTitle">Meeting Title</label>
+                <input type="text" id="meetingTitle" placeholder="Meeting title" />
+            </div>
+
+            <h3 class="section-title">Date</h3>
+
+            <div class="form-group">
+                <label for="requestedDate">Date</label>
+                <input type="date" id="requestedDate" />
+            </div>
+
+            <h3 class="section-title">Time</h3>
+
+            <div class="form-group">
+                <label for="requestedTime">Time</label>
+                <input type="time" id="requestedTime" />
+            </div>
+
+            <textarea id="requestMessage" placeholder="Reason for meeting.."></textarea>
             <button class="modal-submit" id="requestSubmitBtn">Send Request</button>
         </div>
     </div>
 
     <!--- Annie Huynh --->
     <script>
-        const API_BASE = 'http://winter2026-comp307-group38.cs.mcgill.ca:3000';
+       const API_BASE = '';
+        
         // read token and redirect if its missing
-
-        /**
         const token = localStorage.getItem('token');
          if (!token){
             window.location.href = 'login.html'
         }
-        **/
 
         const id = localStorage.getItem('user._id');
         const userEmail = localStorage.getItem('email');
 
+
         const ownersList = document.getElementById('ownersList');
-
-        let currentOwnerId = null;
-        let currentOwnerEmail = null;
-
         //fetch active owners on load
         async function loadOwners(){
             const url = `${API_BASE}/api/slots/owners/active`;
@@ -258,13 +280,16 @@
 
             // render each owner card
             for (const owner of data){
-                renderOwnerCard(owner);
+                await renderOwnerCard(owner);
             }
         }
         loadOwners();
 
+
+        let currentOwnerId = null;
+        let currentOwnerEmail = null;
         // helper function to render cards
-        function renderOwnerCard(owner){
+        async function renderOwnerCard(owner){
             const newDiv = document.createElement("div");
             newDiv.classList.add("owner-card");
             newDiv.innerHTML='';
@@ -298,12 +323,23 @@
                 openRequestModal();
             };
 
+            const activeSlots = document.createElement("p");
+            activeSlots.textContent = "Active Slots: ...";
+            newDiv.appendChild(activeSlots);
+
             // append to html
             newDiv.appendChild(buttonDiv);
             ownersList.appendChild(newDiv);
+
+            // fetch active slot count for this owner
+            const slotsRes = await fetch(`${API_BASE}/api/slots/owner/${owner._id}/active`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const slotsData = await slotsRes.json();
+            activeSlots.textContent = "Active Slots: " + (Array.isArray(slotsData) ? slotsData.length : 0);
         }
 
-        // Request Meeting Modal - Annie Huynh
+        // Request Meeting 
         function openRequestModal() {
             document.getElementById('requestMessage').value = '';
             document.getElementById('requestModal').classList.add('active');
@@ -314,12 +350,15 @@
         }
 
         document.getElementById('requestSubmitBtn').onclick = async () => {
+            const title = document.getElementById('meetingTitle').value;
+            const date = document.getElementById('requestedDate').value;
+            const time = document.getElementById('requestedTime').value;
             const message = document.getElementById('requestMessage').value.trim();
-            if (!message) return alert('Please write a message.');
+            if (!title || !message || !date || !time) return alert('Please fill all fields');
 
             const response = await fetch(`${API_BASE}/api/bookings/request`,
                 { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                body: JSON.stringify({ userId: id, ownerId: currentOwnerId, message, userEmail, ownerEmail: currentOwnerEmail }) });
+                body: JSON.stringify({ userId: id, ownerId: currentOwnerId, message, userEmail, ownerEmail: currentOwnerEmail, title, date, time }) });
 
             const data = await response.json();
             if (response.ok) {
