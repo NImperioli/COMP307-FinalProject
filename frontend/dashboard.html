@@ -19,11 +19,88 @@
         body {
     min-height: 100vh;
     background: rgb(255, 255, 255);
-    padding: 30px 40px;
+    padding: 200px 40px 30px 40px;
     position: relative;
     overflow-x: hidden;
 }
 
+body::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+
+   
+
+    z-index: 1;
+}
+
+.top-bar {
+    width: calc(100% - 40px);
+    margin: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(12px);
+    padding: 16px 28px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-radius: 22px;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.16);
+    z-index: 5;
+}
+
+ .logo {
+    font-size: 28px;
+    font-weight: 800;
+    color: rgb(237, 27, 47);
+    text-decoration: none;
+    letter-spacing: 1px;
+    position: relative;
+}
+
+
+.logo:hover {
+    opacity: 0.8;
+}
+
+.logo span {
+    color: rgb(237, 27, 47);
+}
+
+.top-buttons {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.top-buttons {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.top-button {
+    min-width: 100px;
+    height: 44px;
+
+    background: black;
+    border: none;
+    border-radius: 999px;
+
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+
+    transition: 0.25s ease;
+}
+
+.top-button:hover {
+    background: rgb(237, 27, 47);
+    transform: translateY(-2px);
+}
         
         h6 {
             text-align: center;
@@ -220,6 +297,40 @@
     }
 }
 
+.dashboard-grid,
+.left-panel,
+.right-panel {
+    position: relative;
+    z-index: 2;
+}
+
+.page-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 35px;
+}
+
+.page-header h1 {
+    font-size: 42px;
+    color: rgb(0, 0, 0);
+}
+
+.page-header h1 {
+    font-size: 42px;
+    color: black;
+    position: relative;
+}
+
+.page-header h1::after {
+    content: "";
+    display: block;
+    width: 200px;
+    height: 3px;
+    background: rgb(237, 27, 47);
+    margin: 1px auto 0;
+    border-radius: 2px;
+}
 
         /* Modal - Annie Huynh */
         .modal-overlay {
@@ -323,12 +434,18 @@ d="M0,180
 </path>
     </svg>
 </div>
-    <h6><a href="landing.html">MyBookings</a></h6>
+   
+<div class="top-bar">
+    <a href="landing.html" class="logo">MyBookings</a>
 
-    <div class="dashboard-header">
-        <h1>Dashboard</h1>
-        <button class="logout-button" onclick="localStorage.clear(); window.location.href='landing.html'">Logout</button>
+    <div class="top-buttons">
+        <span id="user-name"></span>
+        <button class="top-button" onclick="logout()">Logout</button>
     </div>
+</div>
+   <div class="page-header">
+    <h1>Dashboard</h1>
+</div>
 
     <div class="dashboard-grid">
         <div class="left-panel">
@@ -361,8 +478,20 @@ d="M0,180
         </div>
     </div>
 
-    <!--- Annie Huynh --->
+    
     <script>
+
+function logout() {
+    localStorage.clear();
+    window.location.href = 'landing.html';
+}
+
+// show user name
+document.getElementById('user-name').textContent = name || "";
+
+
+
+<!--- Annie Huynh --->
         const API_BASE = '';
         // Read the JWT from localStorage
         const token = localStorage.getItem('token');

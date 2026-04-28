@@ -18,10 +18,81 @@
             font-family: "Outfit", sans-serif;
         }
 
+
+        .top-bar {
+    width: calc(100% - 40px);
+    margin: 20px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(12px);
+
+    padding: 16px 28px;
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    border-radius: 22px;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.16);
+
+    z-index: 2;
+}
+
+
+    /* LOGO */
+
+   .logo {
+    font-size: 28px;
+    font-weight: 800;
+    color: rgb(237, 27, 47);
+    text-decoration: none;
+    letter-spacing: 1px;
+    position: relative;
+}
+
+
+.logo:hover {
+    opacity: 0.8;
+}
+
+.logo span {
+    color: rgb(237, 27, 47);
+}
+
+.top-buttons {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+
+
+
+
+
+.top-button {
+    min-width: 100px;
+    height: 44px;
+    background: black;
+    border: none;
+    border-radius: 999px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.25s ease;
+}
+
+.top-button:hover {
+    background: rgb(237, 27, 47);
+    transform: translateY(-2px);
+}
         body {
             min-height: 100vh;
             background: rgb(255, 255, 255);
-            padding: 30px 40px;
+             padding: 250px 40px 30px 40px;
         }
 
         h6 {
@@ -30,16 +101,16 @@
             margin-bottom: 30px;
         }
 
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 35px;
-        }
+       .page-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 35px;
+}
 
         .page-header h1 {
             font-size: 42px;
-            color: rgb(237, 27, 47);
+            color: rgb(0, 0, 0);
         }
 
         .back-button {
@@ -198,10 +269,33 @@
 }
 
 
+.main-panel,
+.page-header {
+    position: relative;
+    z-index: 2;
+}
 
 
+.page-header h1 {
+    font-size: 42px;
+    color: rgb(0, 0, 0);
+}
 
+.page-header h1 {
+    font-size: 42px;
+    color: black;
+    position: relative;
+}
 
+.page-header h1::after {
+    content: "";
+    display: block;
+    width: 245px;
+    height: 3px;
+    background: rgb(237, 27, 47);
+    margin: 3px auto 0;
+    border-radius: 2px;
+}
 
 
 
@@ -380,12 +474,21 @@ d="M0,180
 </path>
     </svg>
 </div>
-    <h6><a href="landing.html">MyBookings</a></h6>
+    <div class="top-bar">
+    <a href="landing.html" class="logo">
+    My<span>Bookings</span>
+</a>
 
-    <div class="page-header">
-        <h1>Manage Slots</h1>
-        <button class="back-button" onclick="window.location.href='dashboard.html'">Back</button>
+    <div class="top-buttons">
+        <button class="top-button" onclick="window.location.href='dashboard.html'">Back</button>
     </div>
+</div>
+
+<div class="page-header">
+    <h1>Manage Slots</h1>
+</div>
+
+    
 
     <div class="main-panel">
         <h2 class="panel-title">Available Slots</h2>
