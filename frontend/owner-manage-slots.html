@@ -275,7 +275,7 @@
 </head>
 
 <body>
-    <h6><a href="landing.html">MyBookings</a></h6>
+    <h6><a href="landing.html" style="text-decoration: none;">MyBookings</a></h6>
 
     <div class="page-header">
         <h1>Manage Slots</h1>
@@ -466,30 +466,99 @@
             filtered.push(slot);
             // not sorting rn
         }
-        for (let slot of filtered){
-            await renderSlot(slot);
+        // Separate non-grouped from grouped
+        const ungrouped = filtered.filter(s => !s.groupToken);
+        const grouped = new Map(); // groupToken → array of slots
+        for (const s of filtered.filter(s => s.groupToken)) {
+            if (!grouped.has(s.groupToken)) grouped.set(s.groupToken, []);
+            grouped.get(s.groupToken).push(s);
         }
+        // Render ungrouped individually
+        for (const slot of ungrouped) await renderSlot(slot);
+        // Render each group as one card
+        for (const [groupToken, slots] of grouped) await renderGroupCard(groupToken, slots);
 
     }
 
+    async function renderGroupCard(groupToken, slots){
+        let new_slot = document.createElement("div");
+        const title = slots[0].title;
+        new_slot.append(title);
+        new_slot.append(slots.length + " weeks");
+        const startTime = new Date(slots[0].startTime).toLocaleString();
+        new_slot.append("Start: " + startTime);
+        const endTime = new Date(slots[slots.length - 1].endTime).toLocaleString();
+        new_slot.append("End: " + endTime);
+    
+        const activateGroupBtn = document.createElement("button");
+        activateGroupBtn.textContent = "Activate Group";
+        activateGroupBtn.onclick = async () => {
+            const res = await fetch(`${API_BASE}/api/slots/group/${groupToken}/activate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify({ ownerId: id })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                alert(`Activated ${data.modifiedCount} slot(s).`);
+                await renderAll();
+            } else {
+                alert(data.error);
+            }
+        };
+        new_slot.appendChild(activateGroupBtn);
+
+        const deleteGroupBtn = document.createElement("button");
+        deleteGroupBtn.textContent = "Delete Group";
+        deleteGroupBtn.onclick = async () => {
+            if (!confirm("Delete all slots in this group?")) return;
+            const res = await fetch(`${API_BASE}/api/slots/group/${groupToken}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify({ ownerId: id })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                await renderAll();
+            } else {
+                alert(data.error);
+            }
+        };
+        new_slot.appendChild(deleteGroupBtn);
+        slot_container.appendChild(new_slot);
+    }
     async function renderSlot(slot_data){
         let new_slot = document.createElement("div");
+        new_slot.append(slot_data.title);
         const startTime = new Date(slot_data.startTime).toLocaleString();
+        new_slot.append("Start: " + startTime);
         const endTime = new Date(slot_data.endTime).toLocaleString();
-        const string = slot_data.title + "; " + slot_data.status + "; " + startTime + " - " + endTime;
-        new_slot.append(string);
+        new_slot.append("End: " + endTime);
+    
+        let btnRow = document.createElement("div");
+        btnRow.style.display = "flex";
+        btnRow.style.gap = "8px"
+        
+        // delete slot button
         let del = document.createElement("button");
         del.innerText="Delete";
+        del.style.backgroundColor="red";
         del.onclick = () => {deleteSlot(slot_data._id)};
-        new_slot.appendChild(del);
+        btnRow.appendChild(del);
+
+        // activate slot button
         let act = document.createElement("button");
-        act.innerText="Activate";
+        act.innerText="Activate"; 
         act.onclick = () => {activate(slot_data._id)};
-        new_slot.appendChild(act);
+        btnRow.appendChild(act);
+
+        // deactivate slot button
         let dea = document.createElement("button");
         dea.innerText="Deactivate";
         dea.onclick = () => {deactivate(slot_data._id)};
-        new_slot.appendChild(dea);
+        btnRow.appendChild(dea);
+        
+        new_slot.appendChild(btnRow);
         slot_container.appendChild(new_slot);
 
         // fetch reservation for this slot
@@ -521,44 +590,6 @@
             }
         };
         new_slot.appendChild(inviteBtn);
-
-        if (slot_data.groupToken) {
-            const activateGroupBtn = document.createElement("button");
-            activateGroupBtn.textContent = "Activate Group";
-            activateGroupBtn.onclick = async () => {
-                const res = await fetch(`${API_BASE}/api/slots/group/${slot_data.groupToken}/activate`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                    body: JSON.stringify({ ownerId: id })
-                });
-                const data = await res.json();
-                if (res.ok) {
-                    alert(`Activated ${data.modifiedCount} slot(s).`);
-                    await renderAll();
-                } else {
-                    alert(data.error);
-                }
-            };
-            new_slot.appendChild(activateGroupBtn);
-
-            const deleteGroupBtn = document.createElement("button");
-            deleteGroupBtn.textContent = "Delete Group";
-            deleteGroupBtn.onclick = async () => {
-                if (!confirm("Delete all slots in this group?")) return;
-                const res = await fetch(`${API_BASE}/api/slots/group/${slot_data.groupToken}`, {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                    body: JSON.stringify({ ownerId: id })
-                });
-                const data = await res.json();
-                if (res.ok) {
-                    await renderAll();
-                } else {
-                    alert(data.error);
-                }
-            };
-            new_slot.appendChild(deleteGroupBtn);
-        }
 
     }
 
@@ -689,7 +720,7 @@
         }
     };
 
-    // Create Slot Modal - Annie Huynh
+    // Create slot modal
     function openCreateSlotModal() {
         document.getElementById('slotTitle').value = '';
         document.getElementById('slotStart').value = '';
@@ -715,7 +746,7 @@
         closeCreateSlotModal();
     };
 
-    // Create Group Meeting Modal - Annie Huynh
+    // Create group meeting
     function openCreateModal() {
         document.getElementById('createModal').classList.add('active');
     }
@@ -757,6 +788,7 @@
             if (response.ok) {
                 const bookingId = data.insertedId;
                 closeCreateModal();
+                document.getElementById('finalizeBookingId').value = bookingId;
                 navigator.clipboard.writeText(`\nowner-slots.html?ownerId=${id}&bookingId=${bookingId}&openVote=true`).then(() => {
                     alert("Meeting created and url copied!");
                 });
@@ -766,9 +798,8 @@
         
     };
 
-    // Finalize Group Meeting Modal - Annie Huynh
+    // Finalize group meeting
     function openFinalizeModal() {
-        document.getElementById('finalizeBookingId').value = '';
         document.getElementById('finalizeSlotsList').innerHTML = '';
         document.getElementById('finalizeModal').classList.add('active');
     }
