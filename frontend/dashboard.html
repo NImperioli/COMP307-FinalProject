@@ -101,6 +101,21 @@
             margin-bottom: 6px;
         }
 
+        /* Type badges */
+        .type-badge {
+            display: inline-block;
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 8px;
+        }
+        .badge-slot   { background: rgb(220, 255, 220); color: rgb(30, 130, 30); }
+        .badge-req    { background: rgb(255, 240, 200); color: rgb(150, 80, 0); }
+        .badge-group  { background: rgb(230, 240, 255); color: rgb(30, 80, 180); }
+
         .card-actions {
             margin-top: 14px;
             display: flex;
@@ -117,9 +132,26 @@
             color: white;
             cursor: pointer;
             transition: .3s;
+            font-size: 14px;
         }
 
         .small-button:hover {
+            background: rgb(237, 27, 47);
+        }
+
+        .small-button-red {
+            height: 42px;
+            padding: 0 18px;
+            background: rgb(200, 50, 50);
+            border: none;
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            transition: .3s;
+            font-size: 14px;
+        }
+
+        .small-button-red:hover {
             background: rgb(237, 27, 47);
         }
 
@@ -138,6 +170,13 @@
 
         .action-button:hover {
             background: rgb(237, 27, 47);
+        }
+
+        .empty-state {
+            color: rgb(150, 150, 150);
+            font-size: 16px;
+            text-align: center;
+            padding: 30px 0;
         }
 
         /* Modal - Annie Huynh */
@@ -220,13 +259,12 @@
 
     <div class="dashboard-header">
         <h1>Dashboard</h1>
-        <button class="logout-button" onclick="localStorage.clear(); window.location.href='landing.html'">Logout</button>
+        <button class="logout-button" onclick="logout()">Logout</button>
     </div>
 
     <div class="dashboard-grid">
         <div class="left-panel">
             <h2 class="panel-title">My Appointments</h2>
-
             <div id="appointmentsList"></div>
         </div>
 
@@ -236,7 +274,7 @@
         </div>
     </div>
 
-    <!-- Owner's pending requests modals  - Annie Huynh -->
+    <!-- Owner's pending requests modal - Annie Huynh -->
     <div class="modal-overlay" id="pendingModal">
         <div class="modal-box">
             <button class="modal-close" onclick="closePendingModal()">&#10005;</button>
@@ -254,62 +292,83 @@
         </div>
     </div>
 
-    <!--- Annie Huynh --->
     <script>
         const API_BASE = '';
-        // Read the JWT from localStorage
         const token = localStorage.getItem('token');
         const role = localStorage.getItem('role');
         const name = localStorage.getItem('name');
         const id = localStorage.getItem('user._id');
 
-        // redirect to login page if token is missing
-        if (!token){
-            window.location.href = 'login.html'
+        if (!token) {
+            window.location.href = 'login.html';
         }
 
-      // fetch call for student and owner
-        async function loadDashboard(){
-            const url = role === 'owner'
-            ? `${API_BASE}/api/slots/owner/${id}/reservations`
-            : `${API_BASE}/api/slots/my-reservations/${id}`;
+        async function logout() {
+            try {
+                await fetch(`${API_BASE}/api/auth/logout`, {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+            } catch (e) {
+                // Even if server call fails, clear local state
+            }
+            localStorage.clear();
+            window.location.href = 'landing.html';
+        }
 
+        async function loadDashboard() {
+            const url = role === 'owner'
+                ? `${API_BASE}/api/slots/owner/${id}/reservations`
+                : `${API_BASE}/api/slots/my-reservations/${id}`;
+
+            // Reset action buttons (keep only the base one)
             document.querySelectorAll('#actions-menu .action-button').forEach(btn => {
                 if (btn.id !== 'viewRequestsBtn') btn.remove();
             });
 
-            const response1 = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } }); // header for JWT handshake
+            const response1 = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
             const data1 = await response1.json();
 
-            // render data as cards using helper
-            appointmentsList.innerHTML='';
-            for (const item of data1){
+            appointmentsList.innerHTML = '';
+
+            if (!Array.isArray(data1) || data1.length === 0) {
+                // Will be overwritten if bookings exist below
+            }
+
+            for (const item of data1) {
                 renderCard(item, role);
             }
 
-            // second call to load Type 1 and 2 appointments for the student/owner
+            // Load Type 1 and Type 2 appointments
             const apptUrl = role === 'owner'
                 ? `${API_BASE}/api/bookings/appointments/owner/${id}`
                 : `${API_BASE}/api/bookings/appointments/user/${id}`;
-            const response2 = await fetch(apptUrl, {
-                headers: { 'Authorization': 'Bearer ' + token }
-            });
+
+            const response2 = await fetch(apptUrl, { headers: { 'Authorization': 'Bearer ' + token } });
             const data2 = await response2.json();
-            // data2 is { type1: [...], type2: [...] }
-            for (const item of data2.type1){
+
+            for (const item of (data2.type1 || [])) {
                 renderType1Card(item, role);
             }
-            for (const item of data2.type2){
+            for (const item of (data2.type2 || [])) {
                 renderType2Card(item);
             }
 
+            // Show empty state if nothing at all
+            if (appointmentsList.children.length === 0) {
+                const empty = document.createElement('p');
+                empty.classList.add('empty-state');
+                empty.textContent = 'No appointments yet.';
+                appointmentsList.appendChild(empty);
+            }
 
-            // some view stuff wb
-            if (role === 'owner'){
+            // Setup action buttons
+            if (role === 'owner') {
                 document.getElementById('viewRequestsBtn').style.display = 'none';
                 renderAction("Manage Slots", "owner-manage-slots.html");
                 renderAction("Create Group Meeting", "owner-manage-slots.html?openCreate=true");
                 renderAction("Finalize Group Meeting", "owner-manage-slots.html?openFinalize=true");
+                renderAction("Browse & Request Meetings", "browse-owners.html");
 
                 const pendingBtn = document.createElement("button");
                 pendingBtn.classList.add("action-button");
@@ -318,76 +377,78 @@
                 actionsBar.appendChild(pendingBtn);
             }
 
-            if (role === 'student'){
+            if (role === 'student') {
                 renderAction("Book Another Appointment", "browse-owners.html");
             }
         }
+
         loadDashboard();
 
         const appointmentsList = document.getElementById("appointmentsList");
         const actionsBar = document.getElementById("actions-menu");
 
-        function renderAction(name, href){ //wb
+        function renderAction(name, href) {
             const new_button = document.createElement("button");
             new_button.setAttribute("class", "action-button");
             new_button.setAttribute("onclick", `window.location.href='${href}'`);
-            new_button.innerHTML=name;
-
+            new_button.innerHTML = name;
             actionsBar.appendChild(new_button);
         }
 
-        // helper function to render item
-        function renderCard(item, role){
-
+        // Type 0: Regular reserved slot card
+        function renderCard(item, role) {
             const newDiv = document.createElement("div");
             newDiv.classList.add("appointment-card");
-            newDiv.innerHTML='';
+
+            const badge = document.createElement("span");
+            badge.classList.add("type-badge", "badge-slot");
+            badge.textContent = item.slot.type === 'recurring' ? 'Recurring Slot' : 'Booking Slot';
+            newDiv.appendChild(badge);
 
             const buttonDiv = document.createElement("div");
             buttonDiv.classList.add("card-actions");
 
-            // check if its a student or owner
-            if (role === 'owner'){
+            if (role === 'owner') {
                 const heading = document.createElement("h3");
-                heading.textContent=item.slot.title;
+                heading.textContent = item.slot.title;
                 newDiv.appendChild(heading);
 
                 const time = document.createElement("p");
                 const startTime = new Date(item.slot.startTime).toLocaleString();
-                const endTime = new Date(item.slot.endTime).toLocaleString()
-                time.textContent = "Time: " + startTime + " - " + endTime;
+                const endTime = new Date(item.slot.endTime).toLocaleString();
+                time.textContent = "Time: " + startTime + " — " + endTime;
                 newDiv.appendChild(time);
 
                 const status = document.createElement("p");
                 status.textContent = "Status: " + item.slot.status;
                 newDiv.appendChild(status);
 
+                const bookedBy = document.createElement("p");
+                bookedBy.textContent = "Booked by: " + (item.user ? item.user.email : 'Unknown');
+                newDiv.appendChild(bookedBy);
+
                 const messageBooker = document.createElement("button");
                 messageBooker.classList.add("small-button");
-                messageBooker.textContent="Message Booker";
+                messageBooker.textContent = "Message Booker";
                 buttonDiv.appendChild(messageBooker);
-                messageBooker.onclick = async() => {
-                const response = await fetch(`${API_BASE}/api/slots/${item.slot._id}/message-booker`, {
-                    headers: { 'Authorization': 'Bearer ' + token }
-                });
-                const data = await response.json();
-                if (response.ok) {
-                    window.location.href = data.mailto;
-                } else {
-                    alert(data.error);
-                }
-            }
-
-            }
-            else{ // is a student
+                messageBooker.onclick = async () => {
+                    const response = await fetch(`${API_BASE}/api/slots/${item.slot._id}/message-booker`, {
+                        headers: { 'Authorization': 'Bearer ' + token }
+                    });
+                    const data = await response.json();
+                    if (response.ok) window.location.href = data.mailto;
+                    else alert(data.error);
+                };
+            } else {
+                // Student view
                 const heading = document.createElement("h3");
-                heading.textContent=item.slot.title;
+                heading.textContent = item.slot.title;
                 newDiv.appendChild(heading);
 
                 const time = document.createElement("p");
                 const startTime = new Date(item.slot.startTime).toLocaleString();
-                const endTime = new Date(item.slot.endTime).toLocaleString()
-                time.textContent = "Time: " + startTime + " - " + endTime;
+                const endTime = new Date(item.slot.endTime).toLocaleString();
+                time.textContent = "Time: " + startTime + " — " + endTime;
                 newDiv.appendChild(time);
 
                 const status = document.createElement("p");
@@ -396,58 +457,53 @@
 
                 const messageOwner = document.createElement("button");
                 messageOwner.classList.add("small-button");
-                messageOwner.textContent="Message Owner";
+                messageOwner.textContent = "Message Owner";
                 buttonDiv.appendChild(messageOwner);
                 messageOwner.onclick = async () => {
                     const response = await fetch(`${API_BASE}/api/slots/${item.slot._id}/message-owner`, {
                         headers: { 'Authorization': 'Bearer ' + token }
                     });
                     const data = await response.json();
-                    if (response.ok) {
-                        window.location.href = data.mailto;
-                    } else {
-                        alert(data.error);
-                    }
+                    if (response.ok) window.location.href = data.mailto;
+                    else alert(data.error);
                 };
 
-                // TEST LOG REMOVE WHEN DONE
-                console.log('cancel reservationId:', item._id)
-
-
                 const cancel = document.createElement("button");
-                cancel.classList.add("small-button");
-                cancel.textContent="Cancel Appointment";
+                cancel.classList.add("small-button-red");
+                cancel.textContent = "Cancel Appointment";
                 buttonDiv.appendChild(cancel);
-                cancel.onclick = async() => {
+                cancel.onclick = async () => {
+                    if (!confirm("Cancel this appointment?")) return;
                     const response = await fetch(`${API_BASE}/api/slots/cancel`, {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + token
-                        },
+                        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
                         body: JSON.stringify({ reservationId: item._id, userId: id })
                     });
                     const data = await response.json();
                     if (response.ok) {
-                        // reload the dashboard to reflect the cancellation
                         loadDashboard();
-                        if (data.notifyOwner){
-                            window.location.href = data.notifyOwner; //prompt user to email owner
+                        if (data.notifyOwner) {
+                            window.location.href = data.notifyOwner;
                         }
                     } else {
                         alert(data.error);
                     }
-                }
+                };
             }
-            // add divs to html
+
             newDiv.appendChild(buttonDiv);
             appointmentsList.appendChild(newDiv);
         }
 
-        // Render a Type 1 approved meeting request
+        // Type 1: Meeting request card
         function renderType1Card(item, role) {
             const newDiv = document.createElement("div");
             newDiv.classList.add("appointment-card");
+
+            const badge = document.createElement("span");
+            badge.classList.add("type-badge", "badge-req");
+            badge.textContent = "Meeting Request";
+            newDiv.appendChild(badge);
 
             const heading = document.createElement("h3");
             heading.textContent = item.title || "Meeting Request";
@@ -459,21 +515,27 @@
                 : "With: " + item.ownerEmail;
             newDiv.appendChild(other);
 
-            const status = document.createElement("p");
-            status.textContent = "Status: " + item.status;
-            newDiv.appendChild(status);
+            if (item.proposedTime) {
+                const timeP = document.createElement("p");
+                timeP.textContent = "Proposed time: " + new Date(item.proposedTime).toLocaleString();
+                newDiv.appendChild(timeP);
+            }
 
-            const type = document.createElement("p");
-            type.textContent = "Type: Meeting Request";
-            newDiv.appendChild(type);
+            const statusP = document.createElement("p");
+            statusP.textContent = "Status: " + item.status;
+            newDiv.appendChild(statusP);
 
             appointmentsList.appendChild(newDiv);
         }
 
-        // Render a Type 2 finalized group meeting appointment
         function renderType2Card(item) {
             const newDiv = document.createElement("div");
             newDiv.classList.add("appointment-card");
+
+            const badge = document.createElement("span");
+            badge.classList.add("type-badge", "badge-group");
+            badge.textContent = "Group Meeting";
+            newDiv.appendChild(badge);
 
             const heading = document.createElement("h3");
             heading.textContent = item.title || "Group Meeting";
@@ -485,13 +547,51 @@
 
             if (item.isRecurring) {
                 const week = document.createElement("p");
-                week.textContent = "Week: " + item.weekNumber;
+                week.textContent = "Week " + item.weekNumber + " of recurring series";
                 newDiv.appendChild(week);
             }
 
-            const type = document.createElement("p");
-            type.textContent = "Type: Group Meeting";
-            newDiv.appendChild(type);
+            const organizer = document.createElement("p");
+            organizer.textContent = "Organizer: " + (item.ownerEmail || "Unknown");
+            newDiv.appendChild(organizer);
+
+            if (role === 'student') {
+                const buttonDiv = document.createElement("div");
+                buttonDiv.classList.add("card-actions");
+
+                const cancelBtn = document.createElement("button");
+                cancelBtn.classList.add("small-button-red");
+                cancelBtn.textContent = "Cancel Participation";
+                cancelBtn.onclick = async () => {
+                    if (!confirm("Cancel your participation in this group meeting?")) return;
+
+                    // Try the leave endpoint if it exists
+                    const appointmentId = item._id;
+                    const response = await fetch(`${API_BASE}/api/bookings/group/${appointmentId}/leave`, {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                        body: JSON.stringify({ userId: id })
+                    });
+
+                    if (response.ok) {
+                        alert("You have been removed from this group meeting.");
+                        loadDashboard();
+                    } else if (response.status === 404) {
+                        // Endpoint not yet implemented — fall back to email notification
+                        const mailto = `mailto:${item.ownerEmail}?subject=${encodeURIComponent(
+                            `Cancelling participation — "${item.title}"`
+                        )}&body=${encodeURIComponent(
+                            `Hi,\n\nI need to cancel my participation in the group meeting "${item.title}" scheduled for ${new Date(item.time).toLocaleString()}.\n\nPlease remove me from the attendee list.\n\nThank you.`
+                        )}`;
+                        window.location.href = mailto;
+                    } else {
+                        const data = await response.json().catch(() => ({}));
+                        alert(data.error || "Could not cancel participation. Please contact the organizer.");
+                    }
+                };
+                buttonDiv.appendChild(cancelBtn);
+                newDiv.appendChild(buttonDiv);
+            }
 
             appointmentsList.appendChild(newDiv);
         }
@@ -506,7 +606,6 @@
             document.getElementById('pendingModal').classList.remove('active');
         }
 
-        // My Requests Modal (student) - Annie Huynh
         function openMyRequestsModal() {
             document.getElementById('myRequestsModal').classList.add('active');
             loadMyRequests();
@@ -523,6 +622,12 @@
             const data = await response.json();
             const list = document.getElementById('myRequestsList');
             list.innerHTML = '';
+
+            if (!Array.isArray(data) || data.length === 0) {
+                list.innerHTML = '<p style="color:gray;text-align:center;padding:20px">No requests sent yet.</p>';
+                return;
+            }
+
             for (const request of data) {
                 const card = document.createElement("div");
                 card.classList.add("request-card");
@@ -534,6 +639,12 @@
                 const msg = document.createElement("p");
                 msg.textContent = request.message;
                 card.appendChild(msg);
+
+                if (request.proposedTime) {
+                    const t = document.createElement("p");
+                    t.textContent = "Proposed: " + new Date(request.proposedTime).toLocaleString();
+                    card.appendChild(t);
+                }
 
                 const status = document.createElement("p");
                 status.textContent = "Status: " + request.status;
@@ -548,7 +659,14 @@
                 headers: { 'Authorization': 'Bearer ' + token }
             });
             const data = await response.json();
-            document.getElementById('requestsList').innerHTML = '';
+            const list = document.getElementById('requestsList');
+            list.innerHTML = '';
+
+            if (!Array.isArray(data) || data.length === 0) {
+                list.innerHTML = '<p style="color:gray;text-align:center;padding:20px">No pending requests.</p>';
+                return;
+            }
+
             for (const request of data) {
                 renderRequest(request);
             }
@@ -560,22 +678,30 @@
 
             const buttonDiv = document.createElement("div");
 
-            const userRequest = document.createElement("p");
-            userRequest.textContent = request.message;
-            newDiv.appendChild(userRequest);
+            const fromP = document.createElement("p");
+            fromP.textContent = "From: " + request.userEmail;
+            newDiv.appendChild(fromP);
 
-            const userEmail = document.createElement("p");
-            userEmail.textContent = request.userEmail;
-            newDiv.appendChild(userEmail);
+            const msgP = document.createElement("p");
+            msgP.textContent = request.message;
+            newDiv.appendChild(msgP);
+
+            if (request.proposedTime) {
+                const timeP = document.createElement("p");
+                timeP.textContent = "Proposed time: " + new Date(request.proposedTime).toLocaleString();
+                newDiv.appendChild(timeP);
+            }
 
             const accept = document.createElement("button");
             accept.classList.add("accept-button");
             accept.textContent = "Accept";
             buttonDiv.appendChild(accept);
             accept.onclick = async () => {
-                const response = await fetch(`${API_BASE}/api/bookings/respond`,
-                    { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                    body: JSON.stringify({ bookingId: request._id, accepted: true }) });
+                const response = await fetch(`${API_BASE}/api/bookings/respond`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ bookingId: request._id, accepted: true })
+                });
                 const data = await response.json();
                 if (response.ok) {
                     window.open(data.notifyUser);
@@ -590,9 +716,11 @@
             decline.textContent = "Decline";
             buttonDiv.appendChild(decline);
             decline.onclick = async () => {
-                const response = await fetch(`${API_BASE}/api/bookings/respond`,
-                    { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                    body: JSON.stringify({ bookingId: request._id, accepted: false }) });
+                const response = await fetch(`${API_BASE}/api/bookings/respond`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ bookingId: request._id, accepted: false })
+                });
                 const data = await response.json();
                 if (response.ok) {
                     window.open(data.notifyUser);

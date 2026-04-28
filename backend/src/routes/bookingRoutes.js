@@ -16,8 +16,10 @@ router.post("/group/create",                     auth.authenticateOwnerToken, co
 router.post("/group/vote",                       auth.authenticateUserToken, controller.voteForSlots);
 router.get("/group/:bookingId/votes",            auth.authenticateUserToken, controller.getSlotVoteCounts);
 router.post("/group/finalize",                   auth.authenticateOwnerToken, controller.finalizeGroupMeeting);
+router.get("/group/:bookingId/invite-url",       auth.authenticateOwnerToken, controller.getGroupInviteUrl);
 router.get("/appointments/user/:userId",         auth.authenticateUserToken, controller.getUserAppointments);
-router.get("/appointments/owner/:ownerId",       auth.authenticateOwnerToken, controller.getOwnerAppointments);
-router.get("/group/:bookingId/invite-url", auth.authenticateOwnerToken, controller.getGroupInviteUrl);
-
+router.get("/appointments/owner/:ownerId",       auth.authenticateAnyToken,  controller.getOwnerAppointments);  // <-- CHANGED
+ 
+router.delete("/group/:appointmentId/leave",     auth.authenticateUserToken, controller.leaveGroupMeeting);
+ 
 module.exports = router;

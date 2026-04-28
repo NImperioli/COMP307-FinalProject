@@ -142,3 +142,33 @@ exports.getGroupInviteUrl = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+exports.leaveGroupMeeting = async (req, res) => {
+  try {
+    const { appointmentId } = req.params;
+    const userId = req.user.id;
+ 
+    const db = require("../config/db").getDB();
+    const { ObjectId } = require("mongodb");
+ 
+    let apptOid;
+    try { apptOid = new ObjectId(appointmentId); }
+    catch { return res.status(400).json({ error: "Invalid appointmentId." }); }
+ 
+    const userOid = new ObjectId(userId);
+ 
+    // Remove user from participants array on the appointment document
+    const result = await db.collection("appointments").updateOne(
+      { _id: apptOid, participants: userOid },
+      { $pull: { participants: userOid } }
+    );
+ 
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ error: "Appointment not found or you are not a participant." });
+    }
+ 
+    res.json({ message: "You have been removed from this group meeting.", result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

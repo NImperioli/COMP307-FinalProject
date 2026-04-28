@@ -101,12 +101,71 @@
             box-shadow: 0px 3px 8px 1px rgb(220, 220, 220);
             background: white;
             color: rgb(40, 40, 40);
-            font-size: 18px;
+            font-size: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .slot-card-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 12px;
             flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .slot-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+        }
+
+        .slot-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: black;
+        }
+
+        .slot-time {
+            font-size: 14px;
+            color: rgb(90, 90, 90);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .status-active {
+            background: rgb(220, 255, 220);
+            color: rgb(30, 130, 30);
+        }
+        .status-private {
+            background: rgb(235, 235, 235);
+            color: rgb(100, 100, 100);
+        }
+
+        .group-id-box {
+            background: rgb(245, 245, 245);
+            border-radius: 10px;
+            padding: 8px 14px;
+            font-size: 13px;
+            color: rgb(80, 80, 80);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .group-id-box code {
+            font-family: monospace;
+            color: rgb(40, 40, 40);
+            word-break: break-all;
         }
 
         #slot_container button {
@@ -119,11 +178,18 @@
             color: white;
             cursor: pointer;
             transition: .3s;
-            margin-left: 8px;
+            font-size: 13px;
         }
 
         #slot_container button:hover {
             background: rgb(237, 27, 47);
+        }
+
+        .btn-delete {
+            background: rgb(200, 50, 50) !important;
+        }
+        .btn-delete:hover {
+            background: rgb(237, 27, 47) !important;
         }
 
         /* Modal - Annie Huynh */
@@ -271,6 +337,30 @@
         #finalizeSlotsList button:hover {
             background: rgb(237, 27, 47);
         }
+
+        .booker-info {
+            font-size: 14px;
+            color: rgb(60, 130, 60);
+            margin-top: 4px;
+        }
+        .booker-available {
+            font-size: 14px;
+            color: rgb(150, 150, 150);
+            margin-top: 4px;
+        }
+
+        .form-group textarea {
+            width: 100%;
+            height: 120px;
+            padding: 14px 20px;
+            border-radius: 20px;
+            border: none;
+            box-shadow: 0px 3px 8px 1px rgb(220, 220, 220);
+            font-family: "Outfit", sans-serif;
+            font-size: 15px;
+            resize: none;
+            outline: none;
+        }
     </style>
 </head>
 
@@ -289,11 +379,12 @@
         <button class="create-button" onclick="openRecurringModal()">Create Recurring Slots</button>
         <button class="create-button" onclick="openCreateModal()">Create Group Meeting</button>
         <button class="create-button" onclick="openFinalizeModal()">Finalize Group Meeting</button>
+        <button class="create-button" onclick="window.location.href='browse-owners.html'">Request Meeting</button>
 
         <div id="slot_container"></div>
     </div>
 
-    <!-- Creating goup meeting - Annie Huynh -->
+    <!-- Creating group meeting - Annie Huynh -->
     <div class="modal-overlay" id="createModal">
         <div class="modal-box">
             <button class="modal-close" onclick="closeCreateModal()">&#10005;</button>
@@ -334,7 +425,7 @@
                 <input type="datetime-local" id="slot3" />
             </div>
 
-            <button class="modal-submit" id="createSubmitBtn" >Create Meeting</button>
+            <button class="modal-submit" id="createSubmitBtn">Create Meeting</button>
         </div>
     </div>
 
@@ -415,32 +506,23 @@
 
 <script>
     const API_BASE = '';
-    // wb 261143451
-    //Owner-only page.
-    // List automatically, Create, Delete, edit
-    // from AH: Read the JWT from localStorage
-
     const token = localStorage.getItem('token');
     const role = localStorage.getItem('role');
     const id = localStorage.getItem('user._id');
     const email = localStorage.getItem('email');
 
-    // redirect to login page if token is missing
     if (!token){
-        window.location.href = 'login.html'
+        window.location.href = 'login.html';
+    } else if (role !== "owner"){
+        window.location.href = 'dashboard.html';
     }
-    else if (role !== "owner"){
-        window.location.href = 'dashboard.html'
-    }
 
+    const url = `${API_BASE}/api/slots/`;
+    const slot_container = document.getElementById("slot_container");
 
-    const url = `${API_BASE}/api/slots/`
-    const slot_container = document.getElementById("slot_container")
+    async function renderAll(options = { show_repeating: true, range: [0, Date.parse("2099-12-31")], sort: "start-time", filter: ["active", "private"] }) {
+        slot_container.innerHTML = "";
 
-    async function renderAll(options={show_repeating:true, range:[0, Date.parse("2099-12-31")], sort:"start-time", filter:["active", "private"]}){        
-    slot_container.innerHTML = "";
-
-        // sort options: start-time, creation-time
         const response = await fetch(url + `owner/${id}`, {
             method: 'GET',
             headers: { "Authorization": 'Bearer ' + token },
@@ -448,48 +530,77 @@
         });
 
         const data = await response.json();
-        console.log(data);
 
         const filtered = [];
-        for (let slot of data){
-            console.log(slot.title);
-            if(!options.show_repeating && (slot.type === "recurring")){
-                continue;
-            }
-
-            if(Date.parse(slot.endTime) < options.range[0] || Date.parse(slot.startTime) > options.range[1]){
-                continue;
-            }
-            if(!options.filter.includes(slot.status)){
-                continue;
-            }
+        for (let slot of data) {
+            if (!options.show_repeating && (slot.type === "recurring")) continue;
+            if (Date.parse(slot.endTime) < options.range[0] || Date.parse(slot.startTime) > options.range[1]) continue;
+            if (!options.filter.includes(slot.status)) continue;
             filtered.push(slot);
-            // not sorting rn
         }
+
         // Separate non-grouped from grouped
         const ungrouped = filtered.filter(s => !s.groupToken);
-        const grouped = new Map(); // groupToken → array of slots
+        const grouped = new Map();
         for (const s of filtered.filter(s => s.groupToken)) {
             if (!grouped.has(s.groupToken)) grouped.set(s.groupToken, []);
             grouped.get(s.groupToken).push(s);
         }
+
         // Render ungrouped individually
         for (const slot of ungrouped) await renderSlot(slot);
         // Render each group as one card
         for (const [groupToken, slots] of grouped) await renderGroupCard(groupToken, slots);
-
     }
 
-    async function renderGroupCard(groupToken, slots){
-        let new_slot = document.createElement("div");
-        const title = slots[0].title;
-        new_slot.append(title);
-        new_slot.append(slots.length + " weeks");
+    async function renderGroupCard(groupToken, slots) {
+        const card = document.createElement("div");
+
+        // Top row: title + status badge
+        const row = document.createElement("div");
+        row.classList.add("slot-card-row");
+
+        const info = document.createElement("div");
+        info.classList.add("slot-info");
+
+        const titleEl = document.createElement("span");
+        titleEl.classList.add("slot-title");
+        titleEl.textContent = slots[0].title + ` (${slots.length} weeks recurring)`;
+        info.appendChild(titleEl);
+
         const startTime = new Date(slots[0].startTime).toLocaleString();
-        new_slot.append("Start: " + startTime);
         const endTime = new Date(slots[slots.length - 1].endTime).toLocaleString();
-        new_slot.append("End: " + endTime);
-    
+        const timeEl = document.createElement("span");
+        timeEl.classList.add("slot-time");
+        timeEl.textContent = `Start: ${startTime} → End: ${endTime}`;
+        info.appendChild(timeEl);
+
+        const statusEl = document.createElement("span");
+        statusEl.classList.add("status-badge");
+        const groupStatus = slots[0].status;
+        statusEl.classList.add(groupStatus === 'active' ? 'status-active' : 'status-private');
+        statusEl.textContent = groupStatus;
+        info.appendChild(statusEl);
+
+        row.appendChild(info);
+        card.appendChild(row);
+
+        const idBox = document.createElement("div");
+        idBox.classList.add("group-id-box");
+        idBox.innerHTML = `<strong>Group ID:</strong> <code>${groupToken}</code>`;
+        const copyIdBtn = document.createElement("button");
+        copyIdBtn.textContent = "Copy ID";
+        copyIdBtn.style.cssText = "height:28px;padding:0 10px;font-size:12px;";
+        copyIdBtn.onclick = () => {
+            navigator.clipboard.writeText(groupToken).then(() => alert("Group ID copied!"));
+        };
+        idBox.appendChild(copyIdBtn);
+        card.appendChild(idBox);
+
+        // Action buttons
+        const btnRow = document.createElement("div");
+        btnRow.style.cssText = "display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;";
+
         const activateGroupBtn = document.createElement("button");
         activateGroupBtn.textContent = "Activate Group";
         activateGroupBtn.onclick = async () => {
@@ -506,10 +617,11 @@
                 alert(data.error);
             }
         };
-        new_slot.appendChild(activateGroupBtn);
+        btnRow.appendChild(activateGroupBtn);
 
         const deleteGroupBtn = document.createElement("button");
         deleteGroupBtn.textContent = "Delete Group";
+        deleteGroupBtn.classList.add("btn-delete");
         deleteGroupBtn.onclick = async () => {
             if (!confirm("Delete all slots in this group?")) return;
             const res = await fetch(`${API_BASE}/api/slots/group/${groupToken}`, {
@@ -524,55 +636,84 @@
                 alert(data.error);
             }
         };
-        new_slot.appendChild(deleteGroupBtn);
-        slot_container.appendChild(new_slot);
+        btnRow.appendChild(deleteGroupBtn);
+
+        // Get invite URL for recurring group
+        const inviteBtn = document.createElement("button");
+        inviteBtn.textContent = "Get Invite URL";
+        inviteBtn.onclick = async () => {
+            const firstSlotId = slots[0]._id;
+            const inviteResponse = await fetch(`${API_BASE}/api/slots/${firstSlotId}/invite-url`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const data = await inviteResponse.json();
+            if (inviteResponse.ok) {
+                navigator.clipboard.writeText(data.inviteUrl).then(() => alert("Invite URL copied!"));
+            } else {
+                alert(data.error || 'URL not found');
+            }
+        };
+        btnRow.appendChild(inviteBtn);
+
+        card.appendChild(btnRow);
+        slot_container.appendChild(card);
     }
-    async function renderSlot(slot_data){
-        let new_slot = document.createElement("div");
-        new_slot.append(slot_data.title);
+
+    async function renderSlot(slot_data) {
+        const card = document.createElement("div");
+
+        const row = document.createElement("div");
+        row.classList.add("slot-card-row");
+
+        const info = document.createElement("div");
+        info.classList.add("slot-info");
+
+        const titleEl = document.createElement("span");
+        titleEl.classList.add("slot-title");
+        titleEl.textContent = slot_data.title;
+        info.appendChild(titleEl);
+
         const startTime = new Date(slot_data.startTime).toLocaleString();
-        new_slot.append("Start: " + startTime);
         const endTime = new Date(slot_data.endTime).toLocaleString();
-        new_slot.append("End: " + endTime);
-    
-        let btnRow = document.createElement("div");
-        btnRow.style.display = "flex";
-        btnRow.style.gap = "8px"
-        
-        // delete slot button
-        let del = document.createElement("button");
-        del.innerText="Delete";
-        del.style.backgroundColor="red";
-        del.onclick = () => {deleteSlot(slot_data._id)};
+        const timeEl = document.createElement("span");
+        timeEl.classList.add("slot-time");
+        timeEl.textContent = `${startTime} → ${endTime}`;
+        info.appendChild(timeEl);
+
+        const statusEl = document.createElement("span");
+        statusEl.classList.add("status-badge");
+        statusEl.classList.add(slot_data.status === 'active' ? 'status-active' : 'status-private');
+        statusEl.textContent = slot_data.status;
+        info.appendChild(statusEl);
+
+        row.appendChild(info);
+        card.appendChild(row);
+
+        // Booker info (async)
+        const bookerEl = document.createElement("p");
+        bookerEl.classList.add("booker-available");
+        bookerEl.textContent = "Checking reservation…";
+        card.appendChild(bookerEl);
+
+        // Action buttons
+        const btnRow = document.createElement("div");
+        btnRow.style.cssText = "display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;";
+
+        const del = document.createElement("button");
+        del.innerText = "Delete";
+        del.classList.add("btn-delete");
+        del.onclick = () => deleteSlot(slot_data._id);
         btnRow.appendChild(del);
 
-        // activate slot button
-        let act = document.createElement("button");
-        act.innerText="Activate"; 
-        act.onclick = () => {activate(slot_data._id)};
+        const act = document.createElement("button");
+        act.innerText = "Activate";
+        act.onclick = () => activate(slot_data._id);
         btnRow.appendChild(act);
 
-        // deactivate slot button
-        let dea = document.createElement("button");
-        dea.innerText="Deactivate";
-        dea.onclick = () => {deactivate(slot_data._id)};
+        const dea = document.createElement("button");
+        dea.innerText = "Deactivate";
+        dea.onclick = () => deactivate(slot_data._id);
         btnRow.appendChild(dea);
-        
-        new_slot.appendChild(btnRow);
-        slot_container.appendChild(new_slot);
-
-        // fetch reservation for this slot
-        const resResponse = await fetch(`${API_BASE}/api/slots/${slot_data._id}/reservation`, {
-            headers: { 'Authorization': 'Bearer ' + token }
-        });
-        const resData = await resResponse.json();
-        const booker = document.createElement("p");
-        if (resResponse.ok && resData.user) {
-            booker.textContent = "Booked by: " + resData.user.email;
-        } else {
-            booker.textContent = "Available";
-        }
-        new_slot.appendChild(booker);
 
         const inviteBtn = document.createElement("button");
         inviteBtn.textContent = "Get Invite URL";
@@ -582,95 +723,86 @@
             });
             const data = await inviteResponse.json();
             if (inviteResponse.ok) {
-                navigator.clipboard.writeText(data.inviteUrl).then(() => {
-                    alert("Invite URL copied to clipboard!");
-                });
+                navigator.clipboard.writeText(data.inviteUrl).then(() => alert("Invite URL copied!"));
             } else {
                 alert(data.error || 'URL not found');
             }
         };
-        new_slot.appendChild(inviteBtn);
+        btnRow.appendChild(inviteBtn);
 
+        const msgBtn = document.createElement("button");
+        msgBtn.textContent = "Message Booker";
+        msgBtn.onclick = async () => {
+            const response = await fetch(`${API_BASE}/api/slots/${slot_data._id}/message-booker`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const data = await response.json();
+            if (response.ok) window.location.href = data.mailto;
+            else alert(data.error);
+        };
+        btnRow.appendChild(msgBtn);
+
+        card.appendChild(btnRow);
+        slot_container.appendChild(card);
+
+        // Fetch reservation asynchronously and update booker display
+        const resResponse = await fetch(`${API_BASE}/api/slots/${slot_data._id}/reservation`, {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const resData = await resResponse.json();
+        if (resResponse.ok && resData && resData.user) {
+            bookerEl.textContent = "Booked by: " + resData.user.email;
+            bookerEl.className = "booker-info";
+        } else {
+            bookerEl.textContent = "Available — not yet booked";
+            bookerEl.className = "booker-available";
+        }
     }
 
-    async function createSlot(title, start, end){
-        // might need to be reworked to make it a better endpoint for a form
+    async function createSlot(title, start, end) {
         let slot = await fetch(url + "create", {
-            headers: {
-                'Authorization': 'Bearer ' + token,
-                'Content-Type': 'application/json'
-
-            },
+            headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
             method: 'POST',
-            body: JSON.stringify({ownerId: id, title: title, start: start, end: end})
-        })
+            body: JSON.stringify({ ownerId: id, title, start, end })
+        });
         let response = await slot.json();
-
         console.log("Slot created: ", response);
-
         await renderAll();
     }
 
-    // Not sure if slot editing is a good idea... Should slots have to be re-activated?
-    // Might be bad design as it could cause more confusion for students when they're booked for a slot
-    // they can't make.
-    //function editSlot(id, title, start, end){
-    //}
-
-    async function deleteSlot(slotId, options={warn:true}){
-        // I actully dk what the issue is here
+    async function deleteSlot(slotId, options = { warn: true }) {
         let c = true;
-        if (options.warn){c = confirm("Confirm Delete?")}
-        if(c){
+        if (options.warn) { c = confirm("Confirm Delete?"); }
+        if (c) {
             let slot = await fetch(url + slotId, {
-                headers: {
-                    'Authorization': 'Bearer ' + token,
-                    'Content-Type': 'application/json,',
-                    'Access-Control-Request-Method': 'DELETE'
-                },
+                headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
                 method: 'DELETE',
-                body: JSON.stringify({ownerId: id})
-            })
+                body: JSON.stringify({ ownerId: id })
+            });
             console.log(slot);
             await renderAll();
         }
     }
-    async function activate(slotId){
+
+    async function activate(slotId) {
         let slot = await fetch(url + slotId + "/activate", {
-            headers: {
-                'Authorization': 'Bearer ' + token,
-                'Content-Type': 'application/json'
-
-            },
+            headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
             method: 'POST',
-            body: JSON.stringify({ownerId: id})
-        })
-        //parsa json res\ponse 
+            body: JSON.stringify({ ownerId: id })
+        });
         let response = await slot.json();
-        if (response.matchedCount === 0){
-            alert("Couldn't activate slot - check owner ID");
-        }
-
-        console.log("Activate response: ", response);
+        if (response.matchedCount === 0) alert("Couldn't activate slot - check owner ID");
         await renderAll();
     }
 
-    async function deactivate(slotId){
+    async function deactivate(slotId) {
         let slot = await fetch(url + slotId + "/deactivate", {
-            headers: {
-                'Authorization': 'Bearer ' + token,
-                'Content-Type': 'application/json'
-
-            },
+            headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
             method: 'POST',
-            body: JSON.stringify({ownerId: id})
-        })
+            body: JSON.stringify({ ownerId: id })
+        });
         let response = await slot.json();
-        if (response.matchedCount === 0){
-            alert("Couldn't deactivate slot - check owner ID");
-        }
-
-        console.log("Deac response: ", response);
+        if (response.matchedCount === 0) alert("Couldn't deactivate slot - check owner ID");
         await renderAll();
     }
 
@@ -692,12 +824,12 @@
     document.getElementById('recurSubmitBtn').onclick = async () => {
         const title = document.getElementById('recurTitle').value.trim();
         const start = document.getElementById('recurStart').value;
-        const end   = document.getElementById('recurEnd').value;
+        const end = document.getElementById('recurEnd').value;
         const weeks = parseInt(document.getElementById('recurWeeks').value);
 
-        if (!title)        return alert('Please enter a title.');
-        if (!start)        return alert('Please set a start time.');
-        if (!end)          return alert('Please set an end time.');
+        if (!title) return alert('Please enter a title.');
+        if (!start) return alert('Please set a start time.');
+        if (!end) return alert('Please set an end time.');
         if (new Date(end) <= new Date(start)) return alert('End must be after start.');
         if (!weeks || weeks < 1) return alert('Please enter a valid number of weeks.');
 
@@ -713,7 +845,7 @@
         const data = await response.json();
         if (response.ok) {
             closeRecurringModal();
-            alert(`Created ${data.insertedCount} recurring slots.`);
+            alert(`Created ${data.insertedCount} recurring slots.\nGroup ID: ${data.groupToken}\n\nActivate the group to make slots visible to students.`);
             await renderAll();
         } else {
             alert(data.error);
@@ -735,11 +867,11 @@
     document.getElementById('createSlotSubmitBtn').onclick = async () => {
         const title = document.getElementById('slotTitle').value.trim();
         const start = document.getElementById('slotStart').value;
-        const end   = document.getElementById('slotEnd').value;
+        const end = document.getElementById('slotEnd').value;
 
         if (!title) return alert('Please enter a title.');
         if (!start) return alert('Please set a start time.');
-        if (!end)   return alert('Please set an end time.');
+        if (!end) return alert('Please set an end time.');
         if (new Date(end) <= new Date(start)) return alert('End must be after start.');
 
         await createSlot(title, new Date(start).getTime(), new Date(end).getTime());
@@ -756,8 +888,8 @@
     }
 
     document.getElementById('createSubmitBtn').onclick = async () => {
-        const title    = document.getElementById('meetingTitle').value.trim();
-        const opensAt  = document.getElementById('opensAt').value;
+        const title = document.getElementById('meetingTitle').value.trim();
+        const opensAt = document.getElementById('opensAt').value;
         const closesAt = document.getElementById('closesAt').value;
         const slots = [
             document.getElementById('slot1').value,
@@ -765,7 +897,7 @@
             document.getElementById('slot3').value
         ];
 
-        if (!title)   return alert('Please enter a meeting title.');
+        if (!title) return alert('Please enter a meeting title.');
         if (!opensAt) return alert('Please set a voting open time.');
         if (!closesAt) return alert('Please set a voting close time.');
         if (new Date(closesAt) <= new Date(opensAt)) return alert('Voting must close after it opens.');
@@ -785,17 +917,17 @@
         });
 
         const data = await response.json();
-            if (response.ok) {
-                const bookingId = data.insertedId;
-                closeCreateModal();
-                document.getElementById('finalizeBookingId').value = bookingId;
-                navigator.clipboard.writeText(`\nowner-slots.html?ownerId=${id}&bookingId=${bookingId}&openVote=true`).then(() => {
-                    alert("Meeting created and url copied!");
-                });
-            } else {
-                alert(data.error || 'URL not found');
-            }
-        
+        if (response.ok) {
+            const bookingId = data.insertedId;
+            closeCreateModal();
+            document.getElementById('finalizeBookingId').value = bookingId;
+            const shareUrl = `${window.location.origin}/owner-slots.html?ownerId=${id}&bookingId=${bookingId}&openVote=true`;
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                alert(`Group meeting created!\nBooking ID: ${bookingId}\n\nShare URL copied to clipboard.`);
+            });
+        } else {
+            alert(data.error || 'Failed to create meeting');
+        }
     };
 
     // Finalize group meeting
@@ -820,6 +952,11 @@
         list.innerHTML = '';
 
         if (!response.ok) return alert(data.error);
+
+        if (data.length === 0) {
+            list.innerHTML = '<p style="color:gray">No slots found for this booking.</p>';
+            return;
+        }
 
         for (const slot of data) {
             renderFinalizeSlot(slot, bookingId);
@@ -859,11 +996,10 @@
         list.appendChild(newDiv);
     }
 
-    // auto-open modals from URL params (e.g. dashboard navigation)
+    // auto-open modals from URL params
     const params = new URLSearchParams(window.location.search);
     if (params.get('openCreate') === 'true') openCreateModal();
     if (params.get('openFinalize') === 'true') openFinalizeModal();
-
 </script>
 
 </html>

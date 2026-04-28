@@ -81,8 +81,18 @@
             font-size: 16px;
         }
 
+        .section-heading {
+            font-size: 22px;
+            font-weight: 700;
+            color: rgb(237, 27, 47);
+            margin: 30px 0 12px 0;
+            padding-bottom: 6px;
+            border-bottom: 2px solid rgb(240, 240, 240);
+        }
+
         .reserve-button {
             margin-top: 14px;
+            margin-right: 10px;
             width: 170px;
             height: 48px;
             background: black;
@@ -95,6 +105,24 @@
 
         .reserve-button:hover {
             background: rgb(237, 27, 47);
+        }
+
+        /* Badge for meeting type */
+        .type-badge {
+            display: inline-block;
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .badge-group {
+            background: rgb(230, 240, 255);
+            color: rgb(30, 80, 180);
+        }
+        .badge-slot {
+            background: rgb(220, 255, 220);
+            color: rgb(30, 130, 30);
         }
 
         /* Modal - Annie Huynh */
@@ -181,6 +209,17 @@
         #voteSlotsList button:hover {
             background: rgb(237, 27, 47);
         }
+
+        .voted-label {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 4px 12px;
+            background: rgb(220, 255, 220);
+            color: rgb(30, 130, 30);
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
     </style>
 </head>
 
@@ -207,83 +246,108 @@
         </div>
     </div>
 
-    <!--- Annie Huynh --->
     <script>
         const API_BASE = '';
         const id = localStorage.getItem('user._id');
         const email = localStorage.getItem('email');
+        const role = localStorage.getItem('role');
 
-        // read token and redirect if its missing
         const token = localStorage.getItem('token');
-         if (!token){
-            window.location.href = 'login.html'
+        if (!token) {
+            window.location.href = 'login.html';
         }
 
-        // make sure that this page is only accessed from browse-owners or via invite link
         const urlParams = new URLSearchParams(window.location.search);
         const ownerId = urlParams.get('ownerId');
         const inviteToken = urlParams.get('token');
         const ownerName = urlParams.get('ownerName');
-        if (!ownerId && !inviteToken){
-            window.location.href='browse-owners.html';
+
+        if (!ownerId && !inviteToken) {
+            window.location.href = 'browse-owners.html';
         }
+
         if (ownerName) {
             document.getElementById('ownerName').textContent = decodeURIComponent(ownerName);
         }
 
         const slotsList = document.getElementById('slotsList');
-        //fetch active owners on load
-        async function loadSlots(){
+
+        async function loadSlots() {
             const url = inviteToken
                 ? `${API_BASE}/api/slots/token/${inviteToken}`
                 : `${API_BASE}/api/slots/owner/${ownerId}/active`;
 
-            const response = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } }); // header for JWT handshake
+            const response = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
             const data = await response.json();
 
-            //clear hardcoded cards
-            slotsList.innerHTML='';
+            slotsList.innerHTML = '';
 
-             if (!response.ok) {
+            if (!response.ok) {
                 slotsList.innerHTML = `<p style="color:red">Failed to load slots: ${data.error || response.status}</p>`;
                 return;
             }
 
             if (!Array.isArray(data) || data.length === 0) {
                 slotsList.innerHTML = `<p style="color:gray">No active slots available for this owner.</p>`;
+            } else {
+                const heading = document.createElement('h2');
+                heading.classList.add('section-heading');
+                heading.textContent = 'Available Booking Slots';
+                slotsList.appendChild(heading);
             }
 
-            for (const slot of data){
+            for (const slot of data) {
                 renderSlotCard(slot);
             }
 
-            // also load any open group meetings for voting
+            // FIX 5: Load group meetings for ALL authenticated users (not just owners)
             if (ownerId) {
                 await loadGroupMeetings();
             }
         }
-        
+
         loadSlots();
 
-        async function loadGroupMeetings(){
-            const response = await fetch(`${API_BASE}/api/bookings/appointments/owner/${ownerId}`, {
-                headers: { 'Authorization': 'Bearer ' + token }
-            });
-            if (!response.ok) return;
-            const data = await response.json();
+        async function loadGroupMeetings() {
+            // Try fetching owner appointments works if backend uses authenticateAnyToken
+            // If it returns 403, fall back gracefully
+            let openMeetings = [];
 
-            // data.type2 contains group meetings — show ones still collecting votes
-            const openMeetings = (data.type2 || []).filter(b => b.status === 'collecting_votes');
+            try {
+                const response = await fetch(`${API_BASE}/api/bookings/appointments/owner/${ownerId}`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    // Show group meetings still collecting votes
+                    openMeetings = (data.type2 || []).filter(b => b.status === 'collecting_votes');
+                } else if (response.status === 403) {
+                    // Student hitting owner-only endpoint — backend fix needed
+                    // Silently skip rather than show error
+                    console.warn('Group meetings endpoint requires owner token — ask admin to update route to authenticateAnyToken');
+                    return;
+                }
+            } catch (e) {
+                console.error('Failed to load group meetings', e);
+                return;
+            }
+
             if (openMeetings.length === 0) return;
 
-            const header = document.createElement('h3');
-            header.textContent = 'Group Meeting Votes';
-            header.style.cssText = 'margin: 24px 0 12px; font-size: 22px;';
-            slotsList.appendChild(header);
+            const heading = document.createElement('h2');
+            heading.classList.add('section-heading');
+            heading.textContent = 'Group Meeting Votes';
+            slotsList.appendChild(heading);
 
             for (const meeting of openMeetings) {
                 const card = document.createElement('div');
                 card.classList.add('slot-card');
+
+                const badge = document.createElement('span');
+                badge.classList.add('type-badge', 'badge-group');
+                badge.textContent = 'Group Meeting';
+                card.appendChild(badge);
 
                 const title = document.createElement('h3');
                 title.textContent = meeting.title || 'Group Meeting';
@@ -292,70 +356,76 @@
                 const window_open = new Date(meeting.opensAt).toLocaleString();
                 const window_close = new Date(meeting.closesAt).toLocaleString();
                 const period = document.createElement('p');
-                period.textContent = `Voting open: ${window_open} → ${window_close}`;
+                period.textContent = `Voting window: ${window_open} → ${window_close}`;
                 card.appendChild(period);
 
-                const voteBtn = document.createElement('button');
-                voteBtn.classList.add('reserve-button');
-                voteBtn.textContent = 'Vote on Times';
-                voteBtn.onclick = () => openVoteModal(meeting._id);
-                card.appendChild(voteBtn);
+                const now = new Date();
+                const isOpen = now >= new Date(meeting.opensAt) && now <= new Date(meeting.closesAt);
+                const statusP = document.createElement('p');
+                statusP.textContent = isOpen ? '✅ Voting is currently open' : '⏳ Voting window not active';
+                statusP.style.color = isOpen ? 'rgb(30, 130, 30)' : 'rgb(150, 100, 0)';
+                card.appendChild(statusP);
+
+                if (isOpen) {
+                    const voteBtn = document.createElement('button');
+                    voteBtn.classList.add('reserve-button');
+                    voteBtn.textContent = 'Vote on Times';
+                    voteBtn.onclick = () => openVoteModal(meeting._id || meeting.bookingId);
+                    card.appendChild(voteBtn);
+                }
 
                 slotsList.appendChild(card);
             }
         }
 
-        // helper function to render cards
-        function renderSlotCard(slot){
+        function renderSlotCard(slot) {
             const newDiv = document.createElement("div");
             newDiv.classList.add("slot-card");
-            newDiv.innerHTML='';
 
-            const buttonDiv = document.createElement("div");
-            buttonDiv.classList.add("card-actions");
+            const badge = document.createElement('span');
+            badge.classList.add('type-badge', 'badge-slot');
+            badge.textContent = slot.type === 'recurring' ? 'Recurring Slot' : 'Booking Slot';
+            newDiv.appendChild(badge);
 
             const heading = document.createElement("h3");
-            heading.textContent=slot.title;
+            heading.textContent = slot.title;
             newDiv.appendChild(heading);
 
             const time = document.createElement("p");
             const startTime = new Date(slot.startTime).toLocaleString();
-            const endTime = new Date(slot.endTime).toLocaleString()
-            time.textContent = "Time: " + startTime + " - " + endTime;
+            const endTime = new Date(slot.endTime).toLocaleString();
+            time.textContent = "Time: " + startTime + " — " + endTime;
             newDiv.appendChild(time);
+
+            const buttonDiv = document.createElement("div");
 
             const reserveSlot = document.createElement("button");
             reserveSlot.classList.add("reserve-button");
-            reserveSlot.textContent="Reserve Slot";
+            reserveSlot.textContent = "Reserve Slot";
             buttonDiv.appendChild(reserveSlot);
-            reserveSlot.onclick = async() => {
-                    const response = await fetch(`${API_BASE}/api/slots/reserve`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + token
-                        },
-                        body: JSON.stringify({ slotId: slot._id, userId: id, userEmail: email })
-                    });
-                    const data = await response.json();
-                    if (response.ok) {
-                        // reload the dashboard to reflect the cancellation
-                        loadSlots();
-                        if (data.notifyOwner){
-                            window.location.href = data.notifyOwner; // notify owner
-                        }
-                        window.location.href = 'dashboard.html';
+            reserveSlot.onclick = async () => {
+                const response = await fetch(`${API_BASE}/api/slots/reserve`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ slotId: slot._id, userId: id, userEmail: email })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    if (data.notifyOwner) {
+                        window.location.href = data.notifyOwner;
                     } else {
-                        alert(data.error);
+                        window.location.href = 'dashboard.html';
                     }
+                } else {
+                    alert(data.error);
                 }
+            };
 
-            // Message owner button
             const messageOwner = document.createElement("button");
             messageOwner.classList.add("reserve-button");
-            messageOwner.textContent="Message Owner";
+            messageOwner.textContent = "Message Owner";
             buttonDiv.appendChild(messageOwner);
-            messageOwner.onclick = async() => {
+            messageOwner.onclick = async () => {
                 const response = await fetch(`${API_BASE}/api/slots/${slot._id}/message-owner`, {
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
@@ -365,14 +435,13 @@
                 } else {
                     alert(data.error);
                 }
-            }
+            };
 
-            // append to html
             newDiv.appendChild(buttonDiv);
             slotsList.appendChild(newDiv);
         }
 
-        // select slots
+        // Voting modal
         let voteBookingId = null;
 
         function openVoteModal(bookingId) {
@@ -392,9 +461,15 @@
             const data = await response.json();
             const list = document.getElementById('voteSlotsList');
             list.innerHTML = '';
-            if (Array.isArray(data)) {
-                for (const slot of data) renderVoteSlot(slot);
+            if (!response.ok) {
+                list.innerHTML = `<p style="color:red">${data.error || 'Failed to load vote slots'}</p>`;
+                return;
             }
+            if (!Array.isArray(data) || data.length === 0) {
+                list.innerHTML = '<p style="color:gray">No time slots available to vote on.</p>';
+                return;
+            }
+            for (const slot of data) renderVoteSlot(slot);
         }
 
         function renderVoteSlot(slot) {
@@ -406,26 +481,37 @@
             newDiv.appendChild(time);
 
             const votes = document.createElement("p");
-            votes.textContent = "Votes: " + slot.votes;
+            votes.textContent = "Current votes: " + slot.votes;
             newDiv.appendChild(votes);
 
-            const voteBtn = document.createElement("button");
-            voteBtn.textContent = "Vote";
-            voteBtn.onclick = async () => {
-                const response = await fetch(`${API_BASE}/api/bookings/group/vote`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                    body: JSON.stringify({ bookingId: voteBookingId, userId: id, slotTimes: [slot.time] })
-                });
-                const data = await response.json();
-                if (response.ok) {
-                    alert('Vote submitted!');
-                    loadVoteSlots();
-                } else {
-                    alert(data.error);
-                }
-            };
-            newDiv.appendChild(voteBtn);
+            // FIX 5: Check if user already voted for this slot
+            const alreadyVoted = slot.voters && slot.voters.includes(id);
+
+            if (alreadyVoted) {
+                const votedLabel = document.createElement("span");
+                votedLabel.classList.add("voted-label");
+                votedLabel.textContent = "✓ You voted for this";
+                newDiv.appendChild(votedLabel);
+            } else {
+                const voteBtn = document.createElement("button");
+                voteBtn.textContent = "Vote for this time";
+                voteBtn.onclick = async () => {
+                    const response = await fetch(`${API_BASE}/api/bookings/group/vote`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                        body: JSON.stringify({ bookingId: voteBookingId, userId: id, slotTimes: [slot.time] })
+                    });
+                    const data = await response.json();
+                    if (response.ok) {
+                        alert('Vote submitted!');
+                        loadVoteSlots();
+                    } else {
+                        alert(data.error);
+                    }
+                };
+                newDiv.appendChild(voteBtn);
+            }
+
             list.appendChild(newDiv);
         }
 
