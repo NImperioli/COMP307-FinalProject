@@ -140,6 +140,18 @@
             background: rgb(237, 27, 47);
         }
 
+        h6 a {
+            text-decoration: none;  
+            color: black;            
+            font-weight: 600;        
+        }
+
+        h6 a:hover {
+             color: rgb(237, 27, 47); 
+        }
+
+
+
         /* Modal - Annie Huynh */
         .modal-overlay {
             display: none;
@@ -263,11 +275,12 @@
         const name = localStorage.getItem('name');
         const id = localStorage.getItem('user._id');
 
+        /**
         // redirect to login page if token is missing
         if (!token){
             window.location.href = 'login.html'
         }
-
+        **/
       // fetch call for student and owner
         async function loadDashboard(){
             const url = role === 'owner'

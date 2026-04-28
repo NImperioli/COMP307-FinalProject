@@ -126,6 +126,28 @@
             background: rgb(237, 27, 47);
         }
 
+         h6 a {
+            text-decoration: none;  
+            color: black;            
+            font-weight: 600;        
+        }
+
+        h6 a:hover {
+             color: rgb(237, 27, 47); 
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
         /* Modal - Annie Huynh */
         .modal-overlay {
             display: none;
@@ -426,13 +448,17 @@
     const email = localStorage.getItem('email');
 
     // redirect to login page if token is missing
+
+    /**
+
     if (!token){
         window.location.href = 'login.html'
     }
+    
     else if (role !== "owner"){
         window.location.href = 'dashboard.html'
     }
-
+**/
 
     const url = `${API_BASE}/api/slots/`
     const slot_container = document.getElementById("slot_container")
