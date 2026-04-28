@@ -23,7 +23,7 @@
             background: rgb(255, 255, 255);
             display: flex;
             justify-content: center;
-            align-items: center;
+            
             padding: 0 80px;
             gap: 60px;
 
@@ -34,6 +34,76 @@
         background-size: cover;
         background-position: center;
         }
+
+        .top-bar {
+    width: calc(100% - 40px);
+    margin: 20px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(12px);
+
+    padding: 16px 28px;
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    border-radius: 22px;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.16);
+
+    z-index: 5;
+}
+.logo {
+    font-size: 28px;
+    font-weight: 800;
+    text-decoration: none;
+    color: rgb(237, 27, 47);
+    letter-spacing: 1px;
+}
+
+.logo span {
+    color: rgb(237, 27, 47);
+}
+.login-header header {
+    position: relative;
+    font-size: 30px;
+    font-weight: 600;
+    color: black;
+    display: inline-block;
+}
+
+.login-header header::after {
+    content: "";
+    display: block;
+    width: 70px;
+    height: 4px;
+    background: rgb(237, 27, 47);
+    margin: 8px auto 0;
+    border-radius: 2px;
+}
+
+.top-buttons {
+    display: flex;
+    gap: 12px;
+}
+
+.top-button {
+    min-width: 100px;
+    height: 44px;
+    background: black;
+    border: none;
+    border-radius: 999px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.top-button:hover {
+    background: rgb(237, 27, 47);
+}
 
         .page-container {
             width: 100%;
@@ -143,7 +213,7 @@
         }
 
         .left-section h1.mcgill {
-            color: rgb(237, 27, 47);
+            color: rgb(0, 0, 0);
         }
 
         .small-text {
@@ -186,7 +256,33 @@
     transform: scale(1.05,1);
 }
 
+h6 a {
+            text-decoration: none;  
+            color: black;            
+            font-weight: 600;        
+        }
 
+        h6 a:hover {
+             color: rgb(237, 27, 47); 
+        }
+
+.login-header header {
+    position: relative;
+    font-size: 30px;
+    font-weight: 600;
+    color: black;
+    display: inline-block;
+}
+
+.login-header header::after {
+    content: "";
+    display: block;
+    width: 110px;
+    height: 4px;
+    background: rgb(237, 27, 47);
+    margin: 8px auto 0;
+    border-radius: 2px;
+}
     </style>
 </head>
 
@@ -194,7 +290,7 @@
 
 
 <body>
-    <h6><a href="landing.html" style="text-decoration: none;">MyBookings</a></h6>
+    
 
     <div class="page-container">
         <div class="left-section">
@@ -205,8 +301,16 @@
                 browse and reserve active appointments.
             </p>
         </div>
+<div class="top-bar">
+    <a href="landing.html" class="logo">
+        MyBookings
+    </a>
 
-        <button class="back-btn" onclick="goBack()">Back</button>
+    <div class="top-buttons">
+        <button class="top-button" onclick="goBack()">Back</button>
+    </div>
+</div>
+       
 
         <div class="right-section">
             <div class="login-box">
