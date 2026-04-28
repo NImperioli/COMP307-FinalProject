@@ -437,8 +437,8 @@
     const url = `${API_BASE}/api/slots/`
     const slot_container = document.getElementById("slot_container")
 
-    async function renderAll(options={show_repeating:true, range:[Date.now(), Date.parse("2099-12-31")], sort:"start-time", filter:["active", "private"]}){
-        slot_container.innerHTML = "";
+    async function renderAll(options={show_repeating:true, range:[0, Date.parse("2099-12-31")], sort:"start-time", filter:["active", "private"]}){        
+    slot_container.innerHTML = "";
 
         // sort options: start-time, creation-time
         const response = await fetch(url + `owner/${id}`, {

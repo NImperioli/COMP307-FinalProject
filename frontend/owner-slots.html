@@ -193,34 +193,10 @@
     </div>
 
     <div class="owner-info">
-        Showing active slots for <b>Prof. Joseph Vybihal</b>
+        Showing active slots for <b id="ownerName">...</b>
     </div>
 
-    <div id="slotsList">
-        <div class="slot-card">
-            <h3>Office Hours</h3>
-            <p>Date: Monday, April 15</p>
-            <p>Time: 10:00 AM - 10:30 AM</p>
-            <p>Type: Single Slot</p>
-            <button class="reserve-button">Reserve Slot</button>
-        </div>
-
-        <div class="slot-card">
-            <h3>Office Hours</h3>
-            <p>Date: Tuesday, April 16</p>
-            <p>Time: 1:00 PM - 1:30 PM</p>
-            <p>Type: Recurring Slot</p>
-            <button class="reserve-button">Reserve Slot</button>
-        </div>
-
-        <div class="slot-card">
-            <h3>Review Session</h3>
-            <p>Date: Thursday, April 18</p>
-            <p>Time: 3:00 PM - 3:30 PM</p>
-            <p>Type: Recurring Slot</p>
-            <button class="reserve-button">Reserve Slot</button>
-        </div>
-    </div>
+    <div id="slotsList"></div>
 
     <!-- Vote for meeting time - Annie Huynh -->
     <div class="modal-overlay" id="voteModal">
@@ -247,8 +223,12 @@
         const urlParams = new URLSearchParams(window.location.search);
         const ownerId = urlParams.get('ownerId');
         const inviteToken = urlParams.get('token');
+        const ownerName = urlParams.get('ownerName');
         if (!ownerId && !inviteToken){
             window.location.href='browse-owners.html';
+        }
+        if (ownerName) {
+            document.getElementById('ownerName').textContent = decodeURIComponent(ownerName);
         }
 
         const slotsList = document.getElementById('slotsList');
@@ -264,12 +244,66 @@
             //clear hardcoded cards
             slotsList.innerHTML='';
 
-            // render each owner card
+             if (!response.ok) {
+                slotsList.innerHTML = `<p style="color:red">Failed to load slots: ${data.error || response.status}</p>`;
+                return;
+            }
+
+            if (!Array.isArray(data) || data.length === 0) {
+                slotsList.innerHTML = `<p style="color:gray">No active slots available for this owner.</p>`;
+            }
+
             for (const slot of data){
                 renderSlotCard(slot);
             }
+
+            // also load any open group meetings for voting
+            if (ownerId) {
+                await loadGroupMeetings();
+            }
         }
+        
         loadSlots();
+
+        async function loadGroupMeetings(){
+            const response = await fetch(`${API_BASE}/api/bookings/appointments/owner/${ownerId}`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if (!response.ok) return;
+            const data = await response.json();
+
+            // data.type2 contains group meetings — show ones still collecting votes
+            const openMeetings = (data.type2 || []).filter(b => b.status === 'collecting_votes');
+            if (openMeetings.length === 0) return;
+
+            const header = document.createElement('h3');
+            header.textContent = 'Group Meeting Votes';
+            header.style.cssText = 'margin: 24px 0 12px; font-size: 22px;';
+            slotsList.appendChild(header);
+
+            for (const meeting of openMeetings) {
+                const card = document.createElement('div');
+                card.classList.add('slot-card');
+
+                const title = document.createElement('h3');
+                title.textContent = meeting.title || 'Group Meeting';
+                card.appendChild(title);
+
+                const window_open = new Date(meeting.opensAt).toLocaleString();
+                const window_close = new Date(meeting.closesAt).toLocaleString();
+                const period = document.createElement('p');
+                period.textContent = `Voting open: ${window_open} → ${window_close}`;
+                card.appendChild(period);
+
+                const voteBtn = document.createElement('button');
+                voteBtn.classList.add('reserve-button');
+                voteBtn.textContent = 'Vote on Times';
+                voteBtn.onclick = () => openVoteModal(meeting._id);
+                card.appendChild(voteBtn);
+
+                slotsList.appendChild(card);
+            }
+        }
 
         // helper function to render cards
         function renderSlotCard(slot){

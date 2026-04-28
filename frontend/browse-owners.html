@@ -310,7 +310,7 @@
             viewSlots.textContent="View Slots";
             buttonDiv.appendChild(viewSlots);
             viewSlots.onclick = () => {
-                window.location.href = `owner-slots.html?ownerId=${owner._id}`;
+                window.location.href = `owner-slots.html?ownerId=${owner._id}&ownerName=${encodeURIComponent(owner.name)}`;
             };
 
             const requestMeeting = document.createElement("button");
