@@ -641,7 +641,7 @@ d="M0,180
 
     // redirect to login page if token is missing
 
-    /**
+    
 
     if (!token){
         window.location.href = 'login.html'
@@ -650,7 +650,7 @@ d="M0,180
     else if (role !== "owner"){
         window.location.href = 'dashboard.html'
     }
-**/
+
 
     const url = `${API_BASE}/api/slots/`
     const slot_container = document.getElementById("slot_container")

@@ -499,12 +499,12 @@ document.getElementById('user-name').textContent = name || "";
         const name = localStorage.getItem('name');
         const id = localStorage.getItem('user._id');
 
-        /**
+        
         // redirect to login page if token is missing
         if (!token){
             window.location.href = 'login.html'
         }
-        **/
+        
       // fetch call for student and owner
         async function loadDashboard(){
             const url = role === 'owner'
