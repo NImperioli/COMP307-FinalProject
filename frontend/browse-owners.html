@@ -184,7 +184,7 @@
 </head>
 
 <body>
-    <h6><a href="landing.html">MyBookings</a></h6>
+    <h6><a href="landing.html" style="text-decoration: none;">MyBookings</a></h6>
 
     <div class="page-header">
         <h1>Browse Owners</h1>
@@ -192,37 +192,10 @@
     </div>
 
     <div class="owners-grid" id="ownersList">
-        <div class="owner-card">
-            <h3>Prof. Joseph Vybihal</h3>
-            <p>Email: joseph.vybihal@mcgill.ca</p>
-            <p>Active Slots: 4</p>
-            <button class="view-button" onclick="window.location.href='owner-slots.html'">View Slots</button>
-        </div>
-
-        <div class="owner-card">
-            <h3>TA - Shida Sharif Bakhtiar</h3>
-            <p>Email: sheedeh.sharifbakhtiar@mail.mcgill.ca</p>
-            <p>Active Slots: 3</p>
-            <button class="view-button" onclick="window.location.href='owner-slots.html'">View Slots</button>
-        </div>
-
-        <div class="owner-card">
-            <h3>TA - Yawen Guo</h3>
-            <p>Email: yawen.guo2@mail.mcgill.ca</p>
-            <p>Active Slots: 5</p>
-            <button class="view-button" onclick="window.location.href='owner-slots.html'">View Slots</button>
-        </div>
-
-        <div class="owner-card">
-            <h3>TA - Alejandro Salinas</h3>
-            <p>Email: alejandro.salinas@mail.mcgill.ca</p>
-            <p>Active Slots: 2</p>
-            <button class="view-button" onclick="window.location.href='owner-slots.html'">View Slots</button>
-        </div>
+        <p style="color:gray">Loading owners...</p>
     </div>
 
     <!-- Requesting meeting - Annie Huynh -->
-     <!--- TAYM ->  MAKE INTO A POP UP BOX --->
     <div class="modal-overlay" id="requestModal">
         <div class="modal-box">
             <button class="modal-close" onclick="closeRequestModal()">&#10005;</button>
@@ -356,9 +329,16 @@
             const message = document.getElementById('requestMessage').value.trim();
             if (!title || !message || !date || !time) return alert('Please fill all fields');
 
-            const response = await fetch(`${API_BASE}/api/bookings/request`,
+           const response = await fetch(`${API_BASE}/api/bookings/request`,
                 { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                body: JSON.stringify({ userId: id, ownerId: currentOwnerId, message, userEmail, ownerEmail: currentOwnerEmail, title, date, time }) });
+                body: JSON.stringify({
+                    ownerId: currentOwnerId,
+                    message,
+                    ownerEmail: currentOwnerEmail,
+                    title,
+                    proposedTime: new Date(date + 'T' + time).toISOString()
+                })
+                });
 
             const data = await response.json();
             if (response.ok) {

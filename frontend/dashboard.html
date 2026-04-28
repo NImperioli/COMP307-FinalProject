@@ -216,7 +216,7 @@
 </head>
 
 <body>
-    <h6><a href="landing.html">MyBookings</a></h6>
+    <h6><a href="landing.html" style="text-decoration: none;">MyBookings</a></h6>
 
     <div class="dashboard-header">
         <h1>Dashboard</h1>
@@ -232,7 +232,7 @@
 
         <div class="right-panel" id="actions-menu">
             <h2 class="panel-title">Actions</h2>
-            <button class="action-button" id="viewRequestsBtn" onclick="openMyRequestsModal()">View Requests</button>
+            <button class="action-button" id="viewRequestsBtn" onclick="openMyRequestsModal()">View My Requests</button>
         </div>
     </div>
 
@@ -273,6 +273,10 @@
             const url = role === 'owner'
             ? `${API_BASE}/api/slots/owner/${id}/reservations`
             : `${API_BASE}/api/slots/my-reservations/${id}`;
+
+            document.querySelectorAll('#actions-menu .action-button').forEach(btn => {
+                if (btn.id !== 'viewRequestsBtn') btn.remove();
+            });
 
             const response1 = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } }); // header for JWT handshake
             const data1 = await response1.json();
@@ -405,6 +409,10 @@
                         alert(data.error);
                     }
                 };
+
+                // TEST LOG REMOVE WHEN DONE
+                console.log('cancel reservationId:', item._id)
+
 
                 const cancel = document.createElement("button");
                 cancel.classList.add("small-button");
