@@ -166,19 +166,20 @@
             gap: 18px;
         }
 
-        #slot_container > div {
-            padding: 20px;
-            border-radius: 25px;
-            box-shadow: 0px 3px 8px 1px rgb(220, 220, 220);
-            background: white;
-            color: rgb(40, 40, 40);
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
+      #slot_container > div {
+         padding: 20px;
+         border-radius: 25px;
+         box-shadow: 0px 3px 8px 1px rgb(220, 220, 220);
+         background: white;
+         color: rgb(40, 40, 40);
+         font-size: 18px;
+
+         display: flex;
+         align-items: center;
+         justify-content: space-between;
+         gap: 12px;
+         flex-wrap: nowrap;
+}
 
         #slot_container button {
             height: 38px;
@@ -297,6 +298,11 @@
     border-radius: 2px;
 }
 
+#slot_container > div span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 
 
 
@@ -689,7 +695,10 @@ d="M0,180
         const startTime = new Date(slot_data.startTime).toLocaleString();
         const endTime = new Date(slot_data.endTime).toLocaleString();
         const string = slot_data.title + "; " + slot_data.status + "; " + startTime + " - " + endTime;
-        new_slot.append(string);
+        let slotText = document.createElement("span");
+slotText.textContent = string;
+slotText.style.flex = "1";
+new_slot.appendChild(slotText);
         let del = document.createElement("button");
         del.innerText="Delete";
         del.onclick = () => {deleteSlot(slot_data._id)};
