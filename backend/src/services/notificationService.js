@@ -106,8 +106,8 @@ const userMessageToOwner = (ownerEmail, slot) =>
   });
 
 // Invitation URL builder 
-const buildInviteUrl = (baseUrl, token) =>
-  `${baseUrl.replace(/\/$/, "")}/book?token=${encodeURIComponent(token)}`;
+const buildInviteUrl = (baseUrl, token, ownerId) =>
+  `${baseUrl.replace(/\/$/, "")}/frontend/owner-slots.html` + `?token=${encodeURIComponent(token)}&ownerId=${ownerId}`;
 
 module.exports = {
   slotDeletedNotification,
