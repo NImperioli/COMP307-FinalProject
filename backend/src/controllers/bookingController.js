@@ -185,3 +185,40 @@ exports.leaveGroupMeeting = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+exports.cancelAnyBooking = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { id, type } = req.body;
+
+    const result = await bookingService.cancelAnyBooking(id, type, userId);
+
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.cancelGroupMeeting = async (req, res) => {
+  try {
+    const { appointmentId } = req.params;
+    const ownerId = req.user.id;
+
+    const result = await bookingService.cancelGroupMeeting(appointmentId, ownerId);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.completeGroupMeeting = async (req, res) => {
+  try {
+    const { appointmentId } = req.params;
+    const ownerId = req.user.id;
+
+    const result = await bookingService.completeGroupMeeting(appointmentId, ownerId);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

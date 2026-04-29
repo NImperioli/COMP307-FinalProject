@@ -32,7 +32,7 @@ app.get("/", (req, res) => {
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/auth", authRoutes); // Annie Huynh
 app.use("/api/slots", slotRoutes); // Annie Huynh
-app.use("/api/calendar", require("./routes/calendarRoutes"));
+app.use("/api/calendar", require("./src/routes/calendarRoutes"));
 
 connectDB(); 
 
@@ -40,5 +40,3 @@ app.listen(3000, () => {
   console.log("Server running on port 3000");
 });
 
-// const calendarRoutes = require("./src/routes/calendarRoutes");
-// app.use("/api/calendar", calendarRoutes);

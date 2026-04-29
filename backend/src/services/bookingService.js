@@ -400,6 +400,94 @@ const getOwnerAppointments = async (ownerId) => {
   return { type1, type2, type3 };
 };
 
+const cancelAnyBooking = async (id, type, userId) => {
+  const db = require("../config/db").getDB();
+  const { ObjectId } = require("mongodb");
+
+  const oid = new ObjectId(id);
+
+  // -------------------------
+  // TYPE 1 (request/meeting)
+  // -------------------------
+  if (type === "TYPE1") {
+    const booking = await db.collection("bookings").findOne({ _id: oid });
+    if (!booking) throw new Error("Not found");
+
+    const isOwner = booking.ownerId.toString() === userId;
+    const isUser = booking.userId.toString() === userId;
+
+    if (!isOwner && !isUser) throw new Error("Not authorized");
+
+    await db.collection("bookings").deleteOne({ _id: oid });
+
+    return { success: true };
+  }
+
+  // -------------------------
+  // TYPE 2 (group meeting)
+  // -------------------------
+  if (type === "TYPE2") {
+    const appt = await db.collection("appointments").findOne({ _id: oid });
+    if (!appt) throw new Error("Not found");
+
+    const isOwner = appt.ownerId.toString() === userId;
+    const isParticipant = appt.participants?.some(p => p.toString() === userId);
+
+    if (!isOwner && !isParticipant) throw new Error("Not authorized");
+
+    // owner cancels entire meeting
+    if (isOwner) {
+      await db.collection("appointments").deleteOne({ _id: oid });
+      return { success: true };
+    }
+
+    // user leaves meeting
+    await db.collection("appointments").updateOne(
+      { _id: oid },
+      { $pull: { participants: new ObjectId(userId) } }
+    );
+
+    return { success: true };
+  }
+
+  // -------------------------
+  // TYPE 3 (office hours)
+  // -------------------------
+  if (type === "TYPE3") {
+    const booking = await db.collection("bookings").findOne({ _id: oid });
+    if (!booking) throw new Error("Not found");
+
+    const isOwner = booking.ownerId.toString() === userId;
+
+    // owner deletes slot
+    if (isOwner) {
+      await db.collection("bookings").deleteOne({ _id: oid });
+      return { success: true };
+    }
+
+    // user unreserves slot
+    const result = await db.collection("bookings").updateOne(
+      {
+        _id: oid,
+        "slots.reservedBy": new ObjectId(userId)
+      },
+      {
+        $set: {
+          "slots.$.reservedBy": null
+        }
+      }
+    );
+
+    if (result.modifiedCount === 0) {
+      throw new Error("Not reserved or not authorized");
+    }
+
+    return { success: true };
+  }
+
+  throw new Error("Invalid type");
+};
+
 module.exports = {
   // Type 1
   requestMeeting,
@@ -418,4 +506,5 @@ module.exports = {
   // Type 3
   createOfficeHours,
   reserveOfficeHour,
+  cancelAnyBooking,
 };
