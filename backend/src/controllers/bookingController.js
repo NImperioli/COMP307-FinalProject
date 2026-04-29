@@ -184,121 +184,6 @@ function toOid(val) {
   try { return new ObjectId(val); } catch { return null; }
 }
 
-// ─── CANCEL (all types) ───────────────────────────────────────────────────────
-// TYPE_SLOT  → reservations collection  (pass reservationId as bookingId)
-// TYPE1      → bookings collection
-// TYPE2      → appointments collection
-exports.cancelAnyBooking = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const { bookingId, type } = req.body;
-    if (!bookingId || !type)
-      return res.status(400).json({ error: "bookingId and type are required." });
-
-    const db = require("../config/db").getDB();
-    const { ObjectId } = require("mongodb");
-
-    // ── Slot reservation (single or recurring) ────────────────────────────────
-    if (type === "TYPE_SLOT") {
-      const resOid = toOid(bookingId);
-      if (!resOid) return res.status(400).json({ error: "Invalid id." });
-
-      const reservation = await db.collection("reservations").findOne({ _id: resOid });
-      if (!reservation) return res.status(404).json({ error: "Reservation not found." });
-
-      const slot    = await db.collection("slots").findOne({ _id: reservation.slotId });
-      const isOwner = slot && slot.ownerId.toString() === userId;
-      const isBooker = reservation.userId.toString() === userId;
-      if (!isOwner && !isBooker) return res.status(403).json({ error: "Not authorized." });
-
-      await db.collection("reservations").updateOne(
-        { _id: resOid },
-        { $set: { cancelledAt: new Date(), cancellationReason: "Cancelled by user" } }
-      );
-
-      const notify = [];
-      const booker = await db.collection("users").findOne({ _id: reservation.userId });
-      const owner  = slot ? await db.collection("users").findOne({ _id: slot.ownerId }) : null;
-
-      if (slot && booker && owner) {
-        if (isBooker) {
-          notify.push(`mailto:${owner.email}?subject=${encodeURIComponent(`Booking cancelled — "${slot.title}"`)}&body=${encodeURIComponent(`Hi,\n\n${booker.name || booker.email} has cancelled their reservation for "${slot.title}" on ${fmt(slot.startTime)}.\n\nThis slot is now available.`)}`);
-        } else {
-          notify.push(`mailto:${booker.email}?subject=${encodeURIComponent(`Your booking "${slot.title}" was cancelled`)}&body=${encodeURIComponent(`Hi,\n\nYour booking "${slot.title}" on ${fmt(slot.startTime)} has been cancelled by the owner.\n\nPlease book another slot.`)}`);
-        }
-      }
-      return res.json({ success: true, notify });
-    }
-
-    // ── TYPE 1 ────────────────────────────────────────────────────────────────
-    if (type === "TYPE1") {
-      const oid = toOid(bookingId);
-      if (!oid) return res.status(400).json({ error: "Invalid id." });
-
-      const booking = await db.collection("bookings").findOne({ _id: oid });
-      if (!booking) return res.status(404).json({ error: "Booking not found." });
-
-      const isOwner = booking.ownerId.toString() === userId;
-      const isUser  = booking.userId.toString()  === userId;
-      if (!isOwner && !isUser) return res.status(403).json({ error: "Not authorized." });
-
-      await db.collection("slots").deleteMany({ bookingId: oid });
-      await db.collection("bookings").deleteOne({ _id: oid });
-
-      const subject = encodeURIComponent(`Meeting cancelled — "${booking.title || "Meeting Request"}"`);
-      const body    = encodeURIComponent(`Hi,\n\nThe meeting "${booking.title || "Meeting Request"}" has been cancelled.`);
-      const notify  = [
-        `mailto:${booking.userEmail}?subject=${subject}&body=${body}`,
-        `mailto:${booking.ownerEmail}?subject=${subject}&body=${body}`,
-      ];
-      return res.json({ success: true, notify });
-    }
-
-    // ── TYPE 2 ────────────────────────────────────────────────────────────────
-    if (type === "TYPE2") {
-      const oid = toOid(bookingId);
-      if (!oid) return res.status(400).json({ error: "Invalid id." });
-
-      const appt = await db.collection("appointments").findOne({ _id: oid });
-      if (!appt) return res.status(404).json({ error: "Appointment not found." });
-
-      const isOwner       = appt.ownerId.toString() === userId;
-      const isParticipant = appt.participants?.some(p => p.toString() === userId);
-      if (!isOwner && !isParticipant) return res.status(403).json({ error: "Not authorized." });
-
-      const participantDocs = await db.collection("users")
-        .find({ _id: { $in: (appt.participants || []).map(p => toOid(p)).filter(Boolean) } })
-        .project({ email: 1, name: 1 })
-        .toArray();
-
-      if (isOwner) {
-        // Owner cancels whole appointment — notify all participants
-        await db.collection("appointments").deleteOne({ _id: oid });
-        const notify = participantDocs.map(p =>
-          `mailto:${p.email}?subject=${encodeURIComponent(`Group meeting cancelled — "${appt.title}"`)}&body=${encodeURIComponent(`Hi ${p.name || ""},\n\nThe group meeting "${appt.title}" scheduled for ${fmt(appt.time)} has been cancelled by the organizer.`)}`
-        );
-        return res.json({ success: true, notify });
-      } else {
-        // Participant leaves — notify owner
-        await db.collection("appointments").updateOne(
-          { _id: oid },
-          { $pull: { participants: new ObjectId(userId) } }
-        );
-        const ownerDoc = await db.collection("users").findOne({ _id: appt.ownerId });
-        const userDoc  = await db.collection("users").findOne({ _id: new ObjectId(userId) });
-        const notify = ownerDoc
-          ? [`mailto:${ownerDoc.email}?subject=${encodeURIComponent(`Participant left — "${appt.title}"`)}&body=${encodeURIComponent(`Hi,\n\n${userDoc?.name || userDoc?.email || "A participant"} has left the group meeting "${appt.title}" scheduled for ${fmt(appt.time)}.`)}`]
-          : [];
-        return res.json({ success: true, notify });
-      }
-    }
-
-    return res.status(400).json({ error: "Invalid type. Use TYPE_SLOT, TYPE1, or TYPE2." });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
 // ─── COMPLETE (all types) ─────────────────────────────────────────────────────
 // Either party (owner or student) marking it done persists for both.
 exports.completeAnyBooking = async (req, res) => {
@@ -375,17 +260,6 @@ exports.completeAnyBooking = async (req, res) => {
     }
 
     return res.status(400).json({ error: "Invalid type. Use TYPE_SLOT, TYPE1, or TYPE2." });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-exports.cancelGroupMeeting = async (req, res) => {
-  try {
-    const { appointmentId } = req.params;
-    const ownerId = req.user.id;
-    const result = await bookingService.cancelGroupMeeting(appointmentId, ownerId);
-    res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

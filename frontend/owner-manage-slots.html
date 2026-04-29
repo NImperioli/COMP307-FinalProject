@@ -371,6 +371,22 @@
         }
 
         #finalizeSlotsList button:hover { background: rgb(237, 27, 47); }
+        .action-btn {
+            height: 38px;
+            min-width: 42px;
+            padding: 0 14px;
+            background: rgb(0, 0, 0);
+            border: none;
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            transition: .3s;
+            font-size: 13px;
+        }
+
+        .action-btn:hover {
+            background: rgb(237, 27, 47);
+        }
     </style>
 </head>
 
@@ -408,7 +424,6 @@
         <button class="create-button" onclick="openCreateSlotModal()">Create Slot</button>
         <button class="create-button" onclick="openRecurringModal()">Create Recurring Slots</button>
         <button class="create-button" onclick="openCreateModal()">Create Group Meeting</button>
-        <button class="create-button" onclick="openFinalizeModal()">Finalize Group Meeting</button>
         <button class="create-button" onclick="window.location.href='browse-owners.html'">Request Meeting</button>
 
         <div id="slot_container"></div>
@@ -631,25 +646,29 @@
             card.appendChild(info);
 
             // Action buttons
-            const btnRow = document.createElement('div');
+           const btnRow = document.createElement('div');
             btnRow.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0;';
 
             const copyIdBtn = document.createElement('button');
             copyIdBtn.textContent = 'Copy ID';
-            copyIdBtn.onclick = () => {
-                copyText(groupToken).then(() => alert('Group ID copied!'));
-            };
+            copyIdBtn.onclick = () => copyText(groupToken).then(() => alert('Group ID copied!'));
             btnRow.appendChild(copyIdBtn);
 
+            /* ───── ACTIVATE GROUP ───── */
             const activateGroupBtn = document.createElement('button');
             activateGroupBtn.textContent = 'Activate';
             activateGroupBtn.onclick = async () => {
                 const res = await fetch(`${API_BASE}/api/slots/group/${groupToken}/activate`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
                     body: JSON.stringify({ ownerId: id })
                 });
+
                 const data = await res.json();
+
                 if (res.ok) {
                     alert(`Activated ${data.modifiedCount} slot(s).`);
                     await renderAll();
@@ -659,16 +678,47 @@
             };
             btnRow.appendChild(activateGroupBtn);
 
+            /* ───── DEACTIVATE GROUP (NEW) ───── */
+            const deactivateGroupBtn = document.createElement('button');
+            deactivateGroupBtn.textContent = 'Deactivate';
+            deactivateGroupBtn.onclick = async () => {
+                const res = await fetch(`${API_BASE}/api/slots/group/${groupToken}/deactivate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ ownerId: id })
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    alert(`Deactivated ${data.modifiedCount} slot(s).`);
+                    await renderAll();
+                } else {
+                    alert(data.error);
+                }
+            };
+            btnRow.appendChild(deactivateGroupBtn);
+
+            /* ───── DELETE GROUP ───── */
             const deleteGroupBtn = document.createElement('button');
             deleteGroupBtn.textContent = 'Delete';
             deleteGroupBtn.onclick = async () => {
                 if (!confirm('Delete all slots in this group?')) return;
+
                 const res = await fetch(`${API_BASE}/api/slots/group/${groupToken}`, {
                     method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
                     body: JSON.stringify({ ownerId: id })
                 });
+
                 const data = await res.json();
+
                 if (res.ok) {
                     await renderAll();
                 } else {
@@ -1193,32 +1243,89 @@
 
             const data = await response.json();
 
-            if (!response.ok) {
+            if (!response.ok || data.length === 0) {
                 container.innerHTML = "";
                 return;
             }
 
-            if (data.length === 0) {
-                container.innerHTML = "";
-                return;
-            }
+            container.innerHTML = `
+                <h2 style="
+                    font-size: 28px;
+                    margin-top: 30px;
+                    margin-bottom: 10px;
+                    color: black;
+                ">
+                    Open Group Meetings
+                </h2>
+                <div style="
+                    width: 245px;
+                    height: 3px;
+                    background: rgb(237, 27, 47);
+                    border-radius: 2px;
+                    margin-bottom: 15px;
+                "></div>
+                <p style="margin-bottom:15px;color:rgb(80,80,80);">
+                    Use these Booking IDs to finalize meetings.
+                </p>
+            `;
 
-            container.innerHTML = "<h2 style='margin-top:30px;color:#ed1b2f;'>Open Group Meetings</h2>" + "<p style='margin-bottom:15px;color:#666;'>Use these Booking IDs to finalize meetings.</p>";
-            data.forEach(meeting => {
-                const div = document.createElement("div");
-                div.style.cssText =
-                    "padding:20px;margin-top:15px;border-radius:20px;box-shadow:0 3px 10px #ddd;background:white;";
+            for (const meeting of data) {
+                const card = document.createElement("div");
 
-                div.innerHTML = `
-                    <h3>${meeting.title}</h3>
-                    <p><b>Booking ID:</b> ${meeting._id}</p>
-                    <p><b>Status:</b> ${meeting.status}</p>
-                    <button onclick="copyInvite('${meeting._id}')">Copy Invite URL</button>
-                    <button onclick="openFinalizeWithId('${meeting._id}')">Finalize</button>
+                card.style.cssText = `
+                    padding: 20px;
+                    border-radius: 25px;
+                    box-shadow: 0px 3px 8px 1px rgb(220, 220, 220);
+                    background: white;
+                    color: rgb(40, 40, 40);
+                    font-size: 18px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 10px;
                 `;
 
-                container.appendChild(div);
-            });
+                const info = document.createElement("div");
+                info.style.cssText = "display:flex;flex-direction:column;gap:4px;";
+
+                const title = document.createElement("span");
+                title.style.fontWeight = "700";
+                title.textContent = meeting.title;
+
+                const idText = document.createElement("span");
+                idText.textContent = "Booking ID: " + meeting._id;
+
+                const status = document.createElement("span");
+                status.textContent = "Status: " + meeting.status;
+
+                info.appendChild(title);
+                info.appendChild(idText);
+                info.appendChild(status);
+
+                const btnRow = document.createElement("div");
+                btnRow.style.cssText = `
+                    display:flex;
+                    gap:8px;
+                    flex-wrap:wrap;
+                `;
+
+                const copyBtn = document.createElement("button");
+                copyBtn.textContent = "Copy Invite URL";
+                copyBtn.className = "action-btn";
+                copyBtn.onclick = () => copyInvite(meeting._id);
+
+                const finalizeBtn = document.createElement("button");
+                finalizeBtn.textContent = "Finalize";
+                finalizeBtn.className = "action-btn";
+                finalizeBtn.onclick = () => openFinalizeWithId(meeting._id);
+
+                btnRow.appendChild(copyBtn);
+                btnRow.appendChild(finalizeBtn);
+
+                card.appendChild(info);
+                card.appendChild(btnRow);
+
+                container.appendChild(card);
+            }
         }
 
         function openFinalizeWithId(bookingId) {
