@@ -275,3 +275,16 @@ exports.completeGroupMeeting = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+exports.cancelBooking = async (req, res) => {
+  try {
+    const { bookingId, type } = req.body;
+    const userId = req.user.id;
+    if (!bookingId || !type)
+      return res.status(400).json({ error: "bookingId and type are required." });
+    const result = await bookingService.cancelAnyBooking(bookingId, userId, type);
+    res.json(result);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};

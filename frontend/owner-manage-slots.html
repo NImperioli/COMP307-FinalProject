@@ -1217,9 +1217,13 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    alert('Meeting finalized!');
                     closeFinalizeModal();
                     loadOpenGroupMeetings();
+                    if (Array.isArray(data.notifyParticipants) && data.notifyParticipants.length > 0) {
+                        data.notifyParticipants.forEach(mailto => window.open(mailto, '_blank'));
+                    }
+                    if (data.notifyOwner) window.location.href = data.notifyOwner;
+                    else alert('Meeting finalized!');
                 } else {
                     alert(data.error);
                 }
