@@ -191,16 +191,20 @@ const deleteSlotsByGroup = async (groupToken, ownerId, reservationMap = new Map(
     for (const r of active) reservationMap.set(r.slotId.toString(), r);
   }
 
-  const deletableIds = slotIds.filter(id => !reservationMap.has(id.toString()));
-  const skippedIds   = slotIds.filter(id =>  reservationMap.has(id.toString()));
+  if (slotIds.length > 0) {
+    await db.collection("reservations").updateMany(
+      { slotId: { $in: slotIds }, cancelledAt: { $exists: false } },
+      { $set: { cancelledAt: new Date(), cancellationReason: "Slot group deleted by owner" } }
+    );
+  }
 
   let deletedCount = 0;
-  if (deletableIds.length > 0) {
-    const result = await db.collection(COLLECTION).deleteMany({ _id: { $in: deletableIds } });
+  if (slotIds.length > 0) {
+    const result = await db.collection(COLLECTION).deleteMany({ _id: { $in: slotIds } });
     deletedCount = result.deletedCount;
   }
 
-  return { deletedCount, skippedIds };
+  return { deletedCount, skippedIds: [] };
 };
 
 // Queries

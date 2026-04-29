@@ -930,37 +930,6 @@
             document.getElementById('recurringModal').classList.remove('active');
         }
 
-        document.getElementById('recurSubmitBtn').onclick = async () => {
-            const title = document.getElementById('recurTitle').value.trim();
-            const start = document.getElementById('recurStart').value;
-            const end   = document.getElementById('recurEnd').value;
-            const weeks = parseInt(document.getElementById('recurWeeks').value);
-
-            if (!title)              return alert('Please enter a title.');
-            if (!start)              return alert('Please set a start time.');
-            if (!end)                return alert('Please set an end time.');
-            if (new Date(end) <= new Date(start)) return alert('End must be after start.');
-            if (!weeks || weeks < 1) return alert('Please enter a valid number of weeks.');
-
-            const response = await fetch(`${API_BASE}/api/slots/recurring`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                body: JSON.stringify({
-                    ownerId: id,
-                    weeklySlots: [{ title, startTime: new Date(start).toISOString(), endTime: new Date(end).toISOString() }],
-                    weeks
-                })
-            });
-            const data = await response.json();
-            if (response.ok) {
-                closeRecurringModal();
-                alert(`Created ${data.insertedCount} recurring slots.\nGroup ID: ${data.groupToken}\n\nActivate the group to make slots visible to students.`);
-                await renderAll();
-            } else {
-                alert(data.error);
-            }
-        };
-
         /* ─────────────────────────────────────────────
            CREATE SLOT MODAL
         ───────────────────────────────────────────── */

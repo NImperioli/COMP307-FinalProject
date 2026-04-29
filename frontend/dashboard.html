@@ -475,8 +475,43 @@
 
             try {
                 const r = await fetch(slotsUrl, { headers: { 'Authorization': 'Bearer ' + token } });
-                const d = await r.json();
-                if (Array.isArray(d)) for (const item of d) renderCard(item);
+            const d = await r.json();
+            if (Array.isArray(d)) {
+                if (role === 'owner') {
+                    // Group recurring slot reservations so one card shows per group
+                    const groupMap = new Map();
+                    const singles = [];
+                    for (const item of d) {
+                        const gToken = item.slot && item.slot.groupToken;
+                        if (gToken) {
+                            if (!groupMap.has(gToken)) {
+                                groupMap.set(gToken, { ...item, bookers: [], reservationIds: [] });
+                            }
+                            const entry = groupMap.get(gToken);
+                            if (item.user && item.user.email && !entry.bookers.includes(item.user.email)) {
+                                entry.bookers.push(item.user.email);
+                            }
+                            if (item._id && !entry.reservationIds.includes(item._id.toString())) {
+                                entry.reservationIds.push(item._id.toString());
+                            }
+                            // Only mark completed if ALL reservations in group are completed
+                            if (item.status !== 'completed') entry._anyActive = true;
+                            if (item.cancelledAt) entry.cancelledAt = item.cancelledAt;
+                        } else {
+                            singles.push(item);
+                        }
+                    }
+                    // Post-process: only mark group as completed if no active reservations remain
+                    for (const [, entry] of groupMap) {
+                        if (!entry._anyActive) entry.status = 'completed';
+                        delete entry._anyActive;
+                    }
+                    for (const item of singles) renderCard(item);
+                    for (const item of groupMap.values()) renderCard(item);
+                } else {
+                    for (const item of d) renderCard(item);
+                }
+            }
             } catch (e) { console.error('Failed to load slot reservations:', e); }
 
             // Type 1 + Type 2
@@ -484,33 +519,18 @@
                 ? `${API_BASE}/api/bookings/appointments/owner/${id}`
                 : `${API_BASE}/api/bookings/appointments/user/${id}`;
 
-           try {
-                const r = await fetch(slotsUrl, { headers: { 'Authorization': 'Bearer ' + token } });
-                const d = await r.json();
-                if (Array.isArray(d)) {
-                    if (role === 'owner') {
-                        const grouped = new Map();
-                        for (const item of d) {
-                            const key = (item.slotId || item.slot?._id || item._id).toString();
-                            if (!grouped.has(key)) {
-                                grouped.set(key, { 
-                                    ...item, 
-                                    bookers: [],
-                                    status: item.status || null
-                                });
-                            }
-                            const entry = grouped.get(key);
-                            if (item.user?.email && !entry.bookers.includes(item.user.email)) {
-                                entry.bookers.push(item.user.email);
-                            }
-                            if (item.status === 'completed') entry.status = 'completed';
-                        }
-                        for (const item of grouped.values()) renderCard(item);
-                    } else {
-                        for (const item of d) renderCard(item);
-                    }
-                }
-            } catch (e) { console.error('Failed to load slot reservations:', e); }
+          // Type 1 + Type 2 appointments
+            try {
+                const apptUrl = role === 'owner'
+                    ? `${API_BASE}/api/bookings/appointments/owner/${id}`
+                    : `${API_BASE}/api/bookings/appointments/user/${id}`;
+                const r2 = await fetch(apptUrl, { headers: { 'Authorization': 'Bearer ' + token } });
+                const d2 = await r2.json();
+                const type1 = d2.type1 || [];
+                const type2 = d2.type2 || [];
+                for (const item of type1) renderType1Card(item);
+                for (const item of type2) renderType2Card(item);
+            } catch (e) { console.error('Failed to load appointments:', e); }
 
             if (appointmentsList.children.length === 0) {
                 const empty = document.createElement('p');
@@ -582,7 +602,9 @@
 
             const badge = document.createElement('span');
             badge.classList.add('type-badge', 'badge-slot');
-            badge.textContent = (item.slot && item.slot.type === 'recurring') ? 'Recurring Slot' : 'Booking Slot';
+            badge.textContent = (item.slot && item.slot.type === 'recurring') 
+                ? `Recurring Slot${item.bookers && item.bookers.length > 1 ? ' (' + item.bookers.length + ' students)' : ''}` 
+                : 'Booking Slot';            
             card.appendChild(badge);
 
             const heading = document.createElement('h3');
@@ -603,9 +625,18 @@
             const buttonDiv = document.createElement('div');
             buttonDiv.classList.add('card-actions');
 
-            const isPast = (item.slot && new Date(item.slot.startTime) < new Date()) || item.status === 'completed';
+            const isCancelled = item.status === 'cancelled' || item.cancelledAt;
+            const isPast = !isCancelled && ((item.slot && new Date(item.slot.startTime) < new Date()) || item.status === 'completed');
 
-            if (isPast) {
+            if (isCancelled) {
+                const cancelledBadge = document.createElement('span');
+                cancelledBadge.classList.add('completed-badge');
+                cancelledBadge.style.background = 'rgb(255,220,220)';
+                cancelledBadge.style.color = 'rgb(150,30,30)';
+                cancelledBadge.textContent = '✗ Cancelled';
+                card.appendChild(cancelledBadge);
+                card.style.opacity = '0.55';
+            } else if (isPast) {
                 const completedBadge = document.createElement('span');
                 completedBadge.classList.add('completed-badge');
                 completedBadge.textContent = '✓ Completed';
@@ -643,13 +674,18 @@
                 completeBtn.classList.add('small-button');
                 completeBtn.textContent = 'Mark as Completed';
                 completeBtn.onclick = async () => {
-                    const res = await fetch(`${API_BASE}/api/bookings/complete`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                        body: JSON.stringify({ bookingId: item._id, type: 'TYPE_SLOT' })
-                    });
-                    if (res.ok) markCardCompleted(card);
-                    else { const d = await res.json(); alert(d.error || 'Complete failed'); }
+                    const ids = item.reservationIds && item.reservationIds.length > 0
+                        ? item.reservationIds
+                        : [item._id];
+                    const results = await Promise.all(ids.map(bid =>
+                        fetch(`${API_BASE}/api/bookings/complete`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                            body: JSON.stringify({ bookingId: bid, type: 'TYPE_SLOT' })
+                        })
+                    ));
+                    if (results.every(r => r.ok)) markCardCompleted(card);
+                    else alert('Complete failed for one or more reservations');
                 };
                 buttonDiv.appendChild(completeBtn);
 

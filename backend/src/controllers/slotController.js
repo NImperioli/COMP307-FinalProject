@@ -367,3 +367,16 @@ exports.exportReservationsICS = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+exports.checkReservations = async (req, res) => {
+  try {
+    const { slotIds } = req.body;
+    if (!Array.isArray(slotIds) || slotIds.length === 0) return res.json({});
+    const reservations = await findActiveReservationsBySlotIds(slotIds);
+    const result = {};
+    for (const [slotId] of reservations) result[slotId] = true;
+    return res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

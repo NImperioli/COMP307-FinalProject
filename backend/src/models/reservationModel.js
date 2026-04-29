@@ -31,11 +31,15 @@ const reserveSlot = async (slotId, userId) => {
 
   if (slot.type !== 'recurring') {
     const existing = await db.collection(COLLECTION).findOne({
-        slotId: toOid(slotId, "slotId"),
-        cancelledAt: { $exists: false },
-    });
-    if (existing) throw new Error("Slot is already reserved.");
-  } else {
+    slotId: toOid(slotId, "slotId"),
+    cancelledAt: { $exists: false },
+  });
+  if (existing) {
+    if (existing.userId.toString() === userId.toString()) {
+      throw new Error("You have already reserved this slot.");
+    }
+    throw new Error("This slot has already been reserved by another student.");
+  }} else {
     const userAlreadyBooked = await db.collection(COLLECTION).findOne({
         slotId: toOid(slotId, "slotId"),
         userId: toOid(userId, "userId"),
@@ -118,6 +122,9 @@ const findReservationsByOwner = async (ownerId, { limit = 50, skip = 0 } = {}) =
         slot:         "$$ROOT",
         user:         1,
         reservedAt:   "$reservation.reservedAt",
+        status:       "$reservation.status",
+        cancelledAt:  "$reservation.cancelledAt",
+        completedAt:  "$reservation.completedAt",
       },
     },
     { $sort:  { startTime: 1 } },

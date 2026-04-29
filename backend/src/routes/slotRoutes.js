@@ -37,5 +37,6 @@ router.get("/:slotId/message-booker",              authToken.authenticateOwnerTo
 
 router.get("/:slotId/export.ics",                  authToken.authenticateAnyToken, controller.exportSlotICS);
 router.get("/my-reservations/:userId/export.ics",  authToken.authenticateUserToken, controller.exportReservationsICS);
+router.post("/reservations/check", authToken.authenticateUserToken, controller.checkReservations);
 
 module.exports = router;
