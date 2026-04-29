@@ -653,7 +653,7 @@
 
                 const messageBooker = document.createElement('button');
                 messageBooker.classList.add('small-button');
-                messageBooker.textContent = 'Message Booker';
+                messageBooker.textContent = 'Message Student';
                 messageBooker.onclick = async () => {
                     const res = await fetch(`${API_BASE}/api/slots/${item.slot._id}/message-booker`, {
                         headers: { 'Authorization': 'Bearer ' + token }
@@ -668,7 +668,7 @@
                 exportBtn.classList.add('small-button');
                 exportBtn.textContent = 'Export .ics';
                 exportBtn.onclick = () => exportSlotICS(item.slot._id);
-                buttonDiv.appendChild(exportBtn);
+                
 
                 const completeBtn = document.createElement('button');
                 completeBtn.classList.add('small-button');
@@ -688,6 +688,7 @@
                     else alert('Complete failed for one or more reservations');
                 };
                 buttonDiv.appendChild(completeBtn);
+                buttonDiv.appendChild(exportBtn);
 
             } else {
                 // Student
@@ -705,7 +706,7 @@
                     if (res.ok) { loadDashboard(); }
                     else alert(d.error);
                 };
-                buttonDiv.appendChild(cancelBtn);
+                
                 const messageOwner = document.createElement('button');
                 messageOwner.classList.add('small-button');
                 messageOwner.textContent = 'Message Owner';
@@ -718,6 +719,7 @@
                     else alert(data.error);
                 };
                 buttonDiv.appendChild(messageOwner);
+                buttonDiv.appendChild(cancelBtn);
                 const completeBtn = document.createElement('button');
                 completeBtn.classList.add('small-button');
                 completeBtn.textContent = 'Mark as Completed';
@@ -804,7 +806,7 @@
             if (item.status === 'approved') {
                 const msgBtn = document.createElement('button');
                 msgBtn.classList.add('small-button');
-                msgBtn.textContent = 'Message';
+                msgBtn.textContent = role === 'owner' ? 'Message Student' : 'Message Owner';
                 msgBtn.onclick = () => {
                     window.location.href = `mailto:${role === 'owner' ? item.userEmail : item.ownerEmail}?subject=${encodeURIComponent('Re: ' + (item.title || 'Meeting'))}`;
                 };
@@ -892,7 +894,7 @@
 
             const msgBtn = document.createElement('button');
             msgBtn.classList.add('small-button');
-            msgBtn.textContent = 'Message';
+            msgBtn.textContent = role === 'owner' ? 'Message Participants' : 'Message Organizer';
             msgBtn.onclick = () => { window.location.href = `mailto:${item.ownerEmail}`; };
             buttonDiv.appendChild(msgBtn);
 
