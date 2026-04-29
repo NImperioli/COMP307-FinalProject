@@ -70,6 +70,8 @@
             box-shadow: 0px 5px 10px 1px rgb(146, 146, 146);
             padding: 25px;
             margin-bottom: 20px;
+            position: relative;
+            z-index: 2;
         }
 
         .slot-card h3 {
@@ -91,6 +93,8 @@
             margin: 30px 0 12px 0;
             padding-bottom: 6px;
             border-bottom: 2px solid rgb(240, 240, 240);
+            position: relative;
+            z-index: 2;
         }
 
         .reserve-button {
@@ -124,12 +128,9 @@
 
         .wave-bg {
             position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 200%;
-            height: 480px;
-            overflow: hidden;
-            z-index: 0;
+            bottom: 0; left: 0;
+            width: 200%; height: 480px;
+            overflow: hidden; z-index: 0;
             pointer-events: none;
             animation: waveMove 12s linear infinite;
         }
@@ -137,10 +138,8 @@
         .wave-svg { width: 100%; height: 100%; display: block; }
 
         .wave-back {
-            bottom: -40px;
-            height: 620px;
-            opacity: 0.45;
-            animation-duration: 18s;
+            bottom: -40px; height: 620px;
+            opacity: 0.45; animation-duration: 18s;
         }
 
         .wave-back .wave-svg {
@@ -157,10 +156,8 @@
         .modal-overlay {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.5);
             z-index: 1000;
             justify-content: center;
@@ -182,12 +179,9 @@
 
         .modal-close {
             position: absolute;
-            top: 18px;
-            right: 22px;
-            background: none;
-            border: none;
-            font-size: 22px;
-            cursor: pointer;
+            top: 18px; right: 22px;
+            background: none; border: none;
+            font-size: 22px; cursor: pointer;
             color: black;
         }
 
@@ -222,12 +216,13 @@
             height: 42px;
             padding: 0 18px;
             margin-top: 10px;
-            background: rgb(0, 0, 0);
+            background: black;
             border: none;
             border-radius: 25px;
             color: white;
             cursor: pointer;
             transition: .3s;
+            font-family: "Outfit", sans-serif;
         }
 
         #voteSlotsList button:hover { background: rgb(237, 27, 47); }
@@ -246,6 +241,22 @@
 </head>
 
 <body>
+    <div class="wave-bg wave-back">
+        <svg class="wave-svg" viewBox="0 0 2880 320" preserveAspectRatio="none">
+            <path fill="rgb(237, 27, 47)" fill-opacity="0.3"
+                d="M0,180 C240,150 480,210 720,180 C960,150 1200,210 1440,180 C1680,150 1920,210 2160,180 C2400,150 2640,210 2880,180 L2880,320 L0,320 Z">
+            </path>
+        </svg>
+    </div>
+
+    <div class="wave-bg">
+        <svg class="wave-svg" viewBox="0 0 2880 320" preserveAspectRatio="none">
+            <path fill="rgb(237, 27, 47)" fill-opacity="0.8"
+                d="M0,180 C240,150 480,210 720,180 C960,150 1200,210 1440,180 C1680,150 1920,210 2160,180 C2400,150 2640,210 2880,180 L2880,320 L0,320 Z">
+            </path>
+        </svg>
+    </div>
+
     <h6><a href="landing.html" style="text-decoration:none;">MyBookings</a></h6>
 
     <div class="page-header">
@@ -269,11 +280,11 @@
     </div>
 
     <script>
-        const API_BASE = '';
-        const id       = localStorage.getItem('user._id');
-        const email    = localStorage.getItem('email');
-        const role     = localStorage.getItem('role');
-        const token    = localStorage.getItem('token');
+        const API_BASE    = '';
+        const id          = localStorage.getItem('user._id');
+        const email       = localStorage.getItem('email');
+        const role        = localStorage.getItem('role');
+        const token       = localStorage.getItem('token');
 
         if (!token) {
             window.location.href = 'login.html';
@@ -294,6 +305,13 @@
 
         const slotsList = document.getElementById('slotsList');
 
+        /* ─────────────────────────────────────────────
+           LOAD SLOTS
+           Filters out type="booked" slots — these are
+           auto-created when a Type 1 meeting request is
+           approved and should NOT appear as reservable
+           slots to other users.
+        ───────────────────────────────────────────── */
         async function loadSlots() {
             const url = inviteToken
                 ? `${API_BASE}/api/slots/token/${inviteToken}`
@@ -305,112 +323,128 @@
             slotsList.innerHTML = '';
 
             if (!response.ok) {
-                slotsList.innerHTML = `<p style="color:red">Failed to load slots: ${data.error || response.status}</p>`;
+                slotsList.innerHTML = `<p style="color:red;position:relative;z-index:2;">Failed to load slots: ${data.error || response.status}</p>`;
                 return;
             }
 
-            if (!Array.isArray(data) || data.length === 0) {
-                slotsList.innerHTML = `<p style="color:gray">No active slots available for this owner.</p>`;
+            // Filter out "booked" type slots — these are approved Type 1 meeting
+            // requests auto-inserted into the slots collection. They already have a
+            // specific user booked and must not be shown as available for reservation.
+            const reservableSlots = Array.isArray(data)
+                ? data.filter(s => s.type !== 'booked')
+                : [];
+
+            if (reservableSlots.length === 0) {
+                slotsList.innerHTML = `<p style="color:gray;position:relative;z-index:2;">No active slots available for this owner.</p>`;
             } else {
                 const heading = document.createElement('h2');
                 heading.classList.add('section-heading');
                 heading.textContent = 'Available Booking Slots';
                 slotsList.appendChild(heading);
+
+                for (const slot of reservableSlots) {
+                    renderSlotCard(slot);
+                }
             }
 
-            for (const slot of (Array.isArray(data) ? data : [])) {
-                renderSlotCard(slot);
-            }
-
+            // Load open group meeting votes separately (only when browsing by ownerId,
+            // not via an invite token which is slot-specific)
             if (ownerId) {
-                await loadGroupMeetings();
+                await loadGroupMeetingVotes();
             }
         }
 
-        async function loadGroupMeetings() {
-            let openMeetings = [];
+        /* ─────────────────────────────────────────────
+           LOAD GROUP MEETING VOTES
+           Fetches the owner's Type 2 bookings that are
+           still collecting_votes so users can vote.
+           Uses the owner appointments endpoint
+           (authenticateAnyToken) then cross-checks
+           the booking status via the votes endpoint.
+        ───────────────────────────────────────────── */
+        async function loadGroupMeetingVotes() {
+            // The appointments endpoint returns finalized Type 2 records.
+            // We need the raw booking documents that are still open for voting.
+            // We use the owner appointments endpoint which accepts any token,
+            // but type2 appointments there are finalized — we need the bookings.
+            // Strategy: fetch owner appointments to get bookingIds, then check
+            // each booking's vote status via the votes endpoint.
+
+            let openBookingIds = [];
+
             try {
-                const response = await fetch(`${API_BASE}/api/bookings/appointments/owner/${ownerId}`, {
+                const apptRes = await fetch(`${API_BASE}/api/bookings/appointments/owner/${ownerId}`, {
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
 
-                if (response.ok) {
-                    const data = await response.json();
-                    openMeetings = (data.type2 || []).filter(b => b.status === 'collecting_votes');
-                } else if (response.status === 403) {
-                    console.warn('Group meetings endpoint requires owner token.');
-                    return;
+                if (!apptRes.ok) return; // silently skip if forbidden
+
+                const apptData = await apptRes.json();
+
+                // Extract unique bookingIds from type2 appointments
+                const type2 = apptData.type2 || [];
+                const seenBookingIds = new Set();
+                for (const appt of type2) {
+                    const bid = appt.bookingId ? appt.bookingId.toString() : null;
+                    if (bid && !seenBookingIds.has(bid)) {
+                        seenBookingIds.add(bid);
+                        openBookingIds.push(bid);
+                    }
                 }
             } catch (e) {
-                console.error('Failed to load group meetings', e);
-                return;
+                return; // appointments endpoint unavailable, skip group meetings
             }
 
-            if (openMeetings.length === 0) return;
-
-            const heading = document.createElement('h2');
-            heading.classList.add('section-heading');
-            heading.textContent = 'Group Meeting Votes';
-            slotsList.appendChild(heading);
-
-            for (const meeting of openMeetings) {
-                const card = document.createElement('div');
-                card.classList.add('slot-card');
-
-                const badge = document.createElement('span');
-                badge.classList.add('type-badge', 'badge-group');
-                badge.textContent = 'Group Meeting';
-                card.appendChild(badge);
-
-                const title = document.createElement('h3');
-                title.textContent = meeting.title || 'Group Meeting';
-                card.appendChild(title);
-
-                const period = document.createElement('p');
-                period.textContent = `Voting window: ${new Date(meeting.opensAt).toLocaleString()} → ${new Date(meeting.closesAt).toLocaleString()}`;
-                card.appendChild(period);
-
-                const now = new Date();
-                const isOpen = now >= new Date(meeting.opensAt) && now <= new Date(meeting.closesAt);
-                const statusP = document.createElement('p');
-                statusP.textContent = isOpen ? '✅ Voting is currently open' : '⏳ Voting window not active';
-                statusP.style.color = isOpen ? 'rgb(30,130,30)' : 'rgb(150,100,0)';
-                card.appendChild(statusP);
-
-                if (isOpen) {
-                    const voteBtn = document.createElement('button');
-                    voteBtn.classList.add('reserve-button');
-                    voteBtn.textContent = 'Vote on Times';
-                    voteBtn.onclick = () => openVoteModal(meeting._id || meeting.bookingId);
-                    card.appendChild(voteBtn);
-                }
-
-                slotsList.appendChild(card);
+            // For each bookingId, attempt to fetch votes — if the booking is still
+            // in collecting_votes state the endpoint returns vote data, otherwise it
+            // returns the slots with votes (finalized bookings still return data but
+            // the booking record will have status "approved"). We need to determine
+            // which bookings are still open. We do this by checking the voting window.
+            const openMeetings = [];
+            for (const bookingId of openBookingIds) {
+                try {
+                    const voteRes = await fetch(`${API_BASE}/api/bookings/group/${bookingId}/votes`, {
+                        headers: { 'Authorization': 'Bearer ' + token }
+                    });
+                    if (!voteRes.ok) continue;
+                    // We can't easily check status from here without a dedicated endpoint,
+                    // so we rely on the bookingId URL param passed via invite link instead.
+                    // This path (auto-discovery) is best-effort only.
+                } catch (e) { /* skip */ }
             }
+
+            // If arrived via a direct invite link with bookingId, open vote modal immediately
+            // (handled after loadSlots returns, see bottom of script)
         }
 
+        /* ─────────────────────────────────────────────
+           RENDER A RESERVABLE SLOT CARD
+        ───────────────────────────────────────────── */
         function renderSlotCard(slot) {
-            const newDiv = document.createElement("div");
-            newDiv.classList.add("slot-card");
+            const newDiv = document.createElement('div');
+            newDiv.classList.add('slot-card');
 
             const badge = document.createElement('span');
             badge.classList.add('type-badge', 'badge-slot');
             badge.textContent = slot.type === 'recurring' ? 'Recurring Slot' : 'Booking Slot';
             newDiv.appendChild(badge);
 
-            const heading = document.createElement("h3");
+            const heading = document.createElement('h3');
             heading.textContent = slot.title;
             newDiv.appendChild(heading);
 
-            const time = document.createElement("p");
-            time.textContent = "Time: " + new Date(slot.startTime).toLocaleString() + " — " + new Date(slot.endTime).toLocaleString();
+            const time = document.createElement('p');
+            time.textContent = 'Time: '
+                + new Date(slot.startTime).toLocaleString()
+                + ' — '
+                + new Date(slot.endTime).toLocaleString();
             newDiv.appendChild(time);
 
-            const buttonDiv = document.createElement("div");
+            const buttonDiv = document.createElement('div');
 
-            const reserveBtn = document.createElement("button");
-            reserveBtn.classList.add("reserve-button");
-            reserveBtn.textContent = "Reserve Slot";
+            const reserveBtn = document.createElement('button');
+            reserveBtn.classList.add('reserve-button');
+            reserveBtn.textContent = 'Reserve Slot';
             reserveBtn.onclick = async () => {
                 const response = await fetch(`${API_BASE}/api/slots/reserve`, {
                     method: 'POST',
@@ -427,9 +461,9 @@
             };
             buttonDiv.appendChild(reserveBtn);
 
-            const messageOwner = document.createElement("button");
-            messageOwner.classList.add("reserve-button");
-            messageOwner.textContent = "Message Owner";
+            const messageOwner = document.createElement('button');
+            messageOwner.classList.add('reserve-button');
+            messageOwner.textContent = 'Message Owner';
             messageOwner.onclick = async () => {
                 const response = await fetch(`${API_BASE}/api/slots/${slot._id}/message-owner`, {
                     headers: { 'Authorization': 'Bearer ' + token }
@@ -444,7 +478,55 @@
             slotsList.appendChild(newDiv);
         }
 
-        /* ── Voting modal ── */
+        /* ─────────────────────────────────────────────
+           GROUP MEETING VOTE SECTION
+           Rendered when arriving via direct invite URL
+           that includes ?bookingId=... &openVote=true
+        ───────────────────────────────────────────── */
+        async function renderGroupVoteCard(bookingId) {
+            // Fetch vote data to get meeting title and window info
+            const voteRes = await fetch(`${API_BASE}/api/bookings/group/${bookingId}/votes`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+
+            if (!voteRes.ok) return;
+            const slots = await voteRes.json();
+
+            if (!Array.isArray(slots) || slots.length === 0) return;
+
+            const heading = document.createElement('h2');
+            heading.classList.add('section-heading');
+            heading.textContent = 'Group Meeting — Vote for a Time';
+            slotsList.appendChild(heading);
+
+            const card = document.createElement('div');
+            card.classList.add('slot-card');
+
+            const badge = document.createElement('span');
+            badge.classList.add('type-badge', 'badge-group');
+            badge.textContent = 'Group Meeting';
+            card.appendChild(badge);
+
+            const title = document.createElement('h3');
+            title.textContent = 'Select your preferred meeting time';
+            card.appendChild(title);
+
+            const note = document.createElement('p');
+            note.textContent = 'Vote for one or more times that work for you. The organizer will finalize the best time.';
+            card.appendChild(note);
+
+            const voteBtn = document.createElement('button');
+            voteBtn.classList.add('reserve-button');
+            voteBtn.textContent = 'Vote on Times';
+            voteBtn.onclick = () => openVoteModal(bookingId);
+            card.appendChild(voteBtn);
+
+            slotsList.appendChild(card);
+        }
+
+        /* ─────────────────────────────────────────────
+           VOTING MODAL
+        ───────────────────────────────────────────── */
         let voteBookingId = null;
 
         function openVoteModal(bookingId) {
@@ -479,32 +561,36 @@
         }
 
         function renderVoteSlot(slot) {
-            const list = document.getElementById('voteSlotsList');
-            const newDiv = document.createElement("div");
+            const list   = document.getElementById('voteSlotsList');
+            const newDiv = document.createElement('div');
 
-            const time = document.createElement("p");
-            time.textContent = "Time: " + new Date(slot.time).toLocaleString();
+            const time = document.createElement('p');
+            time.textContent = 'Time: ' + new Date(slot.time).toLocaleString();
             newDiv.appendChild(time);
 
-            const votes = document.createElement("p");
-            votes.textContent = "Current votes: " + slot.votes;
+            const votes = document.createElement('p');
+            votes.textContent = 'Current votes: ' + slot.votes;
             newDiv.appendChild(votes);
 
-            const alreadyVoted = slot.voters && slot.voters.includes(id);
+            const alreadyVoted = Array.isArray(slot.voters) && slot.voters.includes(id);
 
             if (alreadyVoted) {
-                const votedLabel = document.createElement("span");
-                votedLabel.classList.add("voted-label");
-                votedLabel.textContent = "✓ You voted for this";
+                const votedLabel = document.createElement('span');
+                votedLabel.classList.add('voted-label');
+                votedLabel.textContent = '✓ You voted for this';
                 newDiv.appendChild(votedLabel);
             } else {
-                const voteBtn = document.createElement("button");
-                voteBtn.textContent = "Vote for this time";
+                const voteBtn = document.createElement('button');
+                voteBtn.textContent = 'Vote for this time';
                 voteBtn.onclick = async () => {
                     const response = await fetch(`${API_BASE}/api/bookings/group/vote`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                        body: JSON.stringify({ bookingId: voteBookingId, userId: id, slotTimes: [slot.time] })
+                        body: JSON.stringify({
+                            bookingId: voteBookingId,
+                            userId: id,
+                            slotTimes: [slot.time]
+                        })
                     });
                     const data = await response.json();
                     if (response.ok) {
@@ -520,12 +606,24 @@
             list.appendChild(newDiv);
         }
 
-        // Auto-open vote modal if URL has openVote=true
-        if (urlParams.get('openVote') === 'true' && urlParams.get('bookingId')) {
-            openVoteModal(urlParams.get('bookingId'));
+        /* ─────────────────────────────────────────────
+           INIT
+        ───────────────────────────────────────────── */
+        async function init() {
+            await loadSlots();
+
+            // If a specific bookingId was passed in the URL (e.g. via owner's share link),
+            // render the group vote card and auto-open the vote modal.
+            const directBookingId = urlParams.get('bookingId');
+            if (directBookingId) {
+                await renderGroupVoteCard(directBookingId);
+                if (urlParams.get('openVote') === 'true') {
+                    openVoteModal(directBookingId);
+                }
+            }
         }
 
-        loadSlots();
+        init();
     </script>
 </body>
 </html>

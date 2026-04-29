@@ -14,101 +14,78 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
 
     <style>
-        *{
+        * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: "Outfit", sans-serif;
         }
 
-
         .top-bar {
-    width: calc(100% - 40px);
-    margin: 20px;
+            width: calc(100% - 40px);
+            margin: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(12px);
+            padding: 16px 28px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            border-radius: 22px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.16);
+            z-index: 2;
+        }
 
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+        .logo {
+            font-size: 28px;
+            font-weight: 800;
+            color: rgb(237, 27, 47);
+            text-decoration: none;
+            letter-spacing: 1px;
+            position: relative;
+        }
 
-    background: rgba(255, 255, 255, 0.88);
-    backdrop-filter: blur(12px);
+        .logo:hover { opacity: 0.8; }
 
-    padding: 16px 28px;
-    position: absolute;
-    top: 0;
-    left: 0;
+        .logo span { color: rgb(237, 27, 47); }
 
-    border-radius: 22px;
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.16);
+        .top-buttons {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
 
-    z-index: 2;
-}
+        .top-button {
+            min-width: 100px;
+            height: 44px;
+            background: black;
+            border: none;
+            border-radius: 999px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.25s ease;
+        }
 
+        .top-button:hover {
+            background: rgb(237, 27, 47);
+            transform: translateY(-2px);
+        }
 
-    /* LOGO */
-
-   .logo {
-    font-size: 28px;
-    font-weight: 800;
-    color: rgb(237, 27, 47);
-    text-decoration: none;
-    letter-spacing: 1px;
-    position: relative;
-}
-
-
-.logo:hover {
-    opacity: 0.8;
-}
-
-.logo span {
-    color: rgb(237, 27, 47);
-}
-
-.top-buttons {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-
-
-
-
-
-.top-button {
-    min-width: 100px;
-    height: 44px;
-    background: black;
-    border: none;
-    border-radius: 999px;
-    color: white;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.25s ease;
-}
-
-.top-button:hover {
-    background: rgb(237, 27, 47);
-    transform: translateY(-2px);
-}
         body {
             min-height: 100vh;
             background: rgb(255, 255, 255);
-             padding: 250px 40px 30px 40px;
+            padding: 250px 40px 30px 40px;
         }
 
-        .create-button {
-            position: relative;
-            overflow: hidden;
+        .page-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 35px;
         }
-
-       .page-header {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 35px;
-}
 
         .page-header h1 {
             font-size: 42px;
@@ -129,13 +106,6 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-        }
-
-        .page-header {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 35px;
         }
 
         .main-panel {
@@ -164,11 +134,24 @@
             transition: .3s;
             margin-bottom: 25px;
             margin-right: 12px;
+            position: relative;
+            overflow: hidden;
         }
 
-        .create-button:hover {
-            background: rgb(237, 27, 47);
+        .create-button:hover { background: rgb(237, 27, 47); }
+
+        .create-button::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(120deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: 0.5s;
         }
+
+        .create-button:hover::after { left: 100%; }
 
         #slot_container {
             display: flex;
@@ -176,20 +159,19 @@
             gap: 18px;
         }
 
-      #slot_container > div {
-         padding: 20px;
-         border-radius: 25px;
-         box-shadow: 0px 3px 8px 1px rgb(220, 220, 220);
-         background: white;
-         color: rgb(40, 40, 40);
-         font-size: 18px;
-
-         display: flex;
-         align-items: center;
-         justify-content: space-between;
-         gap: 12px;
-         flex-wrap: nowrap;
-}
+        #slot_container > div {
+            padding: 20px;
+            border-radius: 25px;
+            box-shadow: 0px 3px 8px 1px rgb(220, 220, 220);
+            background: white;
+            color: rgb(40, 40, 40);
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: nowrap;
+        }
 
         #slot_container button {
             height: 38px;
@@ -204,117 +186,60 @@
             font-size: 13px;
         }
 
-        #slot_container button:hover {
-            background: rgb(237, 27, 47);
+        #slot_container button:hover { background: rgb(237, 27, 47); }
+
+        h6 a {
+            text-decoration: none;
+            color: black;
+            font-weight: 600;
         }
 
-         h6 a {
-            text-decoration: none;  
-            color: black;            
-            font-weight: 600;        
-        }
+        h6 a:hover { color: rgb(237, 27, 47); }
 
-        h6 a:hover {
-             color: rgb(237, 27, 47); 
-        }
-
-
-        .create-button {
-            position: relative;
+        .wave-bg {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 200%;
+            height: 480px;
             overflow: hidden;
+            z-index: 0;
+            pointer-events: none;
+            animation: waveMove 12s linear infinite;
         }
 
-        .create-button::after {
-             content: "";
-             position: absolute;
-             top: 0;
-             left: -100%;
-             width: 100%;
-             height: 100%;
-             background: linear-gradient(120deg, transparent, rgba(255,255,255,0.4), transparent);
-             transition: 0.5s;
+        .wave-svg { width: 100%; height: 100%; display: block; }
+
+        .wave-back {
+            bottom: -40px;
+            height: 620px;
+            opacity: 0.45;
+            animation-duration: 18s;
         }
 
-        .create-button:hover::after {
-            left: 100%;
+        .wave-back .wave-svg {
+            transform: scaleY(1.2);
+            transform-origin: bottom;
         }
 
+        @keyframes waveMove {
+            from { transform: translateX(0); }
+            to   { transform: translateX(-50%); }
+        }
 
-.wave-bg {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 200%;
-    height: 480px;
-    overflow: hidden;
-    z-index: 0;
-    pointer-events: none;
-    animation: waveMove 12s linear infinite;
-}
+        .main-panel, .page-header { position: relative; z-index: 2; }
 
-.wave-svg {
-    width: 100%;
-    height: 100%;
-    display: block;
-}
+        .booker-info {
+            font-size: 14px;
+            color: rgb(60, 130, 60);
+            margin-top: 4px;
+        }
 
-.wave-back {
-    bottom: -40px;
-    height: 620px;
-    opacity: 0.45;
-    animation-duration: 18s;
-}
-
-.wave-back .wave-svg {
-    transform: scaleY(1.2);   /* makes it taller */
-    transform-origin: bottom; /* grows upward */
-}
-
-@keyframes waveMove {
-    from {
-        transform: translateX(0);
-    }
-    to {
-        transform: translateX(-50%);
-    }
-}
-
-
-.main-panel,
-.page-header {
-    position: relative;
-    z-index: 2;
-}
-
-
-.page-header h1 {
-    font-size: 42px;
-    color: rgb(0, 0, 0);
-}
-
-.page-header h1 {
-    font-size: 42px;
-    color: black;
-    position: relative;
-}
-
-.page-header h1::after {
-    content: "";
-    display: block;
-    width: 245px;
-    height: 3px;
-    background: rgb(237, 27, 47);
-    margin: 3px auto 0;
-    border-radius: 2px;
-}
-
-#slot_container > div span {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-
+        .booker-available {
+            font-size: 14px;
+            color: rgb(150, 150, 150);
+            margin-top: 4px;
+        }
 
         /* Modal - Annie Huynh */
         .modal-overlay {
@@ -330,9 +255,7 @@
             align-items: center;
         }
 
-        .modal-overlay.active {
-            display: flex;
-        }
+        .modal-overlay.active { display: flex; }
 
         .modal-box {
             background: white;
@@ -356,14 +279,9 @@
             color: black;
         }
 
-        .modal-close:hover {
-            color: rgb(237, 27, 47);
-        }
+        .modal-close:hover { color: rgb(237, 27, 47); }
 
-        .modal-box h2 {
-            font-size: 28px;
-            margin-bottom: 6px;
-        }
+        .modal-box h2 { font-size: 28px; margin-bottom: 6px; }
 
         .modal-box p {
             color: rgb(70, 70, 70);
@@ -371,9 +289,7 @@
             margin-bottom: 22px;
         }
 
-        .form-group {
-            margin-bottom: 17px;
-        }
+        .form-group { margin-bottom: 17px; }
 
         .form-group label {
             display: block;
@@ -394,9 +310,7 @@
             transition: .3s;
         }
 
-        .form-group input:focus {
-            box-shadow: 0px 5px 12px 1px rgb(146, 146, 146);
-        }
+        .form-group input:focus { box-shadow: 0px 5px 12px 1px rgb(146, 146, 146); }
 
         .section-title {
             font-size: 18px;
@@ -417,9 +331,7 @@
             margin-top: 10px;
         }
 
-        .modal-submit:hover {
-            background: rgb(237, 27, 47);
-        }
+        .modal-submit:hover { background: rgb(237, 27, 47); }
 
         #finalizeSlotsList {
             display: flex;
@@ -458,64 +370,37 @@
             transition: .3s;
         }
 
-        #finalizeSlotsList button:hover {
-            background: rgb(237, 27, 47);
-        }
-
-        .booker-info {
-            font-size: 14px;
-            color: rgb(60, 130, 60);
-            margin-top: 4px;
-        }
-        .booker-available {
-            font-size: 14px;
-            color: rgb(150, 150, 150);
-            margin-top: 4px;
-        }
+        #finalizeSlotsList button:hover { background: rgb(237, 27, 47); }
     </style>
 </head>
 
 <body>
     <div class="wave-bg wave-back">
-    <svg class="wave-svg" viewBox="0 0 2880 320" preserveAspectRatio="none">
-        <path fill="rgb(237, 27, 47)" fill-opacity="0.3"
-d="M0,180 
-   C240,150 480,210 720,180 
-   C960,150 1200,210 1440,180 
-   C1680,150 1920,210 2160,180 
-   C2400,150 2640,210 2880,180 
-   L2880,320 L0,320 Z">
-</path>
-    </svg>
-</div>
-
-   <div class="wave-bg">
-    <svg class="wave-svg" viewBox="0 0 2880 320" preserveAspectRatio="none">
-        <path fill="rgb(237, 27, 47)" fill-opacity="0.8"
-d="M0,180 
-   C240,150 480,210 720,180 
-   C960,150 1200,210 1440,180 
-   C1680,150 1920,210 2160,180 
-   C2400,150 2640,210 2880,180 
-   L2880,320 L0,320 Z">
-</path>
-    </svg>
-</div>
-    <div class="top-bar">
-    <a href="landing.html" class="logo">
-    My<span>Bookings</span>
-</a>
-
-    <div class="top-buttons">
-        <button class="top-button" onclick="window.location.href='dashboard.html'">Back</button>
+        <svg class="wave-svg" viewBox="0 0 2880 320" preserveAspectRatio="none">
+            <path fill="rgb(237, 27, 47)" fill-opacity="0.3"
+                d="M0,180 C240,150 480,210 720,180 C960,150 1200,210 1440,180 C1680,150 1920,210 2160,180 C2400,150 2640,210 2880,180 L2880,320 L0,320 Z">
+            </path>
+        </svg>
     </div>
-</div>
 
-<div class="page-header">
-    <h1>Manage Slots</h1>
-</div>
+    <div class="wave-bg">
+        <svg class="wave-svg" viewBox="0 0 2880 320" preserveAspectRatio="none">
+            <path fill="rgb(237, 27, 47)" fill-opacity="0.8"
+                d="M0,180 C240,150 480,210 720,180 C960,150 1200,210 1440,180 C1680,150 1920,210 2160,180 C2400,150 2640,210 2880,180 L2880,320 L0,320 Z">
+            </path>
+        </svg>
+    </div>
 
-    
+    <div class="top-bar">
+        <a href="landing.html" class="logo">My<span>Bookings</span></a>
+        <div class="top-buttons">
+            <button class="top-button" onclick="window.location.href='dashboard.html'">Back</button>
+        </div>
+    </div>
+
+    <div class="page-header">
+        <h1>Manage Slots</h1>
+    </div>
 
     <div class="main-panel">
         <h2 class="panel-title">Available Slots</h2>
@@ -529,7 +414,7 @@ d="M0,180
         <div id="slot_container"></div>
     </div>
 
-    <!-- Creating group meeting - Annie Huynh -->
+    <!-- Create Group Meeting Modal - Annie Huynh -->
     <div class="modal-overlay" id="createModal">
         <div class="modal-box">
             <button class="modal-close" onclick="closeCreateModal()">&#10005;</button>
@@ -542,29 +427,24 @@ d="M0,180
             </div>
 
             <h3 class="section-title">Voting Period</h3>
-
             <div class="form-group">
                 <label for="opensAt">Voting opens</label>
                 <input type="datetime-local" id="opensAt" />
             </div>
-
             <div class="form-group">
                 <label for="closesAt">Voting closes</label>
                 <input type="datetime-local" id="closesAt" />
             </div>
 
             <h3 class="section-title">Time Slots</h3>
-
             <div class="form-group">
                 <label for="slot1">Slot 1</label>
                 <input type="datetime-local" id="slot1" />
             </div>
-
             <div class="form-group">
                 <label for="slot2">Slot 2</label>
                 <input type="datetime-local" id="slot2" />
             </div>
-
             <div class="form-group">
                 <label for="slot3">Slot 3</label>
                 <input type="datetime-local" id="slot3" />
@@ -585,12 +465,10 @@ d="M0,180
                 <label for="slotTitle">Title</label>
                 <input type="text" id="slotTitle" placeholder="e.g. Office Hours" />
             </div>
-
             <div class="form-group">
                 <label for="slotStart">Start</label>
                 <input type="datetime-local" id="slotStart" />
             </div>
-
             <div class="form-group">
                 <label for="slotEnd">End</label>
                 <input type="datetime-local" id="slotEnd" />
@@ -600,7 +478,7 @@ d="M0,180
         </div>
     </div>
 
-    <!-- Finalize group meeting - Annie Huynh -->
+    <!-- Finalize Group Meeting Modal - Annie Huynh -->
     <div class="modal-overlay" id="finalizeModal">
         <div class="modal-box">
             <button class="modal-close" onclick="closeFinalizeModal()">&#10005;</button>
@@ -617,7 +495,7 @@ d="M0,180
         </div>
     </div>
 
-    <!-- Recurring office hours slot creation - Annie Huynh -->
+    <!-- Recurring Office Hours Modal - Annie Huynh -->
     <div class="modal-overlay" id="recurringModal">
         <div class="modal-box">
             <button class="modal-close" onclick="closeRecurringModal()">&#10005;</button>
@@ -628,17 +506,14 @@ d="M0,180
                 <label for="recurTitle">Title</label>
                 <input type="text" id="recurTitle" placeholder="e.g. Office Hours" />
             </div>
-
             <div class="form-group">
                 <label for="recurStart">Start</label>
                 <input type="datetime-local" id="recurStart" />
             </div>
-
             <div class="form-group">
                 <label for="recurEnd">End</label>
                 <input type="datetime-local" id="recurEnd" />
             </div>
-
             <div class="form-group">
                 <label for="recurWeeks">Number of weeks</label>
                 <input type="number" id="recurWeeks" min="1" />
@@ -648,193 +523,107 @@ d="M0,180
         </div>
     </div>
 
-<script>
-    const API_BASE = '';
-    const token = localStorage.getItem('token');
-    const role = localStorage.getItem('role');
-    const id = localStorage.getItem('user._id');
-    const email = localStorage.getItem('email');
+    <script>
+        const API_BASE = '';
+        const token = localStorage.getItem('token');
+        const role  = localStorage.getItem('role');
+        const id    = localStorage.getItem('user._id');
+        const email = localStorage.getItem('email');
 
-    // redirect to login page if token is missing
-
-    
-
-    if (!token){
-        window.location.href = 'login.html';
-    } else if (role !== "owner"){
-        window.location.href = 'dashboard.html';
-    }
-    
-    else if (role !== "owner"){
-        window.location.href = 'dashboard.html'
-    }
-
-    const url = `${API_BASE}/api/slots/`;
-    const slot_container = document.getElementById("slot_container");
-
-    async function renderAll(options = { show_repeating: true, range: [0, Date.parse("2099-12-31")], sort: "start-time", filter: ["active", "private"] }) {
-        slot_container.innerHTML = "";
-
-        const response = await fetch(url + `owner/${id}`, {
-            method: 'GET',
-            headers: { "Authorization": 'Bearer ' + token },
-            cache: 'no-store'
-        });
-
-        const data = await response.json();
-
-        const filtered = [];
-        for (let slot of data) {
-            if (!options.show_repeating && (slot.type === "recurring")) continue;
-            if (Date.parse(slot.endTime) < options.range[0] || Date.parse(slot.startTime) > options.range[1]) continue;
-            if (!options.filter.includes(slot.status)) continue;
-            filtered.push(slot);
+        if (!token) {
+            window.location.href = 'login.html';
+        } else if (role !== 'owner') {
+            window.location.href = 'dashboard.html';
         }
 
-        // Separate non-grouped from grouped
-        const ungrouped = filtered.filter(s => !s.groupToken);
-        const grouped = new Map();
-        for (const s of filtered.filter(s => s.groupToken)) {
-            if (!grouped.has(s.groupToken)) grouped.set(s.groupToken, []);
-            grouped.get(s.groupToken).push(s);
-        }
+        const url           = `${API_BASE}/api/slots/`;
+        const slot_container = document.getElementById('slot_container');
 
-        // Render ungrouped individually
-        for (const slot of ungrouped) await renderSlot(slot);
-        // Render each group as one card
-        for (const [groupToken, slots] of grouped) await renderGroupCard(groupToken, slots);
-    }
-
-    async function renderGroupCard(groupToken, slots) {
-        const card = document.createElement("div");
-
-        // Top row: title + status badge
-        const row = document.createElement("div");
-        row.classList.add("slot-card-row");
-
-        const info = document.createElement("div");
-        info.classList.add("slot-info");
-
-        const titleEl = document.createElement("span");
-        titleEl.classList.add("slot-title");
-        titleEl.textContent = slots[0].title + ` (${slots.length} weeks recurring)`;
-        info.appendChild(titleEl);
-
-        const startTime = new Date(slots[0].startTime).toLocaleString();
-        const endTime = new Date(slots[slots.length - 1].endTime).toLocaleString();
-        const timeEl = document.createElement("span");
-        timeEl.classList.add("slot-time");
-        timeEl.textContent = `Start: ${startTime} → End: ${endTime}`;
-        info.appendChild(timeEl);
-
-        const statusEl = document.createElement("span");
-        statusEl.classList.add("status-badge");
-        const groupStatus = slots[0].status;
-        statusEl.classList.add(groupStatus === 'active' ? 'status-active' : 'status-private');
-        statusEl.textContent = groupStatus;
-        info.appendChild(statusEl);
-
-        row.appendChild(info);
-        card.appendChild(row);
-
-        const idBox = document.createElement("div");
-        idBox.classList.add("group-id-box");
-        idBox.innerHTML = `<strong>Group ID:</strong> <code>${groupToken}</code>`;
-        const copyIdBtn = document.createElement("button");
-        copyIdBtn.textContent = "Copy ID";
-        copyIdBtn.style.cssText = "height:28px;padding:0 10px;font-size:12px;";
-        copyIdBtn.onclick = () => {
-            navigator.clipboard.writeText(groupToken).then(() => alert("Group ID copied!"));
-        };
-        idBox.appendChild(copyIdBtn);
-        card.appendChild(idBox);
-
-        const url = `${API_BASE}/api/slots/`;
-        const slot_container = document.getElementById("slot_container");
-
-        async function renderAll(options = { show_repeating: true, range: [0, Date.parse("2099-12-31")], sort: "start-time", filter: ["active", "private"] }) {
-            slot_container.innerHTML = "";
+        /* ─────────────────────────────────────────────
+           RENDER ALL SLOTS
+        ───────────────────────────────────────────── */
+        async function renderAll(options = {
+            show_repeating: true,
+            range: [0, Date.parse('2099-12-31')],
+            sort: 'start-time',
+            filter: ['active', 'private']
+        }) {
+            slot_container.innerHTML = '';
 
             const response = await fetch(url + `owner/${id}`, {
                 method: 'GET',
-                headers: { "Authorization": 'Bearer ' + token },
+                headers: { 'Authorization': 'Bearer ' + token },
                 cache: 'no-store'
             });
 
             const data = await response.json();
 
             const filtered = [];
-            for (let slot of data) {
-                if (!options.show_repeating && (slot.type === "recurring")) continue;
+            for (const slot of data) {
+                if (!options.show_repeating && slot.type === 'recurring') continue;
                 if (Date.parse(slot.endTime) < options.range[0] || Date.parse(slot.startTime) > options.range[1]) continue;
                 if (!options.filter.includes(slot.status)) continue;
                 filtered.push(slot);
             }
 
-            // Separate non-grouped from grouped
+            // Separate ungrouped from grouped
             const ungrouped = filtered.filter(s => !s.groupToken);
-            const grouped = new Map();
+            const grouped   = new Map();
             for (const s of filtered.filter(s => s.groupToken)) {
                 if (!grouped.has(s.groupToken)) grouped.set(s.groupToken, []);
                 grouped.get(s.groupToken).push(s);
             }
 
-            // Render ungrouped individually
             for (const slot of ungrouped) await renderSlot(slot);
-            // Render each group as one card
             for (const [groupToken, slots] of grouped) await renderGroupCard(groupToken, slots);
         }
 
+        /* ─────────────────────────────────────────────
+           RENDER GROUP CARD
+        ───────────────────────────────────────────── */
         async function renderGroupCard(groupToken, slots) {
-            const card = document.createElement("div");
+            const card = document.createElement('div');
 
-            // Top row: title + status badge
-            const row = document.createElement("div");
-            row.classList.add("slot-card-row");
+            const info = document.createElement('div');
+            info.style.cssText = 'display:flex;flex-direction:column;gap:4px;flex:1;min-width:0;';
 
-            const info = document.createElement("div");
-            info.classList.add("slot-info");
-
-            const titleEl = document.createElement("span");
-            titleEl.classList.add("slot-title");
+            const titleEl = document.createElement('span');
+            titleEl.style.cssText = 'font-weight:700;font-size:17px;';
             titleEl.textContent = slots[0].title + ` (${slots.length} weeks recurring)`;
             info.appendChild(titleEl);
 
             const startTime = new Date(slots[0].startTime).toLocaleString();
-            const endTime = new Date(slots[slots.length - 1].endTime).toLocaleString();
-            const timeEl = document.createElement("span");
-            timeEl.classList.add("slot-time");
+            const endTime   = new Date(slots[slots.length - 1].endTime).toLocaleString();
+            const timeEl = document.createElement('span');
+            timeEl.style.cssText = 'font-size:14px;color:rgb(80,80,80);';
             timeEl.textContent = `Start: ${startTime} → End: ${endTime}`;
             info.appendChild(timeEl);
 
-            const statusEl = document.createElement("span");
-            statusEl.classList.add("status-badge");
-            const groupStatus = slots[0].status;
-            statusEl.classList.add(groupStatus === 'active' ? 'status-active' : 'status-private');
-            statusEl.textContent = groupStatus;
+            const statusEl = document.createElement('span');
+            statusEl.style.cssText = 'font-size:13px;font-weight:600;margin-top:4px;';
+            statusEl.textContent = 'Status: ' + slots[0].status;
             info.appendChild(statusEl);
 
-            row.appendChild(info);
-            card.appendChild(row);
+            const groupIdEl = document.createElement('span');
+            groupIdEl.style.cssText = 'font-size:12px;color:rgb(100,100,100);margin-top:2px;';
+            groupIdEl.textContent = 'Group ID: ' + groupToken;
+            info.appendChild(groupIdEl);
 
-            const idBox = document.createElement("div");
-            idBox.classList.add("group-id-box");
-            idBox.innerHTML = `<strong>Group ID:</strong> <code>${groupToken}</code>`;
-            const copyIdBtn = document.createElement("button");
-            copyIdBtn.textContent = "Copy ID";
-            copyIdBtn.style.cssText = "height:28px;padding:0 10px;font-size:12px;";
-            copyIdBtn.onclick = () => {
-                navigator.clipboard.writeText(groupToken).then(() => alert("Group ID copied!"));
-            };
-            idBox.appendChild(copyIdBtn);
-            card.appendChild(idBox);
+            card.appendChild(info);
 
             // Action buttons
-            const btnRow = document.createElement("div");
-            btnRow.style.cssText = "display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;";
+            const btnRow = document.createElement('div');
+            btnRow.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0;';
 
-            const activateGroupBtn = document.createElement("button");
-            activateGroupBtn.textContent = "Activate Group";
+            const copyIdBtn = document.createElement('button');
+            copyIdBtn.textContent = 'Copy ID';
+            copyIdBtn.onclick = () => {
+                navigator.clipboard.writeText(groupToken).then(() => alert('Group ID copied!'));
+            };
+            btnRow.appendChild(copyIdBtn);
+
+            const activateGroupBtn = document.createElement('button');
+            activateGroupBtn.textContent = 'Activate';
             activateGroupBtn.onclick = async () => {
                 const res = await fetch(`${API_BASE}/api/slots/group/${groupToken}/activate`, {
                     method: 'POST',
@@ -851,11 +640,10 @@ d="M0,180
             };
             btnRow.appendChild(activateGroupBtn);
 
-            const deleteGroupBtn = document.createElement("button");
-            deleteGroupBtn.textContent = "Delete Group";
-            deleteGroupBtn.classList.add("btn-delete");
+            const deleteGroupBtn = document.createElement('button');
+            deleteGroupBtn.textContent = 'Delete';
             deleteGroupBtn.onclick = async () => {
-                if (!confirm("Delete all slots in this group?")) return;
+                if (!confirm('Delete all slots in this group?')) return;
                 const res = await fetch(`${API_BASE}/api/slots/group/${groupToken}`, {
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
@@ -870,9 +658,8 @@ d="M0,180
             };
             btnRow.appendChild(deleteGroupBtn);
 
-            // Get invite URL for recurring group
-            const inviteBtn = document.createElement("button");
-            inviteBtn.textContent = "Get Invite URL";
+            const inviteBtn = document.createElement('button');
+            inviteBtn.textContent = 'Get Invite URL';
             inviteBtn.onclick = async () => {
                 const firstSlotId = slots[0]._id;
                 const inviteResponse = await fetch(`${API_BASE}/api/slots/${firstSlotId}/invite-url`, {
@@ -880,7 +667,7 @@ d="M0,180
                 });
                 const data = await inviteResponse.json();
                 if (inviteResponse.ok) {
-                    navigator.clipboard.writeText(data.inviteUrl).then(() => alert("Invite URL copied!"));
+                    navigator.clipboard.writeText(data.inviteUrl).then(() => alert('Invite URL copied!'));
                 } else {
                     alert(data.error || 'URL not found');
                 }
@@ -891,79 +678,76 @@ d="M0,180
             slot_container.appendChild(card);
         }
 
+        /* ─────────────────────────────────────────────
+           RENDER SINGLE SLOT CARD
+        ───────────────────────────────────────────── */
         async function renderSlot(slot_data) {
-            const card = document.createElement("div");
+            const card = document.createElement('div');
 
-            const row = document.createElement("div");
-            row.classList.add("slot-card-row");
+            const info = document.createElement('div');
+            info.style.cssText = 'display:flex;flex-direction:column;gap:4px;flex:1;min-width:0;';
 
-            const info = document.createElement("div");
-            info.classList.add("slot-info");
-
-            const titleEl = document.createElement("span");
-            titleEl.classList.add("slot-title");
+            const titleEl = document.createElement('span');
+            titleEl.style.cssText = 'font-weight:700;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
             titleEl.textContent = slot_data.title;
             info.appendChild(titleEl);
 
             const startTime = new Date(slot_data.startTime).toLocaleString();
-            const endTime = new Date(slot_data.endTime).toLocaleString();
-            const timeEl = document.createElement("span");
-            timeEl.classList.add("slot-time");
+            const endTime   = new Date(slot_data.endTime).toLocaleString();
+            const timeEl = document.createElement('span');
+            timeEl.style.cssText = 'font-size:14px;color:rgb(80,80,80);';
             timeEl.textContent = `${startTime} → ${endTime}`;
             info.appendChild(timeEl);
 
-            const statusEl = document.createElement("span");
-            statusEl.classList.add("status-badge");
-            statusEl.classList.add(slot_data.status === 'active' ? 'status-active' : 'status-private');
-            statusEl.textContent = slot_data.status;
+            const statusEl = document.createElement('span');
+            statusEl.style.cssText = 'font-size:13px;font-weight:600;margin-top:2px;';
+            statusEl.textContent = 'Status: ' + slot_data.status;
             info.appendChild(statusEl);
 
-            row.appendChild(info);
-            card.appendChild(row);
+            // Booker info (populated async below)
+            const bookerEl = document.createElement('p');
+            bookerEl.className = 'booker-available';
+            bookerEl.textContent = 'Checking reservation…';
+            info.appendChild(bookerEl);
 
-            // Booker info (async)
-            const bookerEl = document.createElement("p");
-            bookerEl.classList.add("booker-available");
-            bookerEl.textContent = "Checking reservation…";
-            card.appendChild(bookerEl);
+            card.appendChild(info);
 
             // Action buttons
-            const btnRow = document.createElement("div");
-            btnRow.style.cssText = "display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;";
+            const btnRow = document.createElement('div');
+            btnRow.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0;';
 
-            const del = document.createElement("button");
-            del.innerText = "Delete";
-            del.classList.add("btn-delete");
+            const del = document.createElement('button');
+            del.textContent = 'Delete';
             del.onclick = () => deleteSlot(slot_data._id);
             btnRow.appendChild(del);
 
-            const act = document.createElement("button");
-            act.innerText = "Activate";
+            const act = document.createElement('button');
+            act.textContent = 'Activate';
             act.onclick = () => activate(slot_data._id);
             btnRow.appendChild(act);
 
-            const dea = document.createElement("button");
-            dea.innerText = "Deactivate";
+            const dea = document.createElement('button');
+            dea.textContent = 'Deactivate';
             dea.onclick = () => deactivate(slot_data._id);
             btnRow.appendChild(dea);
 
-            const inviteBtn = document.createElement("button");
-            inviteBtn.textContent = "Get Invite URL";
+            const inviteBtn = document.createElement('button');
+            inviteBtn.textContent = 'Get Invite URL';
             inviteBtn.onclick = async () => {
                 const inviteResponse = await fetch(`${API_BASE}/api/slots/${slot_data._id}/invite-url`, {
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
                 const data = await inviteResponse.json();
                 if (inviteResponse.ok) {
-                    navigator.clipboard.writeText(data.inviteUrl).then(() => alert("Invite URL copied!"));
+                    navigator.clipboard.writeText(data.inviteUrl).then(() => alert('Invite URL copied!'));
                 } else {
                     alert(data.error || 'URL not found');
                 }
             };
             btnRow.appendChild(inviteBtn);
 
-            const msgBtn = document.createElement("button");
-            msgBtn.textContent = "Message Booker";
+            const msgBtn = document.createElement('button');
+            msgBtn.textContent = 'Message Booker';
             msgBtn.onclick = async () => {
                 const response = await fetch(`${API_BASE}/api/slots/${slot_data._id}/message-booker`, {
                     headers: { 'Authorization': 'Bearer ' + token }
@@ -977,75 +761,82 @@ d="M0,180
             card.appendChild(btnRow);
             slot_container.appendChild(card);
 
-            // Fetch reservation asynchronously and update booker display
-            const resResponse = await fetch(`${API_BASE}/api/slots/${slot_data._id}/reservation`, {
-                headers: { 'Authorization': 'Bearer ' + token }
-            });
-            const resData = await resResponse.json();
-            if (resResponse.ok && resData && resData.user) {
-                bookerEl.textContent = "Booked by: " + resData.user.email;
-                bookerEl.className = "booker-info";
-            } else {
-                bookerEl.textContent = "Available — not yet booked";
-                bookerEl.className = "booker-available";
+            // Async: fetch reservation and update booker display
+            try {
+                const resResponse = await fetch(`${API_BASE}/api/slots/${slot_data._id}/reservation`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const resData = await resResponse.json();
+                if (resResponse.ok && resData && resData.user) {
+                    bookerEl.textContent = 'Booked by: ' + resData.user.email;
+                    bookerEl.className = 'booker-info';
+                } else {
+                    bookerEl.textContent = 'Available — not yet booked';
+                    bookerEl.className = 'booker-available';
+                }
+            } catch (e) {
+                bookerEl.textContent = 'Available — not yet booked';
+                bookerEl.className = 'booker-available';
             }
         }
 
+        /* ─────────────────────────────────────────────
+           SLOT ACTIONS
+        ───────────────────────────────────────────── */
         async function createSlot(title, start, end) {
-            let slot = await fetch(url + "create", {
+            const slot = await fetch(url + 'create', {
                 headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
                 method: 'POST',
                 body: JSON.stringify({ ownerId: id, title, start, end })
             });
-            let response = await slot.json();
-            console.log("Slot created: ", response);
+            const response = await slot.json();
+            console.log('Slot created: ', response);
             await renderAll();
         }
 
         async function deleteSlot(slotId, options = { warn: true }) {
             let c = true;
-            if (options.warn) { c = confirm("Confirm Delete?"); }
+            if (options.warn) { c = confirm('Confirm Delete?'); }
             if (c) {
-                let slot = await fetch(url + slotId, {
+                await fetch(url + slotId, {
                     headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
                     method: 'DELETE',
                     body: JSON.stringify({ ownerId: id })
                 });
-                console.log(slot);
                 await renderAll();
             }
         }
 
         async function activate(slotId) {
-            let slot = await fetch(url + slotId + "/activate", {
+            const slot = await fetch(url + slotId + '/activate', {
                 headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
                 method: 'POST',
                 body: JSON.stringify({ ownerId: id })
             });
-            let response = await slot.json();
+            const response = await slot.json();
             if (response.matchedCount === 0) alert("Couldn't activate slot - check owner ID");
             await renderAll();
         }
 
         async function deactivate(slotId) {
-            let slot = await fetch(url + slotId + "/deactivate", {
+            const slot = await fetch(url + slotId + '/deactivate', {
                 headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
                 method: 'POST',
                 body: JSON.stringify({ ownerId: id })
             });
-            let response = await slot.json();
+            const response = await slot.json();
             if (response.matchedCount === 0) alert("Couldn't deactivate slot - check owner ID");
             await renderAll();
         }
 
-        renderAll();
-
-        // Recurring Slots Modal - Annie Huynh
+        /* ─────────────────────────────────────────────
+           RECURRING SLOTS MODAL
+        ───────────────────────────────────────────── */
         function openRecurringModal() {
-            document.getElementById('recurTitle').value = '';
-            document.getElementById('recurStart').value = '';
-            document.getElementById('recurEnd').value = '';
-            document.getElementById('recurWeeks').value = '';
+            document.getElementById('recurTitle').value  = '';
+            document.getElementById('recurStart').value  = '';
+            document.getElementById('recurEnd').value    = '';
+            document.getElementById('recurWeeks').value  = '';
             document.getElementById('recurringModal').classList.add('active');
         }
 
@@ -1056,12 +847,12 @@ d="M0,180
         document.getElementById('recurSubmitBtn').onclick = async () => {
             const title = document.getElementById('recurTitle').value.trim();
             const start = document.getElementById('recurStart').value;
-            const end = document.getElementById('recurEnd').value;
+            const end   = document.getElementById('recurEnd').value;
             const weeks = parseInt(document.getElementById('recurWeeks').value);
 
-            if (!title) return alert('Please enter a title.');
-            if (!start) return alert('Please set a start time.');
-            if (!end) return alert('Please set an end time.');
+            if (!title)              return alert('Please enter a title.');
+            if (!start)              return alert('Please set a start time.');
+            if (!end)                return alert('Please set an end time.');
             if (new Date(end) <= new Date(start)) return alert('End must be after start.');
             if (!weeks || weeks < 1) return alert('Please enter a valid number of weeks.');
 
@@ -1084,11 +875,13 @@ d="M0,180
             }
         };
 
-        // Create slot modal
+        /* ─────────────────────────────────────────────
+           CREATE SLOT MODAL
+        ───────────────────────────────────────────── */
         function openCreateSlotModal() {
             document.getElementById('slotTitle').value = '';
             document.getElementById('slotStart').value = '';
-            document.getElementById('slotEnd').value = '';
+            document.getElementById('slotEnd').value   = '';
             document.getElementById('createSlotModal').classList.add('active');
         }
 
@@ -1099,25 +892,27 @@ d="M0,180
         document.getElementById('createSlotSubmitBtn').onclick = async () => {
             const title = document.getElementById('slotTitle').value.trim();
             const start = document.getElementById('slotStart').value;
-            const end = document.getElementById('slotEnd').value;
+            const end   = document.getElementById('slotEnd').value;
 
             if (!title) return alert('Please enter a title.');
             if (!start) return alert('Please set a start time.');
-            if (!end) return alert('Please set an end time.');
+            if (!end)   return alert('Please set an end time.');
             if (new Date(end) <= new Date(start)) return alert('End must be after start.');
 
             await createSlot(title, new Date(start).getTime(), new Date(end).getTime());
             closeCreateSlotModal();
         };
 
-        // Create group meeting
+        /* ─────────────────────────────────────────────
+           CREATE GROUP MEETING MODAL
+        ───────────────────────────────────────────── */
         function openCreateModal() {
             document.getElementById('meetingTitle').value = '';
-            document.getElementById('opensAt').value = '';
-            document.getElementById('slot1').value = '';
-            document.getElementById('slot2').value = '';
-            document.getElementById('slot3').value = '';
-            document.getElementById('closesAt').value = '';
+            document.getElementById('opensAt').value      = '';
+            document.getElementById('closesAt').value     = '';
+            document.getElementById('slot1').value        = '';
+            document.getElementById('slot2').value        = '';
+            document.getElementById('slot3').value        = '';
             document.getElementById('createModal').classList.add('active');
         }
 
@@ -1126,7 +921,7 @@ d="M0,180
         }
 
         document.getElementById('createSubmitBtn').onclick = async () => {
-            const title = document.getElementById('meetingTitle').value.trim();
+            const title   = document.getElementById('meetingTitle').value.trim();
             const opensAt = document.getElementById('opensAt').value;
             const closesAt = document.getElementById('closesAt').value;
             const slots = [
@@ -1135,7 +930,7 @@ d="M0,180
                 document.getElementById('slot3').value
             ];
 
-            if (!title) return alert('Please enter a meeting title.');
+            if (!title)   return alert('Please enter a meeting title.');
             if (!opensAt) return alert('Please set a voting open time.');
             if (!closesAt) return alert('Please set a voting close time.');
             if (new Date(closesAt) <= new Date(opensAt)) return alert('Voting must close after it opens.');
@@ -1149,7 +944,7 @@ d="M0,180
                     ownerEmail: email,
                     title,
                     slots: slots.map(s => new Date(s).toISOString()),
-                    opensAt: new Date(opensAt).toISOString(),
+                    opensAt:  new Date(opensAt).toISOString(),
                     closesAt: new Date(closesAt).toISOString()
                 })
             });
@@ -1168,7 +963,9 @@ d="M0,180
             }
         };
 
-        // Finalize group meeting
+        /* ─────────────────────────────────────────────
+           FINALIZE GROUP MEETING MODAL
+        ───────────────────────────────────────────── */
         function openFinalizeModal() {
             document.getElementById('finalizeSlotsList').innerHTML = '';
             document.getElementById('finalizeModal').classList.add('active');
@@ -1196,25 +993,23 @@ d="M0,180
                 return;
             }
 
-            for (const slot of data) {
-                renderFinalizeSlot(slot, bookingId);
-            }
+            for (const slot of data) renderFinalizeSlot(slot, bookingId);
         };
 
         function renderFinalizeSlot(slot, bookingId) {
-            const list = document.getElementById('finalizeSlotsList');
-            const newDiv = document.createElement("div");
+            const list   = document.getElementById('finalizeSlotsList');
+            const newDiv = document.createElement('div');
 
-            const time = document.createElement("p");
-            time.textContent = "Time: " + new Date(slot.time).toLocaleString();
+            const time = document.createElement('p');
+            time.textContent = 'Time: ' + new Date(slot.time).toLocaleString();
             newDiv.appendChild(time);
 
-            const votes = document.createElement("p");
-            votes.textContent = "Votes: " + slot.votes;
+            const votes = document.createElement('p');
+            votes.textContent = 'Votes: ' + slot.votes;
             newDiv.appendChild(votes);
 
-            const selectBtn = document.createElement("button");
-            selectBtn.textContent = "Select this time";
+            const selectBtn = document.createElement('button');
+            selectBtn.textContent = 'Select this time';
             selectBtn.onclick = async () => {
                 const response = await fetch(`${API_BASE}/api/bookings/group/finalize`, {
                     method: 'POST',
@@ -1224,8 +1019,8 @@ d="M0,180
                 const data = await response.json();
                 if (response.ok) {
                     closeFinalizeModal();
-                    window.location.href = data.notifyOwner;
-                    window.location.href = 'dashboard.html';
+                    if (data.notifyOwner) window.location.href = data.notifyOwner;
+                    else window.location.href = 'dashboard.html';
                 } else {
                     alert(data.error);
                 }
@@ -1234,10 +1029,14 @@ d="M0,180
             list.appendChild(newDiv);
         }
 
-        // auto-open modals from URL params
+        /* ─────────────────────────────────────────────
+           AUTO-OPEN FROM URL PARAMS + INITIAL LOAD
+        ───────────────────────────────────────────── */
         const params = new URLSearchParams(window.location.search);
-        if (params.get('openCreate') === 'true') openCreateModal();
+        if (params.get('openCreate')   === 'true') openCreateModal();
         if (params.get('openFinalize') === 'true') openFinalizeModal();
+
+        renderAll();
     </script>
 </body>
 </html>
