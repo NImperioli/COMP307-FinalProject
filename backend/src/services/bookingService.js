@@ -391,8 +391,10 @@ const getOwnerAppointments = async (ownerId) => {
   const [type1, type2, type3] = await Promise.all([
     db.collection("bookings")
       .find({ type: "TYPE1", ownerId: toOid(ownerId), status: "approved" }).toArray(),
-    db.collection("appointments")
-      .find({ type: "TYPE2", ownerId: toOid(ownerId) }).toArray(),
+    db.collection("appointments").aggregate([
+    { $match: { type: "TYPE2", ownerId: toOid(ownerId) } },
+    { $lookup: { from: "users", localField: "participants", foreignField: "_id", as: "participantDocs" } }
+    ]).toArray(),
     // TYPE3: all office-hour bookings owned by this owner
     db.collection("bookings")
       .find({ type: "TYPE3", ownerId: toOid(ownerId) }).toArray(),
