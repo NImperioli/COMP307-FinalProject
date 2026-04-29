@@ -503,8 +503,11 @@
                     }
                     // Post-process: only mark group as completed if no active reservations remain
                     for (const [, entry] of groupMap) {
-                        if (!entry._anyActive) entry.status = 'completed';
                         delete entry._anyActive;
+                        // Only mark completed if every reservation in this group is completed/cancelled
+                        const groupItems = d.filter(i => i.slot && i.slot.groupToken === entry.slot?.groupToken);
+                        const allDone = groupItems.every(i => i.status === 'completed' || i.cancelledAt);
+                        if (allDone) entry.status = 'completed';
                     }
                     for (const [token, entry] of groupMap) {
                     // find the earliest active (non-completed) slot in the group
@@ -716,13 +719,13 @@
                         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
                         body: JSON.stringify({ reservationId: item._id })
                     });
-                    const d = await res.json();
+                    const cancelData = await res.json();
                     if (res.ok) {
-                        const d = await res.json();
-                        if (d.notifyOwner) window.open(d.notifyOwner, '_blank');
+                        if (cancelData.notifyOwner) window.open(cancelData.notifyOwner, '_blank');
                         loadDashboard();
+                    } else {
+                        alert(cancelData.error);
                     }
-                    else alert(d.error);
                 };
                 buttonDiv.appendChild(cancelBtn);
                 const messageOwner = document.createElement('button');

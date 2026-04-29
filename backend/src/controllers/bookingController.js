@@ -168,13 +168,24 @@ exports.leaveGroupMeeting = async (req, res) => {
     try { apptOid = new ObjectId(appointmentId); }
     catch { return res.status(400).json({ error: "Invalid appointmentId." }); }
     const userOid = new ObjectId(userId);
+
+    // Fetch BEFORE update so we still have the title
+    const appt = await db.collection("appointments").findOne({ _id: apptOid });
+
     const result = await db.collection("appointments").updateOne(
       { _id: apptOid, participants: userOid },
       { $pull: { participants: userOid } }
     );
     if (result.matchedCount === 0)
       return res.status(404).json({ error: "Appointment not found or you are not a participant." });
-    res.json({ message: "You have been removed from this group meeting.", result });
+
+    const owner = await db.collection("users").findOne({ _id: appt.ownerId });
+    const leavingUser = await db.collection("users").findOne({ _id: userOid });
+    const notify = owner && leavingUser
+      ? [`mailto:${owner.email}?subject=${encodeURIComponent('A participant left your group meeting')}&body=${encodeURIComponent(`Hi,\n\n${leavingUser.email} has left the group meeting "${appt.title}".\n\nPlease check your dashboard.`)}`]
+      : [];
+
+    res.json({ message: "You have been removed from this group meeting.", result, notify });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
