@@ -289,6 +289,18 @@ const finalizeGroupMeeting = async (bookingId, selectedTime, repeatWeeks = 1, ow
   };
 };
 
+const getOpenGroupBookings = async (ownerId) => {
+  const db = require("../config/db").getDB();
+
+  return await db.collection("bookings")
+    .find({
+      type: "TYPE2",
+      ownerId: toOid(ownerId),
+      status: "collecting_votes"
+    })
+    .toArray();
+};
+
 // TYPE 3 — Recurring Office Hours 
 const createOfficeHours = async (ownerId, slots, weeks) => {
   return await createBooking({
@@ -400,6 +412,7 @@ module.exports = {
   voteForSlots,
   getSlotVoteCounts,
   finalizeGroupMeeting,
+  getOpenGroupBookings,
   getUserAppointments,
   getOwnerAppointments,
   // Type 3

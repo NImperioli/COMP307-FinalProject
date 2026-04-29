@@ -14,9 +14,11 @@ router.get("/requests/owner/:ownerId/pending",   auth.authenticateOwnerToken, co
 // TYPE 2 — Group Meeting
 router.post("/group/create",                     auth.authenticateOwnerToken, controller.createGroupMeeting);
 router.post("/group/vote",                       auth.authenticateUserToken, controller.voteForSlots);
+router.get("/group/open/owner/:ownerId",         auth.authenticateAnyToken, controller.getOpenGroupBookings);
 router.get("/group/:bookingId/votes",            auth.authenticateUserToken, controller.getSlotVoteCounts);
 router.post("/group/finalize",                   auth.authenticateOwnerToken, controller.finalizeGroupMeeting);
 router.get("/group/:bookingId/invite-url",       auth.authenticateOwnerToken, controller.getGroupInviteUrl);
+
 router.get("/appointments/user/:userId",         auth.authenticateUserToken, controller.getUserAppointments);
 router.get("/appointments/owner/:ownerId",       auth.authenticateAnyToken,  controller.getOwnerAppointments);  // <-- CHANGED
  
