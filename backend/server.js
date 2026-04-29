@@ -10,6 +10,7 @@ const cors = require('cors'); //wb
 const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../frontend')));
+app.set("trust proxy", 1);
 //app.use(cors({origin: 'http://FINAL.URL'})); // wb // change when site has its final url on mimi
 app.use(cors({
   origin: ['http://winter2026-comp307-group38.cs.mcgill.ca',
@@ -31,6 +32,7 @@ app.get("/", (req, res) => {
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/auth", authRoutes); // Annie Huynh
 app.use("/api/slots", slotRoutes); // Annie Huynh
+app.use("/api/calendar", require("./routes/calendarRoutes"));
 
 connectDB(); 
 

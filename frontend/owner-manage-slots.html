@@ -537,6 +537,27 @@
         const url           = `${API_BASE}/api/slots/`;
         const slot_container = document.getElementById('slot_container');
 
+        async function copyText(text) {
+            try {
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(text);
+                } else {
+                    const textarea = document.createElement("textarea");
+                    textarea.value = text;
+                    textarea.style.position = "fixed";
+                    textarea.style.left = "-999999px";
+                    document.body.appendChild(textarea);
+                    textarea.focus();
+                    textarea.select();
+                    document.execCommand("copy");
+                    textarea.remove();
+                }
+            } catch (err) {
+                console.error(err);
+                prompt("Copy manually:", text);
+            }
+        }
+
         /* ─────────────────────────────────────────────
            RENDER ALL SLOTS
         ───────────────────────────────────────────── */
@@ -616,7 +637,7 @@
             const copyIdBtn = document.createElement('button');
             copyIdBtn.textContent = 'Copy ID';
             copyIdBtn.onclick = () => {
-                navigator.clipboard.writeText(groupToken).then(() => alert('Group ID copied!'));
+                copyText(groupToken).then(() => alert('Group ID copied!'));
             };
             btnRow.appendChild(copyIdBtn);
 
@@ -675,7 +696,7 @@
                     const data = await inviteResponse.json();
 
                     if (inviteResponse.ok) {
-                        navigator.clipboard.writeText(data.inviteUrl);
+                        copyText(data.inviteUrl);
                         alert('Invite URL copied to clipboard!');
                     } else {
                         alert(data.error || 'Failed to create invite URL');
@@ -754,7 +775,7 @@
                 });
                 const data = await inviteResponse.json();
                 if (inviteResponse.ok) {
-                    navigator.clipboard.writeText(data.inviteUrl).then(() => alert('Invite URL copied!'));
+                    copyText(data.inviteUrl).then(() => alert('Invite URL copied!'));
                 } else {
                     alert(data.error || 'URL not found');
                 }
@@ -1043,7 +1064,7 @@
                 const shareUrl =
                     `${window.location.origin}/owner-slots.html?ownerId=${id}&bookingId=${bookingId}&openVote=true`;
 
-                await navigator.clipboard.writeText(shareUrl).catch(() => {});
+                await copyText(shareUrl).catch(() => {});
 
                 alert(
                     "Group Meeting Created Successfully!\n\n" +
@@ -1218,7 +1239,7 @@
             const data = await res.json();
 
             if (res.ok) {
-                navigator.clipboard.writeText(data.inviteUrl);
+                copyText(data.inviteUrl);
                 alert("Invite URL copied!");
             } else {
                 alert(data.error);

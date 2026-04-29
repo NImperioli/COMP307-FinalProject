@@ -439,6 +439,22 @@
             actionsBar.appendChild(btn);
         }
 
+        function createCancelButton(onClick) {
+            const btn = document.createElement('button');
+            btn.classList.add('small-button-red');
+            btn.textContent = 'Cancel';
+            btn.onclick = onClick;
+            return btn;
+        }
+
+        function createCompleteButton(onClick) {
+            const btn = document.createElement('button');
+            btn.classList.add('small-button');
+            btn.textContent = 'Mark as Completed';
+            btn.onclick = onClick;
+            return btn;
+        }
+
         /* ─── main loader ─── */
         async function loadDashboard() {
             // Remove previously-added dynamic buttons, keep the static one
@@ -496,6 +512,29 @@
                 renderAction('Create Group Meeting', 'owner-manage-slots.html?openCreate=true');
                 renderAction('Finalize Group Meeting', 'owner-manage-slots.html?openFinalize=true');
                 renderAction('Browse & Request Meetings', 'browse-owners.html');
+
+                const exportAllBtn = document.createElement('button');
+                exportAllBtn.classList.add('action-button');
+                exportAllBtn.textContent = 'Export All to Calendar';
+
+                exportAllBtn.onclick = () => {
+                    const url = `${API_BASE}/api/ical/owner/${id}/all`;
+
+                    fetch(url, {
+                        headers: { 'Authorization': 'Bearer ' + token }
+                    })
+                    .then(r => r.blob())
+                    .then(blob => {
+                        const a = document.createElement('a');
+                        a.href = URL.createObjectURL(blob);
+                        a.download = 'all-events.ics';
+                        a.click();
+                        URL.revokeObjectURL(a.href);
+                    })
+                    .catch(e => alert('Export failed: ' + e.message));
+                };
+
+                actionsBar.appendChild(exportAllBtn);
 
                 const pendingBtn = document.createElement('button');
                 pendingBtn.classList.add('action-button');
@@ -661,7 +700,7 @@
         }
 
         /* ─── Type 1: meeting request card ─── */
-        function renderType1Card(item) {
+       function renderType1Card(item) {
             const newDiv = document.createElement('div');
             newDiv.classList.add('appointment-card');
 
@@ -692,22 +731,56 @@
             statusP.textContent = 'Status: ' + item.status;
             newDiv.appendChild(statusP);
 
-            // Action buttons — only for approved, non-past meetings
-            if (!isPast && item.status === 'approved') {
-                const btnRow = document.createElement('div');
-                btnRow.classList.add('card-actions');
+            const buttonDiv = document.createElement('div');
+            buttonDiv.classList.add('card-actions');
 
+            if (!isPast && item.status === 'approved') {
                 const msgTarget = role === 'owner' ? item.userEmail : item.ownerEmail;
+
                 const msgBtn = document.createElement('button');
                 msgBtn.classList.add('small-button');
                 msgBtn.textContent = 'Message';
                 msgBtn.onclick = () => {
                     window.location.href = `mailto:${msgTarget}?subject=${encodeURIComponent('Re: ' + (item.title || 'Meeting'))}`;
                 };
-                btnRow.appendChild(msgBtn);
-
-                newDiv.appendChild(btnRow);
+                buttonDiv.appendChild(msgBtn);
             }
+
+            const cancelBtn = document.createElement('button');
+            cancelBtn.classList.add('small-button-red');
+            cancelBtn.textContent = 'Cancel';
+            cancelBtn.onclick = async () => {
+                const res = await fetch(`${API_BASE}/api/bookings/cancel`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ bookingId: item._id, userId: id })
+                });
+                if (res.ok) loadDashboard();
+                else alert('Cancel failed');
+            };
+            buttonDiv.appendChild(cancelBtn);
+
+            const completeBtn = document.createElement('button');
+            completeBtn.classList.add('small-button');
+            completeBtn.textContent = 'Mark as Completed';
+            completeBtn.onclick = async () => {
+                const res = await fetch(`${API_BASE}/api/bookings/complete`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ bookingId: item._id })
+                });
+                if (res.ok) loadDashboard();
+                else alert('Complete failed');
+            };
+            buttonDiv.appendChild(completeBtn);
+
+            newDiv.appendChild(buttonDiv);
 
             if (isPast) newDiv.style.opacity = '0.55';
 
@@ -744,74 +817,77 @@
 
             const isPast = new Date(item.time) < new Date();
 
+            const buttonDiv = document.createElement('div');
+            buttonDiv.classList.add('card-actions');
+
+            if (!isPast) {
+                const msgBtn = document.createElement('button');
+                msgBtn.classList.add('small-button');
+                msgBtn.textContent = 'Message';
+                msgBtn.onclick = () => {
+                    window.location.href = `mailto:${item.ownerEmail}`;
+                };
+                buttonDiv.appendChild(msgBtn);
+            }
+
+            const cancelBtn = document.createElement('button');
+            cancelBtn.classList.add('small-button-red');
+            cancelBtn.textContent = 'Cancel';
+            cancelBtn.onclick = async () => {
+                const res = await fetch(`${API_BASE}/api/bookings/group/${item._id}/leave`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ userId: id })
+                });
+                if (res.ok) loadDashboard();
+                else alert('Cancel failed');
+            };
+            buttonDiv.appendChild(cancelBtn);
+
+            const completeBtn = document.createElement('button');
+            completeBtn.classList.add('small-button');
+            completeBtn.textContent = 'Mark as Completed';
+            completeBtn.onclick = async () => {
+                const res = await fetch(`${API_BASE}/api/bookings/group/${item._id}/complete`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+                if (res.ok) loadDashboard();
+                else alert('Complete failed');
+            };
+            buttonDiv.appendChild(completeBtn);
+
+            const exportBtn = document.createElement('button');
+            exportBtn.classList.add('small-button');
+            exportBtn.textContent = 'Export .ics';
+            exportBtn.onclick = () => {
+                fetch(`${API_BASE}/api/ical/group/${item._id}`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                })
+                .then(r => r.blob())
+                .then(blob => {
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = 'group-meeting.ics';
+                    a.click();
+                    URL.revokeObjectURL(a.href);
+                });
+            };
+            buttonDiv.appendChild(exportBtn);
+
+            newDiv.appendChild(buttonDiv);
+
             if (isPast) {
                 newDiv.style.opacity = '0.55';
-                const doneP = document.createElement('p');
-                doneP.style.cssText = 'color:#22c55e;font-weight:600;margin-top:8px;';
-                doneP.textContent = '✓ Completed';
-                newDiv.appendChild(doneP);
-            } else if (role === 'student') {
-                const buttonDiv = document.createElement('div');
-                buttonDiv.classList.add('card-actions');
-
-                // Message Organizer
-                const msgBtn = document.createElement('button');
-                msgBtn.classList.add('small-button');
-                msgBtn.textContent = 'Message Organizer';
-                msgBtn.onclick = () => {
-                    window.location.href = `mailto:${item.ownerEmail}?subject=${encodeURIComponent('Re: Group Meeting — ' + item.title)}`;
-                };
-                buttonDiv.appendChild(msgBtn);
-
-                // Cancel participation
-                const cancelBtn = document.createElement('button');
-                cancelBtn.classList.add('small-button-red');
-                cancelBtn.textContent = 'Cancel Participation';
-                cancelBtn.onclick = async () => {
-                    if (!confirm('Cancel your participation in this group meeting?')) return;
-                    const res = await fetch(`${API_BASE}/api/bookings/group/${item._id}/leave`, {
-                        method: 'DELETE',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                        body: JSON.stringify({ userId: id })
-                    });
-                    if (res.ok) {
-                        alert('You have been removed from this group meeting.');
-                        loadDashboard();
-                    } else if (res.status === 404) {
-                        const mailto = `mailto:${item.ownerEmail}?subject=${encodeURIComponent(
-                            `Cancelling participation — "${item.title}"`
-                        )}&body=${encodeURIComponent(
-                            `Hi,\n\nI need to cancel my participation in the group meeting "${item.title}" scheduled for ${new Date(item.time).toLocaleString()}.\n\nPlease remove me from the attendee list.\n\nThank you.`
-                        )}`;
-                        window.location.href = mailto;
-                    } else {
-                        const data = await res.json().catch(() => ({}));
-                        alert(data.error || 'Could not cancel participation. Please contact the organizer.');
-                    }
-                };
-                buttonDiv.appendChild(cancelBtn);
-
-                newDiv.appendChild(buttonDiv);
-            }
-            // Owner sees group meetings too (read-only for past; future shown without cancel)
-            else if (role === 'owner') {
-                const buttonDiv = document.createElement('div');
-                buttonDiv.classList.add('card-actions');
-
-                const msgBtn = document.createElement('button');
-                msgBtn.classList.add('small-button');
-                msgBtn.textContent = 'Email Participants';
-                msgBtn.onclick = () => {
-                    window.location.href = `mailto:?subject=${encodeURIComponent('Re: Group Meeting — ' + item.title)}`;
-                };
-                buttonDiv.appendChild(msgBtn);
-
-                newDiv.appendChild(buttonDiv);
             }
 
             appointmentsList.appendChild(newDiv);
         }
-
         /* ─── Pending Requests modal (owner) ─── */
         function openPendingModal() {
             document.getElementById('pendingModal').classList.add('active');

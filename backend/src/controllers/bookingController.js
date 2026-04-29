@@ -144,12 +144,16 @@ exports.getGroupInviteUrl = async (req, res) => {
     if (!booking) return res.status(404).json({ error: "Booking not found." });
     if (booking.ownerId.toString() !== ownerId)
       return res.status(403).json({ error: "Not your booking." });
-    const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
-    const url = `${baseUrl}/owner-slots.html?ownerId=${booking.ownerId}&bookingId=${bookingId}&openVote=true`;
-    res.json({ inviteUrl: url });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+    const proto = req.headers["x-forwarded-proto"] || req.protocol;
+    const host = req.get("host");
+
+    const baseUrl =
+    process.env.BASE_URL || `${proto}://${host}`.replace(/\/$/, "");   
+      const url = `${baseUrl}/owner-slots.html?ownerId=${booking.ownerId}&bookingId=${bookingId}&openVote=true`;
+      res.json({ inviteUrl: url });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
 };
 
 exports.leaveGroupMeeting = async (req, res) => {
