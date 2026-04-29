@@ -216,7 +216,7 @@ exports.getInviteUrl = async (req, res) => {
     // FIXED: use env var, fall back to request origin, never localhost
     const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get("host")}`;
     const token   = slot.groupToken || slot.inviteToken;
-    const url     = buildInviteUrl(baseUrl, token);
+    const url     = buildInviteUrl(baseUrl, token, slot.ownerId.toString());
     res.json({ inviteUrl: url, token });
   } catch (err) {
     res.status(500).json({ error: err.message });
