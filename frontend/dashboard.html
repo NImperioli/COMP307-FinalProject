@@ -461,17 +461,6 @@
             card.style.opacity = '0.7';
         }
 
-        /* Mark a card as cancelled in-place */
-        function markCardCancelled(card) {
-            const actions = card.querySelector('.card-actions');
-            if (actions) actions.remove();
-            const badge = document.createElement('span');
-            badge.style.cssText = 'display:inline-block;padding:5px 14px;background:rgb(255,220,220);color:rgb(130,30,30);border-radius:20px;font-size:13px;font-weight:700;margin-top:10px;';
-            badge.textContent = '✕ Cancelled';
-            card.appendChild(badge);
-            card.style.opacity = '0.5';
-        }
-
         /* ─── main loader ─── */
         async function loadDashboard() {
             document.querySelectorAll('#actions-menu .action-button').forEach(btn => {
@@ -641,27 +630,6 @@
                 };
                 buttonDiv.appendChild(messageOwner);
 
-                // FIX: pass reservationId correctly
-                const cancelBtn = document.createElement('button');
-                cancelBtn.classList.add('small-button-red');
-                cancelBtn.textContent = 'Cancel';
-                cancelBtn.onclick = async () => {
-                    if (!confirm('Cancel this appointment?')) return;
-                    const res = await fetch(`${API_BASE}/api/slots/cancel`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                        body: JSON.stringify({ reservationId: item._id, userId: id })
-                    });
-                    const data = await res.json();
-                    if (res.ok) {
-                        markCardCancelled(card);
-                        if (data.notifyOwner) window.open(data.notifyOwner, '_blank');
-                    } else {
-                        alert(data.error);
-                    }
-                };
-                buttonDiv.appendChild(cancelBtn);
-
                 const exportBtn = document.createElement('button');
                 exportBtn.classList.add('small-button');
                 exportBtn.textContent = 'Export .ics';
@@ -742,27 +710,6 @@
                 buttonDiv.appendChild(msgBtn);
             }
 
-            // FIX: cancel passes bookingId + type
-            const cancelBtn = document.createElement('button');
-            cancelBtn.classList.add('small-button-red');
-            cancelBtn.textContent = 'Cancel';
-            cancelBtn.onclick = async () => {
-                if (!confirm('Cancel this meeting?')) return;
-                const res = await fetch(`${API_BASE}/api/bookings/cancel`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                    body: JSON.stringify({ bookingId: item._id, type: 'TYPE1' })
-                });
-                const data = await res.json();
-                if (res.ok) {
-                    markCardCancelled(card);
-                    if (data.notify) data.notify.forEach(u => window.open(u, '_blank'));
-                } else {
-                    alert(data.error || 'Cancel failed');
-                }
-            };
-            buttonDiv.appendChild(cancelBtn);
-
             // FIX: complete passes bookingId + type, shows badge in place
             const completeBtn = document.createElement('button');
             completeBtn.classList.add('small-button');
@@ -837,26 +784,6 @@
             msgBtn.textContent = 'Message';
             msgBtn.onclick = () => { window.location.href = `mailto:${item.ownerEmail}`; };
             buttonDiv.appendChild(msgBtn);
-
-            // FIX: cancel leaves group meeting (uses leave endpoint) then shows badge
-            const cancelBtn = document.createElement('button');
-            cancelBtn.classList.add('small-button-red');
-            cancelBtn.textContent = 'Cancel';
-            cancelBtn.onclick = async () => {
-                if (!confirm('Leave this group meeting?')) return;
-                const res = await fetch(`${API_BASE}/api/bookings/group/${item._id}/leave`, {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                    body: JSON.stringify({ userId: id })
-                });
-                if (res.ok) {
-                    markCardCancelled(card);
-                } else {
-                    const d = await res.json();
-                    alert(d.error || 'Cancel failed');
-                }
-            };
-            buttonDiv.appendChild(cancelBtn);
 
             // FIX: complete passes type: TYPE2 so controller routes to appointments collection
             const completeBtn = document.createElement('button');
