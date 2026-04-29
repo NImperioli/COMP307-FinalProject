@@ -500,24 +500,21 @@
         <div class="modal-box">
             <button class="modal-close" onclick="closeRecurringModal()">&#10005;</button>
             <h2>Create Recurring Slots</h2>
-            <p>Set your office availabilities.</p>
+            <p>Define your weekly time slots, then choose how many weeks to repeat.</p>
 
             <div class="form-group">
-                <label for="recurTitle">Title</label>
-                <input type="text" id="recurTitle" placeholder="e.g. Office Hours" />
+            <label for="recurWeeks">Number of weeks to repeat</label>
+            <input type="number" id="recurWeeks" min="1" placeholder="e.g. 3" />
             </div>
-            <div class="form-group">
-                <label for="recurStart">Start</label>
-                <input type="datetime-local" id="recurStart" />
-            </div>
-            <div class="form-group">
-                <label for="recurEnd">End</label>
-                <input type="datetime-local" id="recurEnd" />
-            </div>
-            <div class="form-group">
-                <label for="recurWeeks">Number of weeks</label>
-                <input type="number" id="recurWeeks" min="1" />
-            </div>
+
+            <h3 class="section-title">Week Template (slots for 1 week)</h3>
+
+            <!-- Dynamic slot rows injected here -->
+            <div id="recurSlotRows"></div>
+
+            <button type="button" class="modal-submit"
+            style="background:#333;margin-bottom:10px;"
+            onclick="addRecurSlotRow()">+ Add Another Slot</button>
 
             <button class="modal-submit" id="recurSubmitBtn">Create Recurring Slots</button>
         </div>
@@ -906,19 +903,89 @@
         /* ─────────────────────────────────────────────
            CREATE GROUP MEETING MODAL
         ───────────────────────────────────────────── */
-        function openCreateModal() {
-            document.getElementById('meetingTitle').value = '';
-            document.getElementById('opensAt').value      = '';
-            document.getElementById('closesAt').value     = '';
-            document.getElementById('slot1').value        = '';
-            document.getElementById('slot2').value        = '';
-            document.getElementById('slot3').value        = '';
-            document.getElementById('createModal').classList.add('active');
+
+        let recurRowCount = 0;
+
+        function addRecurSlotRow() {
+        recurRowCount++;
+        const n = recurRowCount;
+        const container = document.getElementById('recurSlotRows');
+
+        const row = document.createElement('div');
+        row.id = `recurRow_${n}`;
+        row.style.cssText = 'padding:16px;border-radius:12px;margin-bottom:12px;' +
+            'box-shadow:0 3px 8px rgba(0,0,0,0.08);position:relative;';
+
+        row.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <strong style="font-size:15px;">Slot ${n}</strong>
+            <button type="button" onclick="removeRecurRow(${n})"
+                style="background:none;border:none;color:#ed1b2f;cursor:pointer;font-size:18px;">✕</button>
+            </div>
+            <div class="form-group">
+            <label>Title</label>
+            <input type="text" id="recurTitle_${n}" placeholder="e.g. Monday Office Hours" />
+            </div>
+            <div class="form-group">
+            <label>Start (first week)</label>
+            <input type="datetime-local" id="recurStart_${n}" />
+            </div>
+            <div class="form-group">
+            <label>End (first week)</label>
+            <input type="datetime-local" id="recurEnd_${n}" />
+            </div>
+        `;
+        container.appendChild(row);
         }
 
-        function closeCreateModal() {
-            document.getElementById('createModal').classList.remove('active');
+        function removeRecurRow(n) {
+        document.getElementById(`recurRow_${n}`)?.remove();
         }
+
+        function openRecurringModal() {
+        recurRowCount = 0;
+        document.getElementById('recurSlotRows').innerHTML = '';
+        document.getElementById('recurWeeks').value = '';
+        addRecurSlotRow(); // start with one row
+        document.getElementById('recurringModal').classList.add('active');
+        }
+
+        document.getElementById('recurSubmitBtn').onclick = async () => {
+        const weeks = parseInt(document.getElementById('recurWeeks').value);
+        if (!weeks || weeks < 1) return alert('Please enter a valid number of weeks.');
+
+        const rows = document.querySelectorAll('[id^="recurRow_"]');
+        if (rows.length === 0) return alert('Add at least one slot.');
+
+        const weeklySlots = [];
+        for (const row of rows) {
+            const n = row.id.split('_')[1];
+            const title = document.getElementById(`recurTitle_${n}`).value.trim();
+            const start = document.getElementById(`recurStart_${n}`).value;
+            const end   = document.getElementById(`recurEnd_${n}`).value;
+            if (!title || !start || !end) return alert(`Slot ${n}: fill all fields.`);
+            if (new Date(end) <= new Date(start)) return alert(`Slot ${n}: end must be after start.`);
+            weeklySlots.push({
+            title,
+            startTime: new Date(start).toISOString(),
+            endTime:   new Date(end).toISOString()
+            });
+        }
+
+        const response = await fetch(`${API_BASE}/api/slots/recurring`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+            body: JSON.stringify({ ownerId: id, weeklySlots, weeks })
+        });
+        const data = await response.json();
+        if (response.ok) {
+            closeRecurringModal();
+            alert(`Created ${data.insertedCount} slots across ${weeks} week(s).\nGroup ID: ${data.groupToken}`);
+            await renderAll();
+        } else {
+            alert(data.error);
+        }
+        };
 
         document.getElementById('createSubmitBtn').onclick = async () => {
             const title   = document.getElementById('meetingTitle').value.trim();
