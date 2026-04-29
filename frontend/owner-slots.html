@@ -356,7 +356,7 @@
                         'Content-Type': 'application/json',
                         'Authorization': 'Bearer ' + token
                     },
-                    body: JSON.stringify({ slotIds })
+                    body: JSON.stringify({ slotIds, userId: id })
                     });
                     const reservedMap = await checkRes.json();
 

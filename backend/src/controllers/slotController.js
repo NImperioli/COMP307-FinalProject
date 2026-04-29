@@ -370,11 +370,34 @@ exports.exportReservationsICS = async (req, res) => {
 
 exports.checkReservations = async (req, res) => {
   try {
-    const { slotIds } = req.body;
+    const { slotIds, userId } = req.body;
     if (!Array.isArray(slotIds) || slotIds.length === 0) return res.json({});
+
+    const db = require("../config/db").getDB();
+    const { ObjectId } = require("mongodb");
+    const toOid = (v) => { try { return new ObjectId(v); } catch { return null; } };
+
+    // Fetch slot types so recurring slots are handled differently
+    const slotOids = slotIds.map(toOid).filter(Boolean);
+    const slots = await db.collection("slots").find({ _id: { $in: slotOids } }).toArray();
+    const slotTypeMap = new Map(slots.map(s => [s._id.toString(), s.type]));
+
     const reservations = await findActiveReservationsBySlotIds(slotIds);
     const result = {};
-    for (const [slotId] of reservations) result[slotId] = true;
+
+    for (const [slotId, reservation] of reservations) {
+      const slotType = slotTypeMap.get(slotId);
+      if (slotType === "recurring") {
+        // Only block this specific user if they've already booked it
+        if (userId && reservation.userId && reservation.userId.toString() === userId.toString()) {
+          result[slotId] = true;
+        }
+      } else {
+        // Single slots: any reservation blocks everyone
+        result[slotId] = true;
+      }
+    }
+
     return res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
