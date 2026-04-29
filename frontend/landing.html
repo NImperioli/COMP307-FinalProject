@@ -21,86 +21,73 @@
             font-family: "Outfit", sans-serif;
         }
 
-body {
-    min-height: 100vh;
-    background: url('Images/landing_bg.jpg') center/cover no-repeat;
+        body {
+            min-height: 100vh;
+            background: url('Images/landing_bg.jpg') center/cover no-repeat;
+            padding: 28px 14px 24px 14px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
 
-    padding: 28px 14px 24px 14px;
+        body::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: linear-gradient(
+                to left,
+                transparent 40%,
+                rgba(248, 68, 68, 0.75) 100%
+            );
+            opacity: 0.7;
+            animation: breatheRed 3s ease-in-out infinite;
+            z-index: 0;
+        }
 
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
+        body > * {
+            position: relative;
+            z-index: 1;
+        }
 
-    position: relative;
-    overflow: hidden;
-}
-
-body::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-
-    background: linear-gradient(
-        to left,
-        transparent 40%,
-        rgba(248, 68, 68, 0.75) 100%
-    );
-
-    opacity: 0.7;
-    animation: breatheRed 3s ease-in-out infinite;
-    z-index: 0;
-}
-
-body > * {
-    position: relative;
-    z-index: 1;
-}
-
-@keyframes breatheRed {
-    0% {
-        opacity: 0.45;
-    }
-
-    50% {
-        opacity: 0.85;
-    }
-
-    100% {
-        opacity: 0.45;
-    }
-}
-
-
-        
+        @keyframes breatheRed {
+            0%   { opacity: 0.45; }
+            50%  { opacity: 0.85; }
+            100% { opacity: 0.45; }
+        }
 
         .top-bar {
-    width: calc(100% - 40px);
-    margin: 20px;
-
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    background: rgba(255, 255, 255, 0.88);
-    backdrop-filter: blur(12px);
-
-    padding: 16px 28px;
-    position: absolute;
-    top: 0;
-    left: 0;
-
-    border-radius: 22px;
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.16);
-
-    z-index: 2;
-}
-
+            width: calc(100% - 40px);
+            margin: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(12px);
+            padding: 16px 28px;
+            position: absolute;
+            top: 0;
+            left: 0;
             border-radius: 22px;
             box-shadow: 0 12px 35px rgba(0, 0, 0, 0.16);
-
             z-index: 2;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 800;
+            color: rgb(237, 27, 47);
+            text-decoration: none;
+            letter-spacing: 1px;
+        }
+
+        .top-buttons {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
         .top-button {
@@ -117,33 +104,27 @@ body > * {
 
         .top-button:hover {
             background: rgb(237, 27, 47);
-            
         }
 
         .hero-section {
-    width: 100%;
-    max-width: 470px;
-    min-height: 430px;
-    text-align: center;
-
-    background: rgba(255, 255, 255, 0.92);
-    backdrop-filter: blur(12px);
-
-    border: 1px solid rgba(255, 255, 255, 0.6);
-    border-radius: 32px;
-    padding: 46px;
-
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-
-    position: absolute;
-    left: 125px;
-
-    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
-    z-index: 1;
-}
+            width: 100%;
+            max-width: 470px;
+            min-height: 430px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 32px;
+            padding: 46px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: absolute;
+            left: 125px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
+            z-index: 1;
+        }
 
         .hero-section h1 {
             font-size: 36px;
@@ -164,84 +145,31 @@ body > * {
             gap: 14px;
         }
 
-       .hero-button {
-    min-width: 140px;
-    height: 48px;
-    padding: 0 24px;
-
-    background: rgb(0, 0, 0);
-    border: none;
-    border-radius: 999px;
-
-    color: white;
-    font-size: 14px;
-    font-weight: 600;
-
-    cursor: pointer;
-    transition: 0.25s ease;
-}
-
-       .hero-button:hover {
-    background: rgb(237, 27, 47);
-    transform: translateY(-3px);
-    box-shadow: 0 10px 24px rgba(237, 27, 47, 0.35);
-}
-
-        .bottom-cards {
-            width: 100%;
-            display: flex;
-            gap: 18px;
+        .hero-button {
+            min-width: 140px;
+            height: 48px;
+            padding: 0 24px;
+            background: rgb(0, 0, 0);
+            border: none;
+            border-radius: 999px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.25s ease;
         }
 
-        .card {
-            flex: 1;
-            background: rgb(255, 255, 255);
-            border-radius: 24px;
-            box-shadow: 0px 5px 14px 1px rgb(220, 220, 220);
-            padding: 24px 24px 22px 24px;
+        .hero-button:hover {
+            background: rgb(237, 27, 47);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 24px rgba(237, 27, 47, 0.35);
         }
-
-        .card h3 {
-            font-size: 18px;
-            margin-bottom: 8px;
-            color: rgb(0, 0, 0);
-        }
-
-        .card p {
-            font-size: 15px;
-            color: rgb(50, 50, 50);
-            line-height: 1.5;
-        }
-
-        .logo {
-    font-size: 28px;
-    font-weight: 800;
-    color: rgb(237, 27, 47);
-    text-decoration: none;
-    letter-spacing: 1px;
-    position: relative;
-}
-
-
-
-
-.logo span {
-    color: rgb(237, 27, 47);
-}
-
-.top-buttons {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
     </style>
 </head>
 
 <body>
     <div class="top-bar">
         <div class="logo">MyBookings</div>
-
         <div class="top-buttons" id="top-buttons">
             <button class="top-button" id="login-btn" onclick="window.location.href='login.html'">Login</button>
         </div>
@@ -252,39 +180,33 @@ body > * {
         <p>
             Book office hours, request meetings, and manage recurring appointments in one simple place.
         </p>
-
         <div class="hero-buttons" id="hero-buttons">
             <button class="hero-button" id="register-btn" onclick="window.location.href='register.html'">Get Started</button>
-            <button class="hero-button" id="dashboard-btn" onclick="window.location.href='dashboard.html'" style="display:none">Dashboard</button>            
+            <button class="hero-button" id="dashboard-btn" onclick="window.location.href='dashboard.html'" style="display:none">Dashboard</button>
         </div>
     </div>
 
-    <!--- Annie Huynh 261182881--->
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            showCorrectButtons();
-        });
-
         const API_BASE = '';
-        // Read the JWT from localStorage
         const token = localStorage.getItem('token');
         const name = localStorage.getItem('name');
 
-        function showCorrectButtons(){
-            if (localStorage.getItem('token')){ //logged in
+        function showCorrectButtons() {
+            if (localStorage.getItem('token')) {
                 document.getElementById('login-btn').style.display = 'none';
                 document.getElementById('register-btn').style.display = 'none';
                 document.getElementById('dashboard-btn').style.display = '';
                 const topCorner = document.getElementById('top-buttons');
-                const userName = document.createTextNode(name);
+                const userName = document.createTextNode(name || '');
                 topCorner.appendChild(userName);
-            }
-            else{ //not logged in
+            } else {
                 document.getElementById('login-btn').style.display = '';
                 document.getElementById('register-btn').style.display = '';
                 document.getElementById('dashboard-btn').style.display = 'none';
             }
         }
+
+        document.addEventListener("DOMContentLoaded", showCorrectButtons);
     </script>
 </body>
 </html>

@@ -14,7 +14,7 @@
     <title>Owner Slots</title>
 
     <style>
-        *{
+        * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
@@ -56,9 +56,7 @@
             transition: .3s;
         }
 
-        .back-button:hover {
-            background: rgb(237, 27, 47);
-        }
+        .back-button:hover { background: rgb(237, 27, 47); }
 
         .owner-info {
             margin-bottom: 28px;
@@ -108,53 +106,52 @@
             transition: .3s;
         }
 
-        .reserve-button:hover {
-            background: rgb(237, 27, 47);
+        .reserve-button:hover { background: rgb(237, 27, 47); }
+
+        .type-badge {
+            display: inline-block;
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 8px;
         }
 
+        .badge-slot  { background: rgb(220,255,220); color: rgb(30,130,30); }
+        .badge-group { background: rgb(230,240,255); color: rgb(30,80,180); }
 
-.wave-bg {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 200%;
-    height: 480px;
-    overflow: hidden;
-    z-index: 0;
-    pointer-events: none;
-    animation: waveMove 12s linear infinite;
-}
+        .wave-bg {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 200%;
+            height: 480px;
+            overflow: hidden;
+            z-index: 0;
+            pointer-events: none;
+            animation: waveMove 12s linear infinite;
+        }
 
-.wave-svg {
-    width: 100%;
-    height: 100%;
-    display: block;
-}
+        .wave-svg { width: 100%; height: 100%; display: block; }
 
-.wave-back {
-    bottom: -40px;
-    height: 620px;
-    opacity: 0.45;
-    animation-duration: 18s;
-}
+        .wave-back {
+            bottom: -40px;
+            height: 620px;
+            opacity: 0.45;
+            animation-duration: 18s;
+        }
 
-.wave-back .wave-svg {
-    transform: scaleY(1.2);   /* makes it taller */
-    transform-origin: bottom; /* grows upward */
-}
+        .wave-back .wave-svg {
+            transform: scaleY(1.2);
+            transform-origin: bottom;
+        }
 
-@keyframes waveMove {
-    from {
-        transform: translateX(0);
-    }
-    to {
-        transform: translateX(-50%);
-    }
-}
-
-
-
-
+        @keyframes waveMove {
+            from { transform: translateX(0); }
+            to   { transform: translateX(-50%); }
+        }
 
         /* Modal - Annie Huynh */
         .modal-overlay {
@@ -170,9 +167,7 @@
             align-items: center;
         }
 
-        .modal-overlay.active {
-            display: flex;
-        }
+        .modal-overlay.active { display: flex; }
 
         .modal-box {
             background: white;
@@ -196,9 +191,7 @@
             color: black;
         }
 
-        .modal-close:hover {
-            color: rgb(237, 27, 47);
-        }
+        .modal-close:hover { color: rgb(237, 27, 47); }
 
         .modal-title {
             font-size: 28px;
@@ -237,9 +230,7 @@
             transition: .3s;
         }
 
-        #voteSlotsList button:hover {
-            background: rgb(237, 27, 47);
-        }
+        #voteSlotsList button:hover { background: rgb(237, 27, 47); }
 
         .voted-label {
             display: inline-block;
@@ -255,7 +246,7 @@
 </head>
 
 <body>
-   <h6><a href="landing.html" style="text-decoration: none;">MyBookings</a></h6>
+    <h6><a href="landing.html" style="text-decoration:none;">MyBookings</a></h6>
 
     <div class="page-header">
         <h1>Available Slots</h1>
@@ -270,7 +261,7 @@
 
     <!-- Vote for meeting time - Annie Huynh -->
     <div class="modal-overlay" id="voteModal">
-        <div class="modal-box">    
+        <div class="modal-box">
             <button class="modal-close" onclick="closeVoteModal()">&#10005;</button>
             <h2 class="modal-title">Vote for a Meeting Time</h2>
             <div id="voteSlotsList"></div>
@@ -279,22 +270,19 @@
 
     <script>
         const API_BASE = '';
-        const id = localStorage.getItem('user._id');
-        const email = localStorage.getItem('email');
-        const role = localStorage.getItem('role');
+        const id       = localStorage.getItem('user._id');
+        const email    = localStorage.getItem('email');
+        const role     = localStorage.getItem('role');
+        const token    = localStorage.getItem('token');
 
-         
-        // read token and redirect if its missing
-        const token = localStorage.getItem('token');
         if (!token) {
             window.location.href = 'login.html';
         }
-            */
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const ownerId = urlParams.get('ownerId');
+        const urlParams   = new URLSearchParams(window.location.search);
+        const ownerId     = urlParams.get('ownerId');
         const inviteToken = urlParams.get('token');
-        const ownerName = urlParams.get('ownerName');
+        const ownerName   = urlParams.get('ownerName');
 
         if (!ownerId && !inviteToken) {
             window.location.href = 'browse-owners.html';
@@ -330,23 +318,17 @@
                 slotsList.appendChild(heading);
             }
 
-            for (const slot of data) {
+            for (const slot of (Array.isArray(data) ? data : [])) {
                 renderSlotCard(slot);
             }
 
-            // FIX 5: Load group meetings for ALL authenticated users (not just owners)
             if (ownerId) {
                 await loadGroupMeetings();
             }
         }
 
-        loadSlots();
-
         async function loadGroupMeetings() {
-            // Try fetching owner appointments works if backend uses authenticateAnyToken
-            // If it returns 403, fall back gracefully
             let openMeetings = [];
-
             try {
                 const response = await fetch(`${API_BASE}/api/bookings/appointments/owner/${ownerId}`, {
                     headers: { 'Authorization': 'Bearer ' + token }
@@ -354,12 +336,9 @@
 
                 if (response.ok) {
                     const data = await response.json();
-                    // Show group meetings still collecting votes
                     openMeetings = (data.type2 || []).filter(b => b.status === 'collecting_votes');
                 } else if (response.status === 403) {
-                    // Student hitting owner-only endpoint — backend fix needed
-                    // Silently skip rather than show error
-                    console.warn('Group meetings endpoint requires owner token — ask admin to update route to authenticateAnyToken');
+                    console.warn('Group meetings endpoint requires owner token.');
                     return;
                 }
             } catch (e) {
@@ -387,17 +366,15 @@
                 title.textContent = meeting.title || 'Group Meeting';
                 card.appendChild(title);
 
-                const window_open = new Date(meeting.opensAt).toLocaleString();
-                const window_close = new Date(meeting.closesAt).toLocaleString();
                 const period = document.createElement('p');
-                period.textContent = `Voting window: ${window_open} → ${window_close}`;
+                period.textContent = `Voting window: ${new Date(meeting.opensAt).toLocaleString()} → ${new Date(meeting.closesAt).toLocaleString()}`;
                 card.appendChild(period);
 
                 const now = new Date();
                 const isOpen = now >= new Date(meeting.opensAt) && now <= new Date(meeting.closesAt);
                 const statusP = document.createElement('p');
                 statusP.textContent = isOpen ? '✅ Voting is currently open' : '⏳ Voting window not active';
-                statusP.style.color = isOpen ? 'rgb(30, 130, 30)' : 'rgb(150, 100, 0)';
+                statusP.style.color = isOpen ? 'rgb(30,130,30)' : 'rgb(150,100,0)';
                 card.appendChild(statusP);
 
                 if (isOpen) {
@@ -426,18 +403,15 @@
             newDiv.appendChild(heading);
 
             const time = document.createElement("p");
-            const startTime = new Date(slot.startTime).toLocaleString();
-            const endTime = new Date(slot.endTime).toLocaleString();
-            time.textContent = "Time: " + startTime + " — " + endTime;
+            time.textContent = "Time: " + new Date(slot.startTime).toLocaleString() + " — " + new Date(slot.endTime).toLocaleString();
             newDiv.appendChild(time);
 
             const buttonDiv = document.createElement("div");
 
-            const reserveSlot = document.createElement("button");
-            reserveSlot.classList.add("reserve-button");
-            reserveSlot.textContent = "Reserve Slot";
-            buttonDiv.appendChild(reserveSlot);
-            reserveSlot.onclick = async () => {
+            const reserveBtn = document.createElement("button");
+            reserveBtn.classList.add("reserve-button");
+            reserveBtn.textContent = "Reserve Slot";
+            reserveBtn.onclick = async () => {
                 const response = await fetch(`${API_BASE}/api/slots/reserve`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
@@ -445,36 +419,32 @@
                 });
                 const data = await response.json();
                 if (response.ok) {
-                    if (data.notifyOwner) {
-                        window.location.href = data.notifyOwner;
-                    }
-                    window.location.href = 'dashboard.html';
+                    if (data.notifyOwner) window.location.href = data.notifyOwner;
+                    else window.location.href = 'dashboard.html';
                 } else {
                     alert(data.error);
                 }
             };
+            buttonDiv.appendChild(reserveBtn);
 
             const messageOwner = document.createElement("button");
             messageOwner.classList.add("reserve-button");
             messageOwner.textContent = "Message Owner";
-            buttonDiv.appendChild(messageOwner);
             messageOwner.onclick = async () => {
                 const response = await fetch(`${API_BASE}/api/slots/${slot._id}/message-owner`, {
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
                 const data = await response.json();
-                if (response.ok) {
-                    window.location.href = data.mailto;
-                } else {
-                    alert(data.error);
-                }
+                if (response.ok) window.location.href = data.mailto;
+                else alert(data.error);
             };
+            buttonDiv.appendChild(messageOwner);
 
             newDiv.appendChild(buttonDiv);
             slotsList.appendChild(newDiv);
         }
 
-        // Voting modal
+        /* ── Voting modal ── */
         let voteBookingId = null;
 
         function openVoteModal(bookingId) {
@@ -494,14 +464,17 @@
             const data = await response.json();
             const list = document.getElementById('voteSlotsList');
             list.innerHTML = '';
+
             if (!response.ok) {
                 list.innerHTML = `<p style="color:red">${data.error || 'Failed to load vote slots'}</p>`;
                 return;
             }
+
             if (!Array.isArray(data) || data.length === 0) {
                 list.innerHTML = '<p style="color:gray">No time slots available to vote on.</p>';
                 return;
             }
+
             for (const slot of data) renderVoteSlot(slot);
         }
 
@@ -517,7 +490,6 @@
             votes.textContent = "Current votes: " + slot.votes;
             newDiv.appendChild(votes);
 
-            // FIX 5: Check if user already voted for this slot
             const alreadyVoted = slot.voters && slot.voters.includes(id);
 
             if (alreadyVoted) {
@@ -548,10 +520,12 @@
             list.appendChild(newDiv);
         }
 
-        // auto-open vote modal if URL has openVote=true
+        // Auto-open vote modal if URL has openVote=true
         if (urlParams.get('openVote') === 'true' && urlParams.get('bookingId')) {
             openVoteModal(urlParams.get('bookingId'));
         }
+
+        loadSlots();
     </script>
 </body>
 </html>

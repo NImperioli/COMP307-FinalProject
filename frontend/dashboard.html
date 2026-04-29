@@ -14,7 +14,7 @@
     <title>Dashboard</title>
 
     <style>
-        *{
+        * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
@@ -22,128 +22,94 @@
         }
 
         body {
-    min-height: 100vh;
-    background: rgb(255, 255, 255);
-    padding: 200px 40px 30px 40px;
-    position: relative;
-    overflow-x: hidden;
-}
-
-body::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-
-   
-
-    z-index: 1;
-}
-
-.top-bar {
-    width: calc(100% - 40px);
-    margin: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: rgba(255, 255, 255, 0.88);
-    backdrop-filter: blur(12px);
-    padding: 16px 28px;
-    position: absolute;
-    top: 0;
-    left: 0;
-    border-radius: 22px;
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.16);
-    z-index: 5;
-}
-
- .logo {
-    font-size: 28px;
-    font-weight: 800;
-    color: rgb(237, 27, 47);
-    text-decoration: none;
-    letter-spacing: 1px;
-    position: relative;
-}
-
-
-.logo:hover {
-    opacity: 0.8;
-}
-
-.logo span {
-    color: rgb(237, 27, 47);
-}
-
-.top-buttons {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.top-buttons {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.top-button {
-    min-width: 100px;
-    height: 44px;
-
-    background: black;
-    border: none;
-    border-radius: 999px;
-
-    color: white;
-    font-weight: 600;
-    cursor: pointer;
-
-    transition: 0.25s ease;
-}
-
-.top-button:hover {
-    background: rgb(237, 27, 47);
-    transform: translateY(-2px);
-}
-        
-        h6 {
-            text-align: center;
-            font-size: 14px;
-            margin-bottom: 30px;
+            min-height: 100vh;
+            background: rgb(255, 255, 255);
+            padding: 200px 40px 30px 40px;
+            position: relative;
+            overflow-x: hidden;
         }
 
-        .dashboard-header {
+        .top-bar {
+            width: calc(100% - 40px);
+            margin: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 35px;
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(12px);
+            padding: 16px 28px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            border-radius: 22px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.16);
+            z-index: 5;
         }
 
-        .dashboard-header h1 {
-            font-size: 42px;
+        .logo {
+            font-size: 28px;
+            font-weight: 800;
             color: rgb(237, 27, 47);
+            text-decoration: none;
+            letter-spacing: 1px;
         }
 
-        .logout-button {
-            width: 130px;
-            height: 50px;
-            background: rgb(0, 0, 0);
+        .logo:hover { opacity: 0.8; }
+
+        .top-buttons {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .top-button {
+            min-width: 100px;
+            height: 44px;
+            background: black;
             border: none;
-            border-radius: 30px;
+            border-radius: 999px;
             color: white;
+            font-weight: 600;
             cursor: pointer;
-            transition: .3s;
+            transition: 0.25s ease;
         }
 
-        .logout-button:hover {
+        .top-button:hover {
             background: rgb(237, 27, 47);
+            transform: translateY(-2px);
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 35px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .page-header h1 {
+            font-size: 42px;
+            color: black;
+            position: relative;
+        }
+
+        .page-header h1::after {
+            content: "";
+            display: block;
+            width: 200px;
+            height: 3px;
+            background: rgb(237, 27, 47);
+            margin: 1px auto 0;
+            border-radius: 2px;
         }
 
         .dashboard-grid {
             display: flex;
             gap: 25px;
             align-items: flex-start;
+            position: relative;
+            z-index: 2;
         }
 
         .left-panel {
@@ -186,7 +152,6 @@ body::after {
             margin-bottom: 6px;
         }
 
-        /* Type badges */
         .type-badge {
             display: inline-block;
             padding: 3px 12px;
@@ -197,9 +162,10 @@ body::after {
             letter-spacing: 0.04em;
             margin-bottom: 8px;
         }
-        .badge-slot   { background: rgb(220, 255, 220); color: rgb(30, 130, 30); }
-        .badge-req    { background: rgb(255, 240, 200); color: rgb(150, 80, 0); }
-        .badge-group  { background: rgb(230, 240, 255); color: rgb(30, 80, 180); }
+
+        .badge-slot  { background: rgb(220, 255, 220); color: rgb(30, 130, 30); }
+        .badge-req   { background: rgb(255, 240, 200); color: rgb(150, 80, 0); }
+        .badge-group { background: rgb(230, 240, 255); color: rgb(30, 80, 180); }
 
         .card-actions {
             margin-top: 14px;
@@ -220,9 +186,7 @@ body::after {
             font-size: 14px;
         }
 
-        .small-button:hover {
-            background: rgb(237, 27, 47);
-        }
+        .small-button:hover { background: rgb(237, 27, 47); }
 
         .small-button-red {
             height: 42px;
@@ -236,9 +200,7 @@ body::after {
             font-size: 14px;
         }
 
-        .small-button-red:hover {
-            background: rgb(237, 27, 47);
-        }
+        .small-button-red:hover { background: rgb(237, 27, 47); }
 
         .action-button {
             width: 100%;
@@ -251,125 +213,63 @@ body::after {
             margin-bottom: 14px;
             transition: .3s;
             font-size: 15px;
+            position: relative;
+            overflow: hidden;
         }
 
-        .action-button:hover {
-            background: rgb(237, 27, 47);
+        .action-button:hover { background: rgb(237, 27, 47); }
+
+        .action-button::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(120deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: 0.5s;
         }
 
-        h6 a {
-            text-decoration: none;  
-            color: black;            
-            font-weight: 600;        
+        .action-button:hover::after { left: 100%; }
+
+        .wave-bg {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 200%;
+            height: 480px;
+            overflow: hidden;
+            z-index: 0;
+            pointer-events: none;
+            animation: waveMove 12s linear infinite;
         }
 
-        h6 a:hover {
-             color: rgb(237, 27, 47); 
+        .wave-svg { width: 100%; height: 100%; display: block; }
+
+        .wave-back {
+            bottom: -40px;
+            height: 620px;
+            opacity: 0.45;
+            animation-duration: 18s;
         }
 
-        .view-button {
-    position: relative;
-    overflow: hidden;
-}
+        .wave-back .wave-svg {
+            transform: scaleY(1.2);
+            transform-origin: bottom;
+        }
 
-.action-button,
-.view-button {
-    position: relative;
-    overflow: hidden;
-}
+        @keyframes waveMove {
+            from { transform: translateX(0); }
+            to   { transform: translateX(-50%); }
+        }
 
-.action-button::after,
-.view-button::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(120deg, transparent, rgba(255,255,255,0.4), transparent);
-    transition: 0.5s;
-}
+        .empty-state {
+            color: gray;
+            text-align: center;
+            padding: 20px;
+        }
 
-.action-button:hover::after,
-.view-button:hover::after {
-    left: 100%;
-}
-
-.wave-bg {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 200%;
-    height: 480px;
-    overflow: hidden;
-    z-index: 0;
-    pointer-events: none;
-    animation: waveMove 12s linear infinite;
-}
-
-.wave-svg {
-    width: 100%;
-    height: 100%;
-    display: block;
-}
-
-.wave-back {
-    bottom: -40px;
-    height: 620px;
-    opacity: 0.45;
-    animation-duration: 18s;
-}
-
-.wave-back .wave-svg {
-    transform: scaleY(1.2);   /* makes it taller */
-    transform-origin: bottom; /* grows upward */
-}
-
-@keyframes waveMove {
-    from {
-        transform: translateX(0);
-    }
-    to {
-        transform: translateX(-50%);
-    }
-}
-
-.dashboard-grid,
-.left-panel,
-.right-panel {
-    position: relative;
-    z-index: 2;
-}
-
-.page-header {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 35px;
-}
-
-.page-header h1 {
-    font-size: 42px;
-    color: rgb(0, 0, 0);
-}
-
-.page-header h1 {
-    font-size: 42px;
-    color: black;
-    position: relative;
-}
-
-.page-header h1::after {
-    content: "";
-    display: block;
-    width: 200px;
-    height: 3px;
-    background: rgb(237, 27, 47);
-    margin: 1px auto 0;
-    border-radius: 2px;
-}
-
-        /* Modal - Annie Huynh */
+        /* Modals - Annie Huynh */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -383,9 +283,7 @@ body::after {
             align-items: center;
         }
 
-        .modal-overlay.active {
-            display: flex;
-        }
+        .modal-overlay.active { display: flex; }
 
         .modal-box {
             background: white;
@@ -409,9 +307,7 @@ body::after {
             color: black;
         }
 
-        .modal-close:hover {
-            color: rgb(237, 27, 47);
-        }
+        .modal-close:hover { color: rgb(237, 27, 47); }
 
         .request-card {
             padding: 18px;
@@ -437,66 +333,54 @@ body::after {
             margin-top: 8px;
         }
 
-        .accept-button { background: rgb(0, 0, 0); }
-        .accept-button:hover { background: rgb(237, 27, 47); }
-        .decline-button { background: rgb(150, 150, 150); }
-        .decline-button:hover { background: rgb(237, 27, 47); }
+        .accept-button          { background: rgb(0, 0, 0); }
+        .accept-button:hover    { background: rgb(237, 27, 47); }
+        .decline-button         { background: rgb(150, 150, 150); }
+        .decline-button:hover   { background: rgb(237, 27, 47); }
     </style>
 </head>
 
 <body>
-
     <div class="wave-bg wave-back">
-    <svg class="wave-svg" viewBox="0 0 2880 320" preserveAspectRatio="none">
-        <path fill="rgb(237, 27, 47)" fill-opacity="0.3"
-d="M0,180 
-   C240,150 480,210 720,180 
-   C960,150 1200,210 1440,180 
-   C1680,150 1920,210 2160,180 
-   C2400,150 2640,210 2880,180 
-   L2880,320 L0,320 Z">
-</path>
-    </svg>
-</div>
-
-   <div class="wave-bg">
-    <svg class="wave-svg" viewBox="0 0 2880 320" preserveAspectRatio="none">
-        <path fill="rgb(237, 27, 47)" fill-opacity="0.8"
-d="M0,180 
-   C240,150 480,210 720,180 
-   C960,150 1200,210 1440,180 
-   C1680,150 1920,210 2160,180 
-   C2400,150 2640,210 2880,180 
-   L2880,320 L0,320 Z">
-</path>
-    </svg>
-</div>
-   
-<div class="top-bar">
-    <a href="landing.html" class="logo">MyBookings</a>
-
-    <div class="top-buttons">
-        <span id="user-name"></span>
-        <button class="top-button" onclick="logout()">Logout</button>
+        <svg class="wave-svg" viewBox="0 0 2880 320" preserveAspectRatio="none">
+            <path fill="rgb(237, 27, 47)" fill-opacity="0.3"
+                d="M0,180 C240,150 480,210 720,180 C960,150 1200,210 1440,180 C1680,150 1920,210 2160,180 C2400,150 2640,210 2880,180 L2880,320 L0,320 Z">
+            </path>
+        </svg>
     </div>
-</div>
-   <div class="page-header">
-    <h1>Dashboard</h1>
-</div>
+
+    <div class="wave-bg">
+        <svg class="wave-svg" viewBox="0 0 2880 320" preserveAspectRatio="none">
+            <path fill="rgb(237, 27, 47)" fill-opacity="0.8"
+                d="M0,180 C240,150 480,210 720,180 C960,150 1200,210 1440,180 C1680,150 1920,210 2160,180 C2400,150 2640,210 2880,180 L2880,320 L0,320 Z">
+            </path>
+        </svg>
+    </div>
+
+    <div class="top-bar">
+        <a href="landing.html" class="logo">MyBookings</a>
+        <div class="top-buttons">
+            <span id="user-name"></span>
+            <button class="top-button" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="page-header">
+        <h1>Dashboard</h1>
+    </div>
 
     <div class="dashboard-grid">
         <div class="left-panel">
             <h2 class="panel-title">My Appointments</h2>
             <div id="appointmentsList"></div>
         </div>
-
         <div class="right-panel" id="actions-menu">
             <h2 class="panel-title">Actions</h2>
             <button class="action-button" id="viewRequestsBtn" onclick="openMyRequestsModal()">View My Requests</button>
         </div>
     </div>
 
-    <!-- Owner's pending requests modal - Annie Huynh -->
+    <!-- Owner pending requests modal - Annie Huynh -->
     <div class="modal-overlay" id="pendingModal">
         <div class="modal-box">
             <button class="modal-close" onclick="closePendingModal()">&#10005;</button>
@@ -505,7 +389,7 @@ d="M0,180
         </div>
     </div>
 
-    <!-- Students' request view - Annie Huynh -->
+    <!-- Student request view - Annie Huynh -->
     <div class="modal-overlay" id="myRequestsModal">
         <div class="modal-box">
             <button class="modal-close" onclick="closeMyRequestsModal()">&#10005;</button>
@@ -514,76 +398,54 @@ d="M0,180
         </div>
     </div>
 
-    
     <script>
+        const API_BASE         = '';
+        const token            = localStorage.getItem('token');
+        const role             = localStorage.getItem('role');
+        const name             = localStorage.getItem('name');
+        const id               = localStorage.getItem('user._id');
+        const appointmentsList = document.getElementById('appointmentsList');
+        const actionsBar       = document.getElementById('actions-menu');
 
-function logout() {
-    localStorage.clear();
-    window.location.href = 'landing.html';
-}
-
-// show user name
-document.getElementById('user-name').textContent = name || "";
-
-
-
-<!--- Annie Huynh --->
-        const API_BASE = '';
-        const token = localStorage.getItem('token');
-        const role = localStorage.getItem('role');
-        const name = localStorage.getItem('name');
-        const id = localStorage.getItem('user._id');
-
-        
-        // redirect to login page if token is missing
-        if (!token){
-            window.location.href = 'login.html'
-        }
         if (!token) {
             window.location.href = 'login.html';
         }
-        
-      // fetch call for student and owner
-        async function loadDashboard(){
 
+        document.getElementById('user-name').textContent = name || '';
+
+        /* ── logout ── */
         async function logout() {
             try {
                 await fetch(`${API_BASE}/api/auth/logout`, {
                     method: 'POST',
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
-            } catch (e) {
-                // Even if server call fails, clear local state
-            }
+            } catch (e) { /* ignore network errors on logout */ }
             localStorage.clear();
             window.location.href = 'landing.html';
         }
 
-
+        /* ── main loader ── */
         async function loadDashboard() {
             const url = role === 'owner'
                 ? `${API_BASE}/api/slots/owner/${id}/reservations`
                 : `${API_BASE}/api/slots/my-reservations/${id}`;
 
-            // Reset action buttons (keep only the base one)
+            // Reset dynamic action buttons, keep the static one
             document.querySelectorAll('#actions-menu .action-button').forEach(btn => {
                 if (btn.id !== 'viewRequestsBtn') btn.remove();
             });
 
+            appointmentsList.innerHTML = '';
+
             const response1 = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
             const data1 = await response1.json();
 
-            appointmentsList.innerHTML = '';
-
-            if (!Array.isArray(data1) || data1.length === 0) {
-                // Will be overwritten if bookings exist below
+            if (Array.isArray(data1)) {
+                for (const item of data1) renderCard(item, role);
             }
 
-            for (const item of data1) {
-                renderCard(item, role);
-            }
-
-            // Load Type 1 and Type 2 appointments
+            // Load Type 1 + Type 2 appointments
             const apptUrl = role === 'owner'
                 ? `${API_BASE}/api/bookings/appointments/owner/${id}`
                 : `${API_BASE}/api/bookings/appointments/user/${id}`;
@@ -591,14 +453,9 @@ document.getElementById('user-name').textContent = name || "";
             const response2 = await fetch(apptUrl, { headers: { 'Authorization': 'Bearer ' + token } });
             const data2 = await response2.json();
 
-            for (const item of (data2.type1 || [])) {
-                renderType1Card(item, role);
-            }
-            for (const item of (data2.type2 || [])) {
-                renderType2Card(item);
-            }
+            for (const item of (data2.type1 || [])) renderType1Card(item, role);
+            for (const item of (data2.type2 || [])) renderType2Card(item);
 
-            // Show empty state if nothing at all
             if (appointmentsList.children.length === 0) {
                 const empty = document.createElement('p');
                 empty.classList.add('empty-state');
@@ -606,7 +463,7 @@ document.getElementById('user-name').textContent = name || "";
                 appointmentsList.appendChild(empty);
             }
 
-            // Setup action buttons
+            // Role-specific action buttons
             if (role === 'owner') {
                 document.getElementById('viewRequestsBtn').style.display = 'none';
                 renderAction("Manage Slots", "owner-manage-slots.html");
@@ -626,42 +483,42 @@ document.getElementById('user-name').textContent = name || "";
             }
         }
 
-        function renderAction(name, href) {
-            const new_button = document.createElement("button");
-            new_button.setAttribute("class", "action-button");
-            new_button.setAttribute("onclick", `window.location.href='${href}'`);
-            new_button.innerHTML = name;
-            actionsBar.appendChild(new_button);
+        function renderAction(label, href) {
+            const btn = document.createElement("button");
+            btn.classList.add("action-button");
+            btn.textContent = label;
+            btn.onclick = () => { window.location.href = href; };
+            actionsBar.appendChild(btn);
         }
 
-        // Type 0: Regular reserved slot card
+        /* ── Type 0: regular reserved slot ── */
         function renderCard(item, role) {
             const newDiv = document.createElement("div");
             newDiv.classList.add("appointment-card");
 
             const badge = document.createElement("span");
             badge.classList.add("type-badge", "badge-slot");
-            badge.textContent = item.slot.type === 'recurring' ? 'Recurring Slot' : 'Booking Slot';
+            badge.textContent = item.slot && item.slot.type === 'recurring' ? 'Recurring Slot' : 'Booking Slot';
             newDiv.appendChild(badge);
 
             const buttonDiv = document.createElement("div");
             buttonDiv.classList.add("card-actions");
 
+            const heading = document.createElement("h3");
+            heading.textContent = item.slot ? item.slot.title : '';
+            newDiv.appendChild(heading);
+
+            const time = document.createElement("p");
+            const startTime = item.slot ? new Date(item.slot.startTime).toLocaleString() : '';
+            const endTime   = item.slot ? new Date(item.slot.endTime).toLocaleString()   : '';
+            time.textContent = "Time: " + startTime + " — " + endTime;
+            newDiv.appendChild(time);
+
+            const status = document.createElement("p");
+            status.textContent = "Status: " + (item.slot ? item.slot.status : '');
+            newDiv.appendChild(status);
+
             if (role === 'owner') {
-                const heading = document.createElement("h3");
-                heading.textContent = item.slot.title;
-                newDiv.appendChild(heading);
-
-                const time = document.createElement("p");
-                const startTime = new Date(item.slot.startTime).toLocaleString();
-                const endTime = new Date(item.slot.endTime).toLocaleString();
-                time.textContent = "Time: " + startTime + " — " + endTime;
-                newDiv.appendChild(time);
-
-                const status = document.createElement("p");
-                status.textContent = "Status: " + item.slot.status;
-                newDiv.appendChild(status);
-
                 const bookedBy = document.createElement("p");
                 bookedBy.textContent = "Booked by: " + (item.user ? item.user.email : 'Unknown');
                 newDiv.appendChild(bookedBy);
@@ -669,72 +526,55 @@ document.getElementById('user-name').textContent = name || "";
                 const messageBooker = document.createElement("button");
                 messageBooker.classList.add("small-button");
                 messageBooker.textContent = "Message Booker";
-                buttonDiv.appendChild(messageBooker);
                 messageBooker.onclick = async () => {
-                    const response = await fetch(`${API_BASE}/api/slots/${item.slot._id}/message-booker`, {
+                    const res = await fetch(`${API_BASE}/api/slots/${item.slot._id}/message-booker`, {
                         headers: { 'Authorization': 'Bearer ' + token }
                     });
-                    const data = await response.json();
-                    if (response.ok) window.location.href = data.mailto;
+                    const data = await res.json();
+                    if (res.ok) window.location.href = data.mailto;
                     else alert(data.error);
                 };
+                buttonDiv.appendChild(messageBooker);
             } else {
-                // Student view
-                const heading = document.createElement("h3");
-                heading.textContent = item.slot.title;
-                newDiv.appendChild(heading);
-
-                const time = document.createElement("p");
-                const startTime = new Date(item.slot.startTime).toLocaleString();
-                const endTime = new Date(item.slot.endTime).toLocaleString();
-                time.textContent = "Time: " + startTime + " — " + endTime;
-                newDiv.appendChild(time);
-
-                const status = document.createElement("p");
-                status.textContent = "Status: " + item.slot.status;
-                newDiv.appendChild(status);
-
                 const messageOwner = document.createElement("button");
                 messageOwner.classList.add("small-button");
                 messageOwner.textContent = "Message Owner";
-                buttonDiv.appendChild(messageOwner);
                 messageOwner.onclick = async () => {
-                    const response = await fetch(`${API_BASE}/api/slots/${item.slot._id}/message-owner`, {
+                    const res = await fetch(`${API_BASE}/api/slots/${item.slot._id}/message-owner`, {
                         headers: { 'Authorization': 'Bearer ' + token }
                     });
-                    const data = await response.json();
-                    if (response.ok) window.location.href = data.mailto;
+                    const data = await res.json();
+                    if (res.ok) window.location.href = data.mailto;
                     else alert(data.error);
                 };
+                buttonDiv.appendChild(messageOwner);
 
                 const cancel = document.createElement("button");
                 cancel.classList.add("small-button-red");
                 cancel.textContent = "Cancel Appointment";
-                buttonDiv.appendChild(cancel);
                 cancel.onclick = async () => {
                     if (!confirm("Cancel this appointment?")) return;
-                    const response = await fetch(`${API_BASE}/api/slots/cancel`, {
+                    const res = await fetch(`${API_BASE}/api/slots/cancel`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
                         body: JSON.stringify({ reservationId: item._id, userId: id })
                     });
-                    const data = await response.json();
-                    if (response.ok) {
+                    const data = await res.json();
+                    if (res.ok) {
                         loadDashboard();
-                        if (data.notifyOwner) {
-                            window.location.href = data.notifyOwner;
-                        }
+                        if (data.notifyOwner) window.location.href = data.notifyOwner;
                     } else {
                         alert(data.error);
                     }
                 };
+                buttonDiv.appendChild(cancel);
             }
 
             newDiv.appendChild(buttonDiv);
             appointmentsList.appendChild(newDiv);
         }
 
-        // Type 1: Meeting request card
+        /* ── Type 1: meeting request card ── */
         function renderType1Card(item, role) {
             const newDiv = document.createElement("div");
             newDiv.classList.add("appointment-card");
@@ -767,6 +607,7 @@ document.getElementById('user-name').textContent = name || "";
             appointmentsList.appendChild(newDiv);
         }
 
+        /* ── Type 2: group meeting card ── */
         function renderType2Card(item) {
             const newDiv = document.createElement("div");
             newDiv.classList.add("appointment-card");
@@ -803,20 +644,15 @@ document.getElementById('user-name').textContent = name || "";
                 cancelBtn.textContent = "Cancel Participation";
                 cancelBtn.onclick = async () => {
                     if (!confirm("Cancel your participation in this group meeting?")) return;
-
-                    // Try the leave endpoint if it exists
-                    const appointmentId = item._id;
-                    const response = await fetch(`${API_BASE}/api/bookings/group/${appointmentId}/leave`, {
+                    const res = await fetch(`${API_BASE}/api/bookings/group/${item._id}/leave`, {
                         method: 'DELETE',
                         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
                         body: JSON.stringify({ userId: id })
                     });
-
-                    if (response.ok) {
+                    if (res.ok) {
                         alert("You have been removed from this group meeting.");
                         loadDashboard();
-                    } else if (response.status === 404) {
-                        // Endpoint not yet implemented — fall back to email notification
+                    } else if (res.status === 404) {
                         const mailto = `mailto:${item.ownerEmail}?subject=${encodeURIComponent(
                             `Cancelling participation — "${item.title}"`
                         )}&body=${encodeURIComponent(
@@ -824,7 +660,7 @@ document.getElementById('user-name').textContent = name || "";
                         )}`;
                         window.location.href = mailto;
                     } else {
-                        const data = await response.json().catch(() => ({}));
+                        const data = await res.json().catch(() => ({}));
                         alert(data.error || "Could not cancel participation. Please contact the organizer.");
                     }
                 };
@@ -835,7 +671,7 @@ document.getElementById('user-name').textContent = name || "";
             appointmentsList.appendChild(newDiv);
         }
 
-        // Pending Requests Modal - Annie Huynh
+        /* ── Pending Requests modal (owner) - Annie Huynh ── */
         function openPendingModal() {
             document.getElementById('pendingModal').classList.add('active');
             loadRequests();
@@ -845,6 +681,85 @@ document.getElementById('user-name').textContent = name || "";
             document.getElementById('pendingModal').classList.remove('active');
         }
 
+        async function loadRequests() {
+            const res = await fetch(`${API_BASE}/api/bookings/requests/owner/${id}/pending`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const data = await res.json();
+            const list = document.getElementById('requestsList');
+            list.innerHTML = '';
+
+            if (!Array.isArray(data) || data.length === 0) {
+                list.innerHTML = '<p style="color:gray;text-align:center;padding:20px">No pending requests.</p>';
+                return;
+            }
+
+            for (const request of data) renderRequest(request);
+        }
+
+        function renderRequest(request) {
+            const newDiv = document.createElement("div");
+            newDiv.classList.add("request-card");
+
+            const buttonDiv = document.createElement("div");
+
+            const fromP = document.createElement("p");
+            fromP.textContent = "From: " + request.userEmail;
+            newDiv.appendChild(fromP);
+
+            const msgP = document.createElement("p");
+            msgP.textContent = request.message;
+            newDiv.appendChild(msgP);
+
+            if (request.proposedTime) {
+                const timeP = document.createElement("p");
+                timeP.textContent = "Proposed time: " + new Date(request.proposedTime).toLocaleString();
+                newDiv.appendChild(timeP);
+            }
+
+            const accept = document.createElement("button");
+            accept.classList.add("accept-button");
+            accept.textContent = "Accept";
+            accept.onclick = async () => {
+                const res = await fetch(`${API_BASE}/api/bookings/respond`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ bookingId: request._id, accepted: true })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    window.location.href = data.notifyUser;
+                    loadRequests();
+                } else {
+                    alert(data.error);
+                }
+            };
+            buttonDiv.appendChild(accept);
+
+            const decline = document.createElement("button");
+            decline.classList.add("decline-button");
+            decline.textContent = "Decline";
+            decline.onclick = async () => {
+                const res = await fetch(`${API_BASE}/api/bookings/respond`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ bookingId: request._id, accepted: false })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    window.location.href = data.notifyUser;
+                    loadRequests();
+                } else {
+                    alert(data.error);
+                }
+            };
+            buttonDiv.appendChild(decline);
+
+            newDiv.appendChild(buttonDiv);
+            document.getElementById('requestsList').appendChild(newDiv);
+        }
+
+        /* ── My Requests modal (student) - Annie Huynh ── */
         function openMyRequestsModal() {
             document.getElementById('myRequestsModal').classList.add('active');
             loadMyRequests();
@@ -855,10 +770,10 @@ document.getElementById('user-name').textContent = name || "";
         }
 
         async function loadMyRequests() {
-            const response = await fetch(`${API_BASE}/api/bookings/requests/user/${id}`, {
+            const res = await fetch(`${API_BASE}/api/bookings/requests/user/${id}`, {
                 headers: { 'Authorization': 'Bearer ' + token }
             });
-            const data = await response.json();
+            const data = await res.json();
             const list = document.getElementById('myRequestsList');
             list.innerHTML = '';
 
@@ -885,93 +800,15 @@ document.getElementById('user-name').textContent = name || "";
                     card.appendChild(t);
                 }
 
-                const status = document.createElement("p");
-                status.textContent = "Status: " + request.status;
-                card.appendChild(status);
+                const statusEl = document.createElement("p");
+                statusEl.textContent = "Status: " + request.status;
+                card.appendChild(statusEl);
 
                 list.appendChild(card);
             }
         }
 
-        async function loadRequests() {
-            const response = await fetch(`${API_BASE}/api/bookings/requests/owner/${id}/pending`, {
-                headers: { 'Authorization': 'Bearer ' + token }
-            });
-            const data = await response.json();
-            const list = document.getElementById('requestsList');
-            list.innerHTML = '';
-
-            if (!Array.isArray(data) || data.length === 0) {
-                list.innerHTML = '<p style="color:gray;text-align:center;padding:20px">No pending requests.</p>';
-                return;
-            }
-
-            for (const request of data) {
-                renderRequest(request);
-            }
-        }
-
-        function renderRequest(request) {
-            const newDiv = document.createElement("div");
-            newDiv.classList.add("request-card");
-
-            const buttonDiv = document.createElement("div");
-
-            const fromP = document.createElement("p");
-            fromP.textContent = "From: " + request.userEmail;
-            newDiv.appendChild(fromP);
-
-            const msgP = document.createElement("p");
-            msgP.textContent = request.message;
-            newDiv.appendChild(msgP);
-
-            if (request.proposedTime) {
-                const timeP = document.createElement("p");
-                timeP.textContent = "Proposed time: " + new Date(request.proposedTime).toLocaleString();
-                newDiv.appendChild(timeP);
-            }
-
-            const accept = document.createElement("button");
-            accept.classList.add("accept-button");
-            accept.textContent = "Accept";
-            buttonDiv.appendChild(accept);
-            accept.onclick = async () => {
-                const response = await fetch(`${API_BASE}/api/bookings/respond`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                    body: JSON.stringify({ bookingId: request._id, accepted: true })
-                });
-                const data = await response.json();
-                if (response.ok) {
-                    window.location.href = data.notifyUser;
-                    loadRequests();
-                } else {
-                    alert(data.error);
-                }
-            };
-
-            const decline = document.createElement("button");
-            decline.classList.add("decline-button");
-            decline.textContent = "Decline";
-            buttonDiv.appendChild(decline);
-            decline.onclick = async () => {
-                const response = await fetch(`${API_BASE}/api/bookings/respond`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                    body: JSON.stringify({ bookingId: request._id, accepted: false })
-                });
-                const data = await response.json();
-                if (response.ok) {
-                    window.location.href = data.notifyUser;
-                    loadRequests();
-                } else {
-                    alert(data.error);
-                }
-            };
-
-            newDiv.appendChild(buttonDiv);
-            document.getElementById('requestsList').appendChild(newDiv);
-        }
+        loadDashboard();
     </script>
 </body>
 </html>

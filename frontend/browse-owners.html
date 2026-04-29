@@ -14,7 +14,7 @@
     <title>Browse Owners</title>
 
     <style>
-        *{
+        * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
@@ -22,70 +22,52 @@
         }
 
         .top-bar {
-    width: calc(100% - 40px);
-    margin: 20px;
+            width: calc(100% - 40px);
+            margin: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(12px);
+            padding: 16px 28px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            border-radius: 22px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.16);
+            z-index: 5;
+        }
 
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+        .logo {
+            font-size: 28px;
+            font-weight: 800;
+            text-decoration: none;
+            color: black;
+            letter-spacing: 1px;
+        }
 
-    background: rgba(255, 255, 255, 0.88);
-    backdrop-filter: blur(12px);
+        .logo span { color: rgb(237, 27, 47); }
 
-    padding: 16px 28px;
-    position: absolute;
-    top: 0;
-    left: 0;
+        .top-buttons { display: flex; gap: 12px; }
 
-    border-radius: 22px;
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.16);
+        .top-button {
+            min-width: 100px;
+            height: 44px;
+            background: black;
+            border: none;
+            border-radius: 999px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.25s ease;
+        }
 
-    z-index: 5;
-}
-
-.logo {
-    font-size: 28px;
-    font-weight: 800;
-    text-decoration: none;
-    color: black;
-    letter-spacing: 1px;
-}
-
-.logo span {
-    color: rgb(237, 27, 47);
-}
-
-.top-buttons {
-    display: flex;
-    gap: 12px;
-}
-
-.top-button {
-    min-width: 100px;
-    height: 44px;
-    background: black;
-    border: none;
-    border-radius: 999px;
-    color: white;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.25s ease;
-}
-
-.top-button:hover {
-    background: rgb(237, 27, 47);
-}
+        .top-button:hover { background: rgb(237, 27, 47); }
 
         body {
             min-height: 100vh;
             background: rgb(255, 255, 255);
             padding: 200px 40px 30px 40px;
-        }
-
-        h6 {
-            text-align: center;
-            font-size: 14px;
-            margin-bottom: 30px;
         }
 
         .page-header {
@@ -97,28 +79,26 @@
 
         .page-header h1 {
             font-size: 42px;
-            color: rgb(0, 0, 0);
+            color: black;
+            position: relative;
         }
 
-        .back-button {
-            width: 130px;
-            height: 50px;
-            background: black;
-            border: none;
-            border-radius: 30px;
-            color: white;
-            cursor: pointer;
-            transition: .3s;
-        }
-
-        .back-button:hover {
+        .page-header h1::after {
+            content: "";
+            display: block;
+            width: 290px;
+            height: 3px;
             background: rgb(237, 27, 47);
+            margin: 1px auto 0;
+            border-radius: 2px;
         }
 
         .owners-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 22px;
+            position: relative;
+            z-index: 2;
         }
 
         .owner-card {
@@ -140,9 +120,11 @@
             font-size: 16px;
         }
 
+        .card-actions { margin-top: 15px; }
+
         .view-button {
-            margin-top: 15px;
             margin-right: 10px;
+            margin-top: 8px;
             width: 170px;
             height: 48px;
             background: black;
@@ -151,17 +133,79 @@
             color: white;
             cursor: pointer;
             transition: .3s;
+            position: relative;
+            overflow: hidden;
         }
 
-        .view-button:hover {
-            background: rgb(237, 27, 47);
+        .view-button:hover { background: rgb(237, 27, 47); }
+
+        .view-button::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(120deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: 0.5s;
         }
 
-       
+        .view-button:hover::after { left: 100%; }
 
-        .modal-overlay.active {
-            display: flex;
+        .wave-bg {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 200%;
+            height: 480px;
+            overflow: hidden;
+            z-index: 0;
+            pointer-events: none;
+            animation: waveMove 12s linear infinite;
         }
+
+        .wave-svg { width: 100%; height: 100%; display: block; }
+
+        .wave-back {
+            bottom: -40px;
+            height: 620px;
+            opacity: 0.45;
+            animation-duration: 18s;
+        }
+
+        .wave-back .wave-svg {
+            transform: scaleY(1.2);
+            transform-origin: bottom;
+        }
+
+        @keyframes waveMove {
+            from { transform: translateX(0); }
+            to   { transform: translateX(-50%); }
+        }
+
+        .main-panel,
+        .page-header,
+        .owners-grid,
+        .owner-card {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Modal - Annie Huynh */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.active { display: flex; }
 
         .modal-box {
             background: white;
@@ -183,14 +227,9 @@
             color: black;
         }
 
-        .modal-close:hover {
-            color: rgb(237, 27, 47);
-        }
+        .modal-close:hover { color: rgb(237, 27, 47); }
 
-        .modal-box h2 {
-            font-size: 28px;
-            margin-bottom: 20px;
-        }
+        .modal-box h2 { font-size: 28px; margin-bottom: 20px; }
 
         .modal-box textarea {
             width: 100%;
@@ -206,6 +245,19 @@
             margin-bottom: 18px;
         }
 
+        .input-field {
+            width: 100%;
+            height: 54px;
+            font-size: 15px;
+            padding: 0 20px;
+            border-radius: 30px;
+            border: none;
+            box-shadow: 0px 3px 8px 1px rgb(220, 220, 220);
+            outline: none;
+            margin-bottom: 14px;
+            font-family: "Outfit", sans-serif;
+        }
+
         .modal-submit {
             width: 100%;
             height: 55px;
@@ -218,296 +270,156 @@
             transition: .3s;
         }
 
-        .modal-submit:hover {
-            background: rgb(237, 27, 47);
-        }
+        .modal-submit:hover { background: rgb(237, 27, 47); }
 
         .section-title {
             font-size: 18px;
             color: rgb(237, 27, 47);
-            margin: 22px 0 14px 0;
+            margin: 16px 0 10px 0;
         }
-
-        h6 a {
-            text-decoration: none;  
-            color: black;            
-            font-weight: 600;        
-        }
-
-        h6 a:hover {
-             color: rgb(237, 27, 47); 
-        }
-        .view-button {
-    position: relative;
-    overflow: hidden;
-}
-
-.view-button::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(120deg, transparent, rgba(255,255,255,0.4), transparent);
-    transition: 0.5s;
-}
-
-.view-button:hover::after {
-    left: 100%;
-}
-
-.wave-bg {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 200%;
-    height: 480px;
-    overflow: hidden;
-    z-index: 0;
-    pointer-events: none;
-    animation: waveMove 12s linear infinite;
-}
-
-.wave-svg {
-    width: 100%;
-    height: 100%;
-    display: block;
-}
-
-.wave-back {
-    bottom: -40px;
-    height: 620px;
-    opacity: 0.45;
-    animation-duration: 18s;
-}
-
-.wave-back .wave-svg {
-    transform: scaleY(1.2);   /* makes it taller */
-    transform-origin: bottom; /* grows upward */
-}
-
-@keyframes waveMove {
-    from {
-        transform: translateX(0);
-    }
-    to {
-        transform: translateX(-50%);
-    }
-}
-
-.page-header h1 {
-    font-size: 42px;
-    color: rgb(0, 0, 0);
-}
-
-.page-header h1 {
-    font-size: 42px;
-    color: black;
-    position: relative;
-}
-
-.page-header h1::after {
-    content: "";
-    display: block;
-    width: 290px;
-    height: 3px;
-    background: rgb(237, 27, 47);
-    margin: 1px auto 0;
-    border-radius: 2px;
-}
-.logo {
-    color: rgb(237, 27, 47);
-}
-
-.main-panel,
-.page-header,
-.owners-grid,
-.owner-card {
-    position: relative;
-    z-index: 2;
-}
-
- /* Modal - Annie Huynh */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-
-
-
     </style>
 </head>
 
 <body>
-   <div class="wave-bg wave-back">
-    <svg class="wave-svg" viewBox="0 0 2880 320" preserveAspectRatio="none">
-        <path fill="rgb(237, 27, 47)" fill-opacity="0.3"
-d="M0,180 
-   C240,150 480,210 720,180 
-   C960,150 1200,210 1440,180 
-   C1680,150 1920,210 2160,180 
-   C2400,150 2640,210 2880,180 
-   L2880,320 L0,320 Z">
-</path>
-    </svg>
-</div>
-
-   <div class="wave-bg">
-    <svg class="wave-svg" viewBox="0 0 2880 320" preserveAspectRatio="none">
-        <path fill="rgb(237, 27, 47)" fill-opacity="0.8"
-d="M0,180 
-   C240,150 480,210 720,180 
-   C960,150 1200,210 1440,180 
-   C1680,150 1920,210 2160,180 
-   C2400,150 2640,210 2880,180 
-   L2880,320 L0,320 Z">
-</path>
-    </svg>
+    <div class="wave-bg wave-back">
+        <svg class="wave-svg" viewBox="0 0 2880 320" preserveAspectRatio="none">
+            <path fill="rgb(237, 27, 47)" fill-opacity="0.3"
+                d="M0,180 C240,150 480,210 720,180 C960,150 1200,210 1440,180 C1680,150 1920,210 2160,180 C2400,150 2640,210 2880,180 L2880,320 L0,320 Z">
+            </path>
+        </svg>
     </div>
-    
-<div class="top-bar">
-    <a href="landing.html" class="logo">
-        My<span>Bookings</span>
-    </a>
 
-    <div class="top-buttons">
-        <button class="top-button" onclick="window.location.href='dashboard.html'">Back</button>
+    <div class="wave-bg">
+        <svg class="wave-svg" viewBox="0 0 2880 320" preserveAspectRatio="none">
+            <path fill="rgb(237, 27, 47)" fill-opacity="0.8"
+                d="M0,180 C240,150 480,210 720,180 C960,150 1200,210 1440,180 C1680,150 1920,210 2160,180 C2400,150 2640,210 2880,180 L2880,320 L0,320 Z">
+            </path>
+        </svg>
     </div>
-</div>
-<div class="page-header">
-    <h1>Browse Owners</h1>
-</div>
-   
+
+    <div class="top-bar">
+        <a href="landing.html" class="logo">My<span>Bookings</span></a>
+        <div class="top-buttons">
+            <button class="top-button" onclick="window.location.href='dashboard.html'">Back</button>
+        </div>
+    </div>
+
+    <div class="page-header">
+        <h1>Browse Owners</h1>
+    </div>
+
     <div class="owners-grid" id="ownersList">
         <p style="color:gray">Loading owners...</p>
     </div>
 
-    <!-- Requesting meeting - Annie Huynh -->
+    <!-- Request Meeting modal - Annie Huynh -->
     <div class="modal-overlay" id="requestModal">
         <div class="modal-box">
             <button class="modal-close" onclick="closeRequestModal()">&#10005;</button>
             <h2>Request Meeting</h2>
-            <div class="form-group">
-                <label for="meetingTitle">Meeting Title</label>
-                <input class="input-field" type="text" id="meetingTitle" placeholder="Meeting title" />
-            </div>
+
+            <label style="font-size:15px;font-weight:600;display:block;margin-bottom:6px;">Meeting Title</label>
+            <input class="input-field" type="text" id="meetingTitle" placeholder="Meeting title" />
 
             <h3 class="section-title">Date</h3>
-
-            <div class="form-group">
-                <label for="requestedDate">Date</label>
-                <input class="input-field" type="date" id="requestedDate" />
-            </div>
+            <input class="input-field" type="date" id="requestedDate" />
 
             <h3 class="section-title">Time</h3>
-
-            <div class="form-group">
-                <label for="requestedTime">Time</label>
-                <input class="input-field" type="time" id="requestedTime" />
-            </div>
+            <input class="input-field" type="time" id="requestedTime" />
 
             <textarea id="requestMessage" placeholder="Reason for meeting.."></textarea>
             <button class="modal-submit" id="requestSubmitBtn">Send Request</button>
         </div>
     </div>
 
-    <!--- Annie Huynh --->
     <script>
-       const API_BASE = '';
-        
-        //read token and redirect if its missing
+        const API_BASE = '';
         const token = localStorage.getItem('token');
-         if (!token){
-            window.location.href = 'login.html'
+
+        if (!token) {
+            window.location.href = 'login.html';
         }
-            
 
-        const ownersList = document.getElementById('ownersList');
-        
-        //fetch active owners on load
-        async function loadOwners(){
-            const url = `${API_BASE}/api/slots/owners/active`;
+        let currentOwnerId   = null;
+        let currentOwnerEmail = null;
 
-            const response = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } }); // header for JWT handshake
+        async function loadOwners() {
+            const response = await fetch(`${API_BASE}/api/slots/owners/active`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
             const data = await response.json();
 
-            console.log(data); // wb testing
+            const ownersList = document.getElementById('ownersList');
+            ownersList.innerHTML = '';
 
-            //clear hardcoded cards
-            ownersList.innerHTML='';
+            if (!Array.isArray(data) || data.length === 0) {
+                ownersList.innerHTML = '<p style="color:gray">No active owners found.</p>';
+                return;
+            }
 
-            // render each owner card
-            for (const owner of data){
+            for (const owner of data) {
                 await renderOwnerCard(owner);
             }
         }
-        loadOwners();
 
+        async function renderOwnerCard(owner) {
+            const ownersList = document.getElementById('ownersList');
 
-        let currentOwnerId = null;
-        let currentOwnerEmail = null;
-        // helper function to render cards
-        async function renderOwnerCard(owner){
             const newDiv = document.createElement("div");
             newDiv.classList.add("owner-card");
-            newDiv.innerHTML='';
-
-            const buttonDiv = document.createElement("div");
-            buttonDiv.classList.add("card-actions");
 
             const heading = document.createElement("h3");
-            heading.textContent=owner.name;
+            heading.textContent = owner.name;
             newDiv.appendChild(heading);
 
             const email = document.createElement("p");
             email.textContent = "Email: " + owner.email;
             newDiv.appendChild(email);
 
-            const viewSlots = document.createElement("button");
-            viewSlots.classList.add("view-button");
-            viewSlots.textContent="View Slots";
-            buttonDiv.appendChild(viewSlots);
-            viewSlots.onclick = () => {
-                window.location.href = `owner-slots.html?ownerId=${owner._id}&ownerName=${encodeURIComponent(owner.name)}`;
-            };
-
-            const requestMeeting = document.createElement("button");
-            requestMeeting.classList.add("view-button");
-            requestMeeting.textContent="Request Meeting";
-            buttonDiv.appendChild(requestMeeting);
-            requestMeeting.onclick = () => {
-                currentOwnerId = owner._id;
-                currentOwnerEmail = owner.email;
-                openRequestModal();
-            };
-
             const activeSlots = document.createElement("p");
             activeSlots.textContent = "Active Slots: ...";
             newDiv.appendChild(activeSlots);
 
-            // append to html
+            const buttonDiv = document.createElement("div");
+            buttonDiv.classList.add("card-actions");
+
+            const viewSlots = document.createElement("button");
+            viewSlots.classList.add("view-button");
+            viewSlots.textContent = "View Slots";
+            viewSlots.onclick = () => {
+                window.location.href = `owner-slots.html?ownerId=${owner._id}&ownerName=${encodeURIComponent(owner.name)}`;
+            };
+            buttonDiv.appendChild(viewSlots);
+
+            const requestMeeting = document.createElement("button");
+            requestMeeting.classList.add("view-button");
+            requestMeeting.textContent = "Request Meeting";
+            requestMeeting.onclick = () => {
+                currentOwnerId    = owner._id;
+                currentOwnerEmail = owner.email;
+                openRequestModal();
+            };
+            buttonDiv.appendChild(requestMeeting);
+
             newDiv.appendChild(buttonDiv);
             ownersList.appendChild(newDiv);
 
-            // fetch active slot count for this owner
-            const slotsRes = await fetch(`${API_BASE}/api/slots/owner/${owner._id}/active`, {
-                headers: { 'Authorization': 'Bearer ' + token }
-            });
-            const slotsData = await slotsRes.json();
-            activeSlots.textContent = "Active Slots: " + (Array.isArray(slotsData) ? slotsData.length : 0);
+            // Fetch active slot count async
+            try {
+                const slotsRes = await fetch(`${API_BASE}/api/slots/owner/${owner._id}/active`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const slotsData = await slotsRes.json();
+                activeSlots.textContent = "Active Slots: " + (Array.isArray(slotsData) ? slotsData.length : 0);
+            } catch (e) {
+                activeSlots.textContent = "Active Slots: —";
+            }
         }
 
-        // Request Meeting 
         function openRequestModal() {
+            document.getElementById('meetingTitle').value  = '';
+            document.getElementById('requestedDate').value = '';
+            document.getElementById('requestedTime').value = '';
             document.getElementById('requestMessage').value = '';
             document.getElementById('requestModal').classList.add('active');
         }
@@ -517,32 +429,39 @@ d="M0,180
         }
 
         document.getElementById('requestSubmitBtn').onclick = async () => {
-            const title = document.getElementById('meetingTitle').value;
-            const date = document.getElementById('requestedDate').value;
-            const time = document.getElementById('requestedTime').value;
+            const title   = document.getElementById('meetingTitle').value.trim();
+            const date    = document.getElementById('requestedDate').value;
+            const time    = document.getElementById('requestedTime').value;
             const message = document.getElementById('requestMessage').value.trim();
-            if (!title || !message || !date || !time) return alert('Please fill all fields');
 
-           const response = await fetch(`${API_BASE}/api/bookings/request`,
-                { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+            if (!title || !message || !date || !time) {
+                alert('Please fill all fields');
+                return;
+            }
+
+            const response = await fetch(`${API_BASE}/api/bookings/request`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
                 body: JSON.stringify({
-                    ownerId: currentOwnerId,
+                    ownerId:      currentOwnerId,
                     message,
-                    ownerEmail: currentOwnerEmail,
+                    ownerEmail:   currentOwnerEmail,
                     title,
                     proposedTime: new Date(date + 'T' + time).toISOString()
                 })
-                });
+            });
 
             const data = await response.json();
             if (response.ok) {
                 closeRequestModal();
-                window.location.href = data.notifyOwner
-                window.location.href = 'dashboard.html';
+                if (data.notifyOwner) window.location.href = data.notifyOwner;
+                else window.location.href = 'dashboard.html';
             } else {
                 alert(data.error);
             }
         };
+
+        loadOwners();
     </script>
 </body>
 </html>

@@ -13,10 +13,8 @@
 
     <title>Register</title>
 
-    <!-- CSS  -->
-
     <style>
-        *{
+        * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
@@ -25,90 +23,63 @@
 
         body {
             min-height: 100vh;
-            background: rgb(255, 255, 255);
             display: flex;
             justify-content: center;
-            
+            align-items: center;
             padding: 0 80px;
             gap: 60px;
-
-             background: 
-        linear-gradient(to left, rgba(255,255,255,0) 10%, rgba(255,255,255,1) 60%),
-        url('Images/landing_bg.jpg');
-
-        background-size: cover;
-        background-position: center;
+            background:
+                linear-gradient(to left, rgba(255,255,255,0) 10%, rgba(255,255,255,1) 60%),
+                url('Images/landing_bg.jpg');
+            background-size: cover;
+            background-position: center;
         }
 
         .top-bar {
-    width: calc(100% - 40px);
-    margin: 20px;
+            width: calc(100% - 40px);
+            margin: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(12px);
+            padding: 16px 28px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            border-radius: 22px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.16);
+            z-index: 5;
+        }
 
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+        .logo {
+            font-size: 28px;
+            font-weight: 800;
+            text-decoration: none;
+            color: rgb(237, 27, 47);
+            letter-spacing: 1px;
+        }
 
-    background: rgba(255, 255, 255, 0.88);
-    backdrop-filter: blur(12px);
+        .top-buttons {
+            display: flex;
+            gap: 12px;
+        }
 
-    padding: 16px 28px;
-    position: absolute;
-    top: 0;
-    left: 0;
+        .top-button {
+            min-width: 100px;
+            height: 44px;
+            background: black;
+            border: none;
+            border-radius: 999px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.25s ease;
+        }
 
-    border-radius: 22px;
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.16);
-
-    z-index: 5;
-}
-.logo {
-    font-size: 28px;
-    font-weight: 800;
-    text-decoration: none;
-    color: rgb(237, 27, 47);
-    letter-spacing: 1px;
-}
-
-.logo span {
-    color: rgb(237, 27, 47);
-}
-.login-header header {
-    position: relative;
-    font-size: 30px;
-    font-weight: 600;
-    color: black;
-    display: inline-block;
-}
-
-.login-header header::after {
-    content: "";
-    display: block;
-    width: 70px;
-    height: 4px;
-    background: rgb(237, 27, 47);
-    margin: 8px auto 0;
-    border-radius: 2px;
-}
-
-.top-buttons {
-    display: flex;
-    gap: 12px;
-}
-
-.top-button {
-    min-width: 100px;
-    height: 44px;
-    background: black;
-    border: none;
-    border-radius: 999px;
-    color: white;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.top-button:hover {
-    background: rgb(237, 27, 47);
-}
+        .top-button:hover {
+            background: rgb(237, 27, 47);
+        }
 
         .page-container {
             width: 100%;
@@ -144,7 +115,7 @@
             justify-content: center;
         }
 
-        .login-box{
+        .login-box {
             width: 440px;
             padding: 35px 30px;
             background: white;
@@ -152,15 +123,27 @@
             box-shadow: 0px 5px 15px 1px rgb(180, 180, 180);
         }
 
-        .login-header{
+        .login-header {
             text-align: center;
             margin: 20px 0 40px 0;
         }
 
         .login-header header {
-            color: rgb(0, 0, 0);
+            position: relative;
             font-size: 30px;
             font-weight: 600;
+            color: black;
+            display: inline-block;
+        }
+
+        .login-header header::after {
+            content: "";
+            display: block;
+            width: 110px;
+            height: 4px;
+            background: rgb(237, 27, 47);
+            margin: 8px auto 0;
+            border-radius: 2px;
         }
 
         .info-box .input-field {
@@ -177,12 +160,12 @@
             background: rgb(255, 255, 255);
         }
 
-        ::placeholder{
+        ::placeholder {
             font-weight: 500;
             color: rgb(0, 0, 0);
         }
 
-        .input-field:focus{
+        .input-field:focus {
             width: 105%;
         }
 
@@ -206,208 +189,117 @@
 
         .submit-button:hover {
             background: rgb(237, 27, 47);
-            transform: scale(1.05,1);
-        }
-
-        h6 {
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 14px;
-        }
-
-        .left-section h1.mcgill {
-            color: rgb(0, 0, 0);
-        }
-
-        .small-text {
-            font-size: 14px;
-            color: rgb(80, 80, 80);
-            margin-top: 10px;
-            text-align: center;
+            transform: scale(1.05, 1);
         }
 
         .sign-up-link {
             text-align: center;
-            font-size: 15px; 
+            font-size: 15px;
             margin-top: 20px;
         }
 
-        .sign-up-link a{
+        .sign-up-link a {
             color: black;
             font-weight: 600;
         }
 
         .sign-up-link a:hover {
-            color:red;
+            color: red;
         }
-
-        .back-btn {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            padding: 10px 15px;
-            border: none;
-            background: black;
-            color: white;
-            border-radius: 20px;
-            cursor: pointer;
-        }
-
-        .back-btn:hover {
-            transition: .3s;
-            background: red;
-            transform: scale(1.05,1);
-        }
-
-h6 a {
-            text-decoration: none;  
-            color: black;            
-            font-weight: 600;        
-        }
-
-        h6 a:hover {
-             color: rgb(237, 27, 47); 
-        }
-
-.login-header header {
-    position: relative;
-    font-size: 30px;
-    font-weight: 600;
-    color: black;
-    display: inline-block;
-}
-
-.login-header header::after {
-    content: "";
-    display: block;
-    width: 110px;
-    height: 4px;
-    background: rgb(237, 27, 47);
-    margin: 8px auto 0;
-    border-radius: 2px;
-}
     </style>
 </head>
 
-    <!-- HTML  -->
 <body>
-    
-
-            <div class="top-buttons">
-                <button class="top-button" onclick="goBack()">Back</button>
-            </div>
+    <div class="top-bar">
+        <a href="landing.html" class="logo">MyBookings</a>
+        <div class="top-buttons">
+            <button class="top-button" onclick="goBack()">Back</button>
+        </div>
     </div>
-    
+
     <div class="page-container">
         <div class="left-section">
-            <h1 class="mcgill">Create Account</h1>
+            <h1>Create Account</h1>
             <p>
                 Register using your McGill email to access booking features.
                 Professors and TAs can create and manage slots, while students can
                 browse and reserve active appointments.
             </p>
         </div>
-<div class="top-bar">
-    <a href="landing.html" class="logo">
-        MyBookings
-    </a>
-
-    <div class="top-buttons">
-        <button class="top-button" onclick="goBack()">Back</button>
-    </div>
-</div>
-       
 
         <div class="right-section">
             <div class="login-box">
                 <div class="login-header">
                     <header><b>Register</b></header>
                 </div>
-
                 <form id="registerForm">
                     <div class="info-box">
                         <input type="text" id="name" class="input-field" placeholder="Full Name" name="name" required>
                     </div>
-
                     <div class="info-box">
                         <input type="email" id="email" class="input-field" placeholder="McGill Email" name="email" required>
                     </div>
-
                     <div class="info-box">
                         <input type="password" id="pass" class="input-field" placeholder="Password" name="password" required>
                     </div>
-
                     <div class="info-box">
                         <input type="password" id="confirm-pass" class="input-field" placeholder="Confirm Password" name="confirmPassword" required>
                     </div>
-
                     <div class="input-submit">
                         <button class="submit-button" type="submit">Register</button>
                     </div>
-
                     <div class="sign-up-link">
                         <p>Already have an account? <a href="login.html">Log In</a></p>
                     </div>
                 </form>
-                
             </div>
         </div>
     </div>
 
-    <!--- Annie Huynh --->
     <script>
         const API_BASE = '';
 
-        let form = document.querySelector('#registerForm');
-        form.addEventListener('submit', async(event) => {
-            // stop page from reloading
+        document.querySelector('#registerForm').addEventListener('submit', async (event) => {
             event.preventDefault();
 
-            // read input values
             const name = document.getElementById("name").value;
             const email = document.getElementById("email").value;
             const password = document.getElementById("pass").value;
             const confirmedPassword = document.getElementById("confirm-pass").value;
 
-            // validate email
-            if (!email.endsWith("@mcgill.ca") && !email.endsWith("@mail.mcgill.ca")){
+            if (!email.endsWith("@mcgill.ca") && !email.endsWith("@mail.mcgill.ca")) {
                 alert("Email domain must be @mcgill.ca or @mail.mcgill.ca.");
                 return;
             }
 
-            // validate password
-            if (password != confirmedPassword){
+            if (password !== confirmedPassword) {
                 alert("Passwords must match.");
                 return;
             }
 
-            // send register request
             let response, data;
             try {
-                response = await fetch(`${API_BASE}/api/auth/register`,
-                    { method: 'POST', headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({name, email, password}) });
+                response = await fetch(`${API_BASE}/api/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password })
+                });
                 data = await response.json();
             } catch (err) {
                 alert('Could not reach the server. Make sure the backend is running.');
                 return;
             }
 
-            if (response.ok){
+            if (response.ok) {
                 window.location.href = 'login.html';
-            }
-            else{
+            } else {
                 alert(data.error);
-                return;
             }
         });
 
-
         function goBack() {
-    window.history.back();
-}
+            window.history.back();
+        }
     </script>
 </body>
 </html>
