@@ -1,4 +1,4 @@
-<!-- TAYM ATRACH 261183855 — Fixed by Claude -->
+<!-- TAYM ATRACH 261183855  -->
 
 <!DOCTYPE html>
 <html>
@@ -163,9 +163,10 @@
             margin-bottom: 8px;
         }
 
-        .badge-slot  { background: rgb(220, 255, 220); color: rgb(30, 130, 30); }
-        .badge-req   { background: rgb(255, 240, 200); color: rgb(150, 80, 0); }
-        .badge-group { background: rgb(230, 240, 255); color: rgb(30, 80, 180); }
+        .badge-slot     { background: rgb(220, 255, 220); color: rgb(30, 130, 30); }
+        .badge-req      { background: rgb(255, 240, 200); color: rgb(150, 80, 0); }
+        .badge-group    { background: rgb(230, 240, 255); color: rgb(30, 80, 180); }
+        .badge-completed { background: rgb(220, 255, 220); color: rgb(30, 130, 30); }
 
         .card-actions {
             margin-top: 14px;
@@ -341,6 +342,17 @@
         .accept-button:hover    { background: rgb(237, 27, 47); }
         .decline-button         { background: rgb(150, 150, 150); }
         .decline-button:hover   { background: rgb(237, 27, 47); }
+
+        .completed-badge {
+            display: inline-block;
+            padding: 5px 14px;
+            background: rgb(220, 255, 220);
+            color: rgb(22, 101, 52);
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            margin-top: 10px;
+        }
     </style>
 </head>
 
@@ -380,7 +392,6 @@
         </div>
         <div class="right-panel" id="actions-menu">
             <h2 class="panel-title">Actions</h2>
-            <!-- Static button: always present for students, hidden for owners -->
             <button class="action-button" id="viewRequestsBtn" onclick="openMyRequestsModal()">View My Requests</button>
         </div>
     </div>
@@ -412,9 +423,7 @@
         const appointmentsList = document.getElementById('appointmentsList');
         const actionsBar       = document.getElementById('actions-menu');
 
-        if (!token) {
-            window.location.href = 'login.html';
-        }
+        if (!token) window.location.href = 'login.html';
 
         document.getElementById('user-name').textContent = name || '';
 
@@ -425,12 +434,12 @@
                     method: 'POST',
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
-            } catch (e) { /* ignore network errors on logout */ }
+            } catch (e) {}
             localStorage.clear();
             window.location.href = 'landing.html';
         }
 
-        /* ─── helper: add action button to sidebar ─── */
+        /* ─── helpers ─── */
         function renderAction(label, href) {
             const btn = document.createElement('button');
             btn.classList.add('action-button');
@@ -439,63 +448,59 @@
             actionsBar.appendChild(btn);
         }
 
-        function createCancelButton(onClick) {
-            const btn = document.createElement('button');
-            btn.classList.add('small-button-red');
-            btn.textContent = 'Cancel';
-            btn.onclick = onClick;
-            return btn;
+        /* Mark a card as completed in-place without reloading */
+        function markCardCompleted(card) {
+            // Remove all action buttons
+            const actions = card.querySelector('.card-actions');
+            if (actions) actions.remove();
+            // Add completed badge
+            const badge = document.createElement('span');
+            badge.classList.add('completed-badge');
+            badge.textContent = '✓ Marked as Completed';
+            card.appendChild(badge);
+            card.style.opacity = '0.7';
         }
 
-        function createCompleteButton(onClick) {
-            const btn = document.createElement('button');
-            btn.classList.add('small-button');
-            btn.textContent = 'Mark as Completed';
-            btn.onclick = onClick;
-            return btn;
+        /* Mark a card as cancelled in-place */
+        function markCardCancelled(card) {
+            const actions = card.querySelector('.card-actions');
+            if (actions) actions.remove();
+            const badge = document.createElement('span');
+            badge.style.cssText = 'display:inline-block;padding:5px 14px;background:rgb(255,220,220);color:rgb(130,30,30);border-radius:20px;font-size:13px;font-weight:700;margin-top:10px;';
+            badge.textContent = '✕ Cancelled';
+            card.appendChild(badge);
+            card.style.opacity = '0.5';
         }
 
         /* ─── main loader ─── */
         async function loadDashboard() {
-            // Remove previously-added dynamic buttons, keep the static one
             document.querySelectorAll('#actions-menu .action-button').forEach(btn => {
                 if (btn.id !== 'viewRequestsBtn') btn.remove();
             });
-
             appointmentsList.innerHTML = '';
 
-            // ── Slot reservations (Type 0 / Type 3) ──
+            // Slot reservations
             const slotsUrl = role === 'owner'
                 ? `${API_BASE}/api/slots/owner/${id}/reservations`
                 : `${API_BASE}/api/slots/my-reservations/${id}`;
 
             try {
-                const response1 = await fetch(slotsUrl, {
-                    headers: { 'Authorization': 'Bearer ' + token }
-                });
-                const data1 = await response1.json();
-                if (Array.isArray(data1)) {
-                    for (const item of data1) renderCard(item);
-                }
-            } catch (e) {
-                console.error('Failed to load slot reservations:', e);
-            }
+                const r = await fetch(slotsUrl, { headers: { 'Authorization': 'Bearer ' + token } });
+                const d = await r.json();
+                if (Array.isArray(d)) for (const item of d) renderCard(item);
+            } catch (e) { console.error('Failed to load slot reservations:', e); }
 
-            // ── Type 1 + Type 2 appointments ──
+            // Type 1 + Type 2
             const apptUrl = role === 'owner'
                 ? `${API_BASE}/api/bookings/appointments/owner/${id}`
                 : `${API_BASE}/api/bookings/appointments/user/${id}`;
 
             try {
-                const response2 = await fetch(apptUrl, {
-                    headers: { 'Authorization': 'Bearer ' + token }
-                });
-                const data2 = await response2.json();
-                for (const item of (data2.type1 || [])) renderType1Card(item);
-                for (const item of (data2.type2 || [])) renderType2Card(item);
-            } catch (e) {
-                console.error('Failed to load bookings:', e);
-            }
+                const r = await fetch(apptUrl, { headers: { 'Authorization': 'Bearer ' + token } });
+                const d = await r.json();
+                for (const item of (d.type1 || [])) renderType1Card(item);
+                for (const item of (d.type2 || [])) renderType2Card(item);
+            } catch (e) { console.error('Failed to load bookings:', e); }
 
             if (appointmentsList.children.length === 0) {
                 const empty = document.createElement('p');
@@ -504,10 +509,9 @@
                 appointmentsList.appendChild(empty);
             }
 
-            // ── Role-specific sidebar buttons ──
+            // Sidebar buttons
             if (role === 'owner') {
                 document.getElementById('viewRequestsBtn').style.display = 'none';
-
                 renderAction('Manage Slots', 'owner-manage-slots.html');
                 renderAction('Create Group Meeting', 'owner-manage-slots.html?openCreate=true');
                 renderAction('Finalize Group Meeting', 'owner-manage-slots.html?openFinalize=true');
@@ -516,11 +520,8 @@
                 const exportAllBtn = document.createElement('button');
                 exportAllBtn.classList.add('action-button');
                 exportAllBtn.textContent = 'Export All to Calendar';
-
                 exportAllBtn.onclick = () => {
-                    const url = `${API_BASE}/api/ical/owner/${id}/all`;
-
-                    fetch(url, {
+                    fetch(`${API_BASE}/api/ical/owner/${id}/all`, {
                         headers: { 'Authorization': 'Bearer ' + token }
                     })
                     .then(r => r.blob())
@@ -533,7 +534,6 @@
                     })
                     .catch(e => alert('Export failed: ' + e.message));
                 };
-
                 actionsBar.appendChild(exportAllBtn);
 
                 const pendingBtn = document.createElement('button');
@@ -543,105 +543,91 @@
                 actionsBar.appendChild(pendingBtn);
 
             } else {
-                // student
                 document.getElementById('viewRequestsBtn').style.display = '';
                 renderAction('Book Another Appointment', 'browse-owners.html');
 
-                // Export all reservations to .ics
                 const exportAllBtn = document.createElement('button');
                 exportAllBtn.classList.add('action-button');
                 exportAllBtn.textContent = 'Export All to Calendar';
                 exportAllBtn.onclick = () => {
-                    const url = `${API_BASE}/api/slots/my-reservations/${id}/export.ics`;
-                    fetch(url, { headers: { 'Authorization': 'Bearer ' + token } })
-                        .then(r => r.blob())
-                        .then(blob => {
-                            const a = document.createElement('a');
-                            a.href = URL.createObjectURL(blob);
-                            a.download = 'my-bookings.ics';
-                            a.click();
-                        })
-                        .catch(e => alert('Export failed: ' + e.message));
+                    fetch(`${API_BASE}/api/slots/my-reservations/${id}/export.ics`, {
+                        headers: { 'Authorization': 'Bearer ' + token }
+                    })
+                    .then(r => r.blob())
+                    .then(blob => {
+                        const a = document.createElement('a');
+                        a.href = URL.createObjectURL(blob);
+                        a.download = 'my-bookings.ics';
+                        a.click();
+                    })
+                    .catch(e => alert('Export failed: ' + e.message));
                 };
                 actionsBar.appendChild(exportAllBtn);
             }
         }
 
-        /* ─── Type 0/3: regular reserved slot card ─── */
+        /* ─── Slot reservation card (Type 0/3) ─── */
         function renderCard(item) {
-            const newDiv = document.createElement('div');
-            newDiv.classList.add('appointment-card');
+            const card = document.createElement('div');
+            card.classList.add('appointment-card');
 
             const badge = document.createElement('span');
             badge.classList.add('type-badge', 'badge-slot');
             badge.textContent = (item.slot && item.slot.type === 'recurring') ? 'Recurring Slot' : 'Booking Slot';
-            newDiv.appendChild(badge);
+            card.appendChild(badge);
 
             const heading = document.createElement('h3');
             heading.textContent = item.slot ? item.slot.title : '(no title)';
-            newDiv.appendChild(heading);
+            card.appendChild(heading);
 
             const time = document.createElement('p');
-            const startTime = item.slot ? new Date(item.slot.startTime).toLocaleString() : '';
-            const endTime   = item.slot ? new Date(item.slot.endTime).toLocaleString()   : '';
-            time.textContent = 'Time: ' + startTime + ' — ' + endTime;
-            newDiv.appendChild(time);
+            time.textContent = 'Time: '
+                + (item.slot ? new Date(item.slot.startTime).toLocaleString() : '')
+                + ' — '
+                + (item.slot ? new Date(item.slot.endTime).toLocaleString() : '');
+            card.appendChild(time);
 
-            const status = document.createElement('p');
-            status.textContent = 'Status: ' + (item.slot ? item.slot.status : '');
-            newDiv.appendChild(status);
+            const statusP = document.createElement('p');
+            statusP.textContent = 'Status: ' + (item.slot ? item.slot.status : '');
+            card.appendChild(statusP);
 
             const buttonDiv = document.createElement('div');
             buttonDiv.classList.add('card-actions');
 
-            if (role === 'owner') {
+            const isPast = item.slot && new Date(item.slot.startTime) < new Date();
+
+            if (isPast) {
+                const completedBadge = document.createElement('span');
+                completedBadge.classList.add('completed-badge');
+                completedBadge.textContent = '✓ Completed';
+                card.appendChild(completedBadge);
+                card.style.opacity = '0.65';
+            } else if (role === 'owner') {
                 const bookedBy = document.createElement('p');
                 bookedBy.textContent = 'Booked by: ' + (item.user ? item.user.email : 'Unknown');
-                newDiv.appendChild(bookedBy);
+                card.appendChild(bookedBy);
 
-                const isPast = item.slot && new Date(item.slot.startTime) < new Date();
+                const messageBooker = document.createElement('button');
+                messageBooker.classList.add('small-button');
+                messageBooker.textContent = 'Message Booker';
+                messageBooker.onclick = async () => {
+                    const res = await fetch(`${API_BASE}/api/slots/${item.slot._id}/message-booker`, {
+                        headers: { 'Authorization': 'Bearer ' + token }
+                    });
+                    const data = await res.json();
+                    if (res.ok) window.location.href = data.mailto;
+                    else alert(data.error);
+                };
+                buttonDiv.appendChild(messageBooker);
 
-                if (isPast) {
-                    const completedBadge = document.createElement('p');
-                    completedBadge.style.cssText = 'color:#22c55e;font-weight:700;margin-top:10px;';
-                    completedBadge.textContent = '✓ Completed';
-                    newDiv.appendChild(completedBadge);
-                    newDiv.style.opacity = '0.65';
-                } else {
-                    // Message Booker
-                    const messageBooker = document.createElement('button');
-                    messageBooker.classList.add('small-button');
-                    messageBooker.textContent = 'Message Booker';
-                    messageBooker.onclick = async () => {
-                        const res = await fetch(`${API_BASE}/api/slots/${item.slot._id}/message-booker`, {
-                            headers: { 'Authorization': 'Bearer ' + token }
-                        });
-                        const data = await res.json();
-                        if (res.ok) window.location.href = data.mailto;
-                        else alert(data.error);
-                    };
-                    buttonDiv.appendChild(messageBooker);
-
-                    // Export single slot .ics
-                    const exportBtn = document.createElement('button');
-                    exportBtn.classList.add('small-button');
-                    exportBtn.textContent = 'Export .ics';
-                    exportBtn.onclick = () => {
-                        const url = `${API_BASE}/api/slots/${item.slot._id}/export.ics`;
-                        fetch(url, { headers: { 'Authorization': 'Bearer ' + token } })
-                            .then(r => r.blob())
-                            .then(blob => {
-                                const a = document.createElement('a');
-                                a.href = URL.createObjectURL(blob);
-                                a.download = 'appointment.ics';
-                                a.click();
-                            });
-                    };
-                    buttonDiv.appendChild(exportBtn);
-                }
+                const exportBtn = document.createElement('button');
+                exportBtn.classList.add('small-button');
+                exportBtn.textContent = 'Export .ics';
+                exportBtn.onclick = () => exportSlotICS(item.slot._id);
+                buttonDiv.appendChild(exportBtn);
 
             } else {
-                // Student: message owner
+                // Student
                 const messageOwner = document.createElement('button');
                 messageOwner.classList.add('small-button');
                 messageOwner.textContent = 'Message Owner';
@@ -655,11 +641,11 @@
                 };
                 buttonDiv.appendChild(messageOwner);
 
-                // Cancel appointment
-                const cancel = document.createElement('button');
-                cancel.classList.add('small-button-red');
-                cancel.textContent = 'Cancel Appointment';
-                cancel.onclick = async () => {
+                // FIX: pass reservationId correctly
+                const cancelBtn = document.createElement('button');
+                cancelBtn.classList.add('small-button-red');
+                cancelBtn.textContent = 'Cancel';
+                cancelBtn.onclick = async () => {
                     if (!confirm('Cancel this appointment?')) return;
                     const res = await fetch(`${API_BASE}/api/slots/cancel`, {
                         method: 'POST',
@@ -668,75 +654,85 @@
                     });
                     const data = await res.json();
                     if (res.ok) {
-                        loadDashboard();
-                        if (data.notifyOwner) window.location.href = data.notifyOwner;
+                        markCardCancelled(card);
+                        if (data.notifyOwner) window.open(data.notifyOwner, '_blank');
                     } else {
                         alert(data.error);
                     }
                 };
-                buttonDiv.appendChild(cancel);
+                buttonDiv.appendChild(cancelBtn);
 
-                // Export single slot .ics
                 const exportBtn = document.createElement('button');
                 exportBtn.classList.add('small-button');
                 exportBtn.textContent = 'Export .ics';
-                exportBtn.onclick = () => {
-                    const url = `${API_BASE}/api/slots/${item.slot._id}/export.ics`;
-                    fetch(url, { headers: { 'Authorization': 'Bearer ' + token } })
-                        .then(r => r.blob())
-                        .then(blob => {
-                            const a = document.createElement('a');
-                            a.href = URL.createObjectURL(blob);
-                            a.download = 'appointment.ics';
-                            a.click();
-                            URL.revokeObjectURL(a.href);
-                        });
-                };
+                exportBtn.onclick = () => exportSlotICS(item.slot._id);
                 buttonDiv.appendChild(exportBtn);
             }
 
-            newDiv.appendChild(buttonDiv);
-            appointmentsList.appendChild(newDiv);
+            card.appendChild(buttonDiv);
+            appointmentsList.appendChild(card);
         }
 
-        /* ─── Type 1: meeting request card ─── */
+        function exportSlotICS(slotId) {
+            fetch(`${API_BASE}/api/slots/${slotId}/export.ics`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            })
+            .then(r => r.blob())
+            .then(blob => {
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'appointment.ics';
+                a.click();
+                URL.revokeObjectURL(a.href);
+            });
+        }
+
+        /* ─── Type 1 card ─── */
         function renderType1Card(item) {
-            const newDiv = document.createElement('div');
-            newDiv.classList.add('appointment-card');
+            const card = document.createElement('div');
+            card.classList.add('appointment-card');
 
             const isPast = item.proposedTime && new Date(item.proposedTime) < new Date();
+            const isCompleted = item.status === 'completed';
 
             const badge = document.createElement('span');
             badge.classList.add('type-badge', 'badge-req');
-            badge.textContent = isPast ? 'Meeting — Completed' : 'Meeting Request';
-            newDiv.appendChild(badge);
+            badge.textContent = (isPast || isCompleted) ? 'Meeting — Completed' : 'Meeting Request';
+            card.appendChild(badge);
 
             const h = document.createElement('h3');
             h.textContent = item.title || 'Meeting Request';
-            newDiv.appendChild(h);
+            card.appendChild(h);
 
             const other = document.createElement('p');
-            other.textContent = (role === 'owner')
-                ? 'From: ' + item.userEmail
-                : 'With: ' + item.ownerEmail;
-            newDiv.appendChild(other);
+            other.textContent = (role === 'owner') ? 'From: ' + item.userEmail : 'With: ' + item.ownerEmail;
+            card.appendChild(other);
 
             if (item.proposedTime) {
                 const t = document.createElement('p');
                 t.textContent = 'Time: ' + new Date(item.proposedTime).toLocaleString();
-                newDiv.appendChild(t);
+                card.appendChild(t);
             }
 
             const statusP = document.createElement('p');
             statusP.textContent = 'Status: ' + item.status;
-            newDiv.appendChild(statusP);
+            card.appendChild(statusP);
+
+            if (isPast || isCompleted) {
+                const completedBadge = document.createElement('span');
+                completedBadge.classList.add('completed-badge');
+                completedBadge.textContent = '✓ Completed';
+                card.appendChild(completedBadge);
+                card.style.opacity = '0.55';
+                appointmentsList.appendChild(card);
+                return;
+            }
 
             const buttonDiv = document.createElement('div');
             buttonDiv.classList.add('card-actions');
 
-            if (!isPast && item.status === 'approved') {
+            if (item.status === 'approved') {
                 const msgTarget = role === 'owner' ? item.userEmail : item.ownerEmail;
-
                 const msgBtn = document.createElement('button');
                 msgBtn.classList.add('small-button');
                 msgBtn.textContent = 'Message';
@@ -746,155 +742,167 @@
                 buttonDiv.appendChild(msgBtn);
             }
 
-            // Only show Cancel and Complete buttons for future appointments
-            if (!isPast) {
-                const cancelBtn = document.createElement('button');
-                cancelBtn.classList.add('small-button-red');
-                cancelBtn.textContent = 'Cancel';
-                cancelBtn.onclick = async () => {
-                    const res = await fetch(`${API_BASE}/api/bookings/cancel`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + token
-                        },
-                        body: JSON.stringify({ bookingId: item._id, userId: id })
-                    });
-                    if (res.ok) loadDashboard();
-                    else alert('Cancel failed');
-                };
-                buttonDiv.appendChild(cancelBtn);
+            // FIX: cancel passes bookingId + type
+            const cancelBtn = document.createElement('button');
+            cancelBtn.classList.add('small-button-red');
+            cancelBtn.textContent = 'Cancel';
+            cancelBtn.onclick = async () => {
+                if (!confirm('Cancel this meeting?')) return;
+                const res = await fetch(`${API_BASE}/api/bookings/cancel`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ bookingId: item._id, type: 'TYPE1' })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    markCardCancelled(card);
+                    if (data.notify) data.notify.forEach(u => window.open(u, '_blank'));
+                } else {
+                    alert(data.error || 'Cancel failed');
+                }
+            };
+            buttonDiv.appendChild(cancelBtn);
 
-                const completeBtn = document.createElement('button');
-                completeBtn.classList.add('small-button');
-                completeBtn.textContent = 'Mark as Completed';
-                completeBtn.onclick = async () => {
-                    const res = await fetch(`${API_BASE}/api/bookings/complete`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + token
-                        },
-                        body: JSON.stringify({ bookingId: item._id })
-                    });
-                    if (res.ok) loadDashboard();
-                    else alert('Complete failed');
-                };
-                buttonDiv.appendChild(completeBtn);
-            }
+            // FIX: complete passes bookingId + type, shows badge in place
+            const completeBtn = document.createElement('button');
+            completeBtn.classList.add('small-button');
+            completeBtn.textContent = 'Mark as Completed';
+            completeBtn.onclick = async () => {
+                const res = await fetch(`${API_BASE}/api/bookings/complete`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ bookingId: item._id, type: 'TYPE1' })
+                });
+                if (res.ok) {
+                    markCardCompleted(card);
+                } else {
+                    const d = await res.json();
+                    alert(d.error || 'Complete failed');
+                }
+            };
+            buttonDiv.appendChild(completeBtn);
 
-            newDiv.appendChild(buttonDiv);
-
-            if (isPast) newDiv.style.opacity = '0.55';
-
-            appointmentsList.appendChild(newDiv);
+            card.appendChild(buttonDiv);
+            if (isPast) card.style.opacity = '0.55';
+            appointmentsList.appendChild(card);
         }
 
-        /* ─── Type 2: group meeting card ─── */
+        /* ─── Type 2 card ─── */
         function renderType2Card(item) {
-            const newDiv = document.createElement('div');
-            newDiv.classList.add('appointment-card');
+            const card = document.createElement('div');
+            card.classList.add('appointment-card');
+
+            const isPast = new Date(item.time) < new Date();
+            const isCompleted = item.status === 'completed';
 
             const badge = document.createElement('span');
             badge.classList.add('type-badge', 'badge-group');
             badge.textContent = 'Group Meeting';
-            newDiv.appendChild(badge);
+            card.appendChild(badge);
 
             const heading = document.createElement('h3');
             heading.textContent = item.title || 'Group Meeting';
-            newDiv.appendChild(heading);
+            card.appendChild(heading);
 
             const time = document.createElement('p');
             time.textContent = 'Time: ' + new Date(item.time).toLocaleString();
-            newDiv.appendChild(time);
+            card.appendChild(time);
 
             if (item.isRecurring) {
                 const week = document.createElement('p');
                 week.textContent = 'Week ' + item.weekNumber + ' of recurring series';
-                newDiv.appendChild(week);
+                card.appendChild(week);
             }
 
             const organizer = document.createElement('p');
             organizer.textContent = 'Organizer: ' + (item.ownerEmail || 'Unknown');
-            newDiv.appendChild(organizer);
+            card.appendChild(organizer);
 
-            const isPast = new Date(item.time) < new Date();
+            if (isPast || isCompleted) {
+                const completedBadge = document.createElement('span');
+                completedBadge.classList.add('completed-badge');
+                completedBadge.textContent = '✓ Completed';
+                card.appendChild(completedBadge);
+                card.style.opacity = '0.55';
+
+                appointmentsList.appendChild(card);
+                return;
+            }
 
             const buttonDiv = document.createElement('div');
             buttonDiv.classList.add('card-actions');
 
-            if (!isPast) {
-                const msgBtn = document.createElement('button');
-                msgBtn.classList.add('small-button');
-                msgBtn.textContent = 'Message';
-                msgBtn.onclick = () => {
-                    window.location.href = `mailto:${item.ownerEmail}`;
-                };
-                buttonDiv.appendChild(msgBtn);
-            }
+            const msgBtn = document.createElement('button');
+            msgBtn.classList.add('small-button');
+            msgBtn.textContent = 'Message';
+            msgBtn.onclick = () => { window.location.href = `mailto:${item.ownerEmail}`; };
+            buttonDiv.appendChild(msgBtn);
 
-            // Only show Cancel and Complete buttons for future appointments
-            if (!isPast) {
-                const cancelBtn = document.createElement('button');
-                cancelBtn.classList.add('small-button-red');
-                cancelBtn.textContent = 'Cancel';
-                cancelBtn.onclick = async () => {
-                    const res = await fetch(`${API_BASE}/api/bookings/group/${item._id}/leave`, {
-                        method: 'DELETE',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + token
-                        },
-                        body: JSON.stringify({ userId: id })
-                    });
-                    if (res.ok) loadDashboard();
-                    else alert('Cancel failed');
-                };
-                buttonDiv.appendChild(cancelBtn);
+            // FIX: cancel leaves group meeting (uses leave endpoint) then shows badge
+            const cancelBtn = document.createElement('button');
+            cancelBtn.classList.add('small-button-red');
+            cancelBtn.textContent = 'Cancel';
+            cancelBtn.onclick = async () => {
+                if (!confirm('Leave this group meeting?')) return;
+                const res = await fetch(`${API_BASE}/api/bookings/group/${item._id}/leave`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ userId: id })
+                });
+                if (res.ok) {
+                    markCardCancelled(card);
+                } else {
+                    const d = await res.json();
+                    alert(d.error || 'Cancel failed');
+                }
+            };
+            buttonDiv.appendChild(cancelBtn);
 
-                const completeBtn = document.createElement('button');
-                completeBtn.classList.add('small-button');
-                completeBtn.textContent = 'Mark as Completed';
-                completeBtn.onclick = async () => {
-                    const res = await fetch(`${API_BASE}/api/bookings/group/${item._id}/complete`, {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': 'Bearer ' + token
-                        }
-                    });
-                    if (res.ok) loadDashboard();
-                    else alert('Complete failed');
-                };
-                buttonDiv.appendChild(completeBtn);
-            }
+            // FIX: complete passes type: TYPE2 so controller routes to appointments collection
+            const completeBtn = document.createElement('button');
+            completeBtn.classList.add('small-button');
+            completeBtn.textContent = 'Mark as Completed';
+            completeBtn.onclick = async () => {
+                const res = await fetch(`${API_BASE}/api/bookings/complete`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ bookingId: item._id, type: 'TYPE2' })
+                });
+                if (res.ok) {
+                    markCardCompleted(card);
+                } else {
+                    const d = await res.json();
+                    alert(d.error || 'Complete failed');
+                }
+            };
+            buttonDiv.appendChild(completeBtn);
 
             const exportBtn = document.createElement('button');
             exportBtn.classList.add('small-button');
             exportBtn.textContent = 'Export .ics';
-            exportBtn.onclick = () => {
-                fetch(`${API_BASE}/api/ical/group/${item._id}`, {
-                    headers: { 'Authorization': 'Bearer ' + token }
-                })
-                .then(r => r.blob())
-                .then(blob => {
-                    const a = document.createElement('a');
-                    a.href = URL.createObjectURL(blob);
-                    a.download = 'group-meeting.ics';
-                    a.click();
-                    URL.revokeObjectURL(a.href);
-                });
-            };
+            exportBtn.onclick = () => exportGroupICS(item._id);
             buttonDiv.appendChild(exportBtn);
 
-            newDiv.appendChild(buttonDiv);
-
-            if (isPast) {
-                newDiv.style.opacity = '0.55';
-            }
-
-            appointmentsList.appendChild(newDiv);
+            card.appendChild(buttonDiv);
+            appointmentsList.appendChild(card);
         }
-        /* ─── Pending Requests modal (owner) ─── */
+
+        function exportGroupICS(appointmentId) {
+            fetch(`${API_BASE}/api/ical/group/${appointmentId}`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            })
+            .then(r => r.blob())
+            .then(blob => {
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'group-meeting.ics';
+                a.click();
+                URL.revokeObjectURL(a.href);
+            })
+            .catch(e => alert('Export failed: ' + e.message));
+        }
+
+        /* ─── Owner pending requests modal ─── */
         function openPendingModal() {
             document.getElementById('pendingModal').classList.add('active');
             loadRequests();
@@ -913,12 +921,10 @@
                 });
                 const data = await res.json();
                 list.innerHTML = '';
-
                 if (!Array.isArray(data) || data.length === 0) {
                     list.innerHTML = '<p style="color:gray;text-align:center;padding:20px">No pending requests.</p>';
                     return;
                 }
-
                 for (const request of data) renderRequest(request);
             } catch (e) {
                 list.innerHTML = '<p style="color:red;text-align:center;padding:20px">Failed to load requests.</p>';
@@ -944,9 +950,7 @@
             }
 
             const buttonDiv = document.createElement('div');
-
-            // FIX: declare both accept AND decline before using them
-            const accept = document.createElement('button');
+            const accept  = document.createElement('button');
             accept.classList.add('accept-button');
             accept.textContent = 'Accept';
 
@@ -964,7 +968,7 @@
                 if (res.ok) {
                     await loadRequests();
                     await loadDashboard();
-                    if (data.notifyUser) window.location.href = data.notifyUser;
+                    if (data.notifyUser) window.open(data.notifyUser, '_blank');
                 } else {
                     alert(data.error);
                 }
@@ -979,7 +983,7 @@
                 const data = await res.json();
                 if (res.ok) {
                     await loadRequests();
-                    if (data.notifyUser) window.location.href = data.notifyUser;
+                    if (data.notifyUser) window.open(data.notifyUser, '_blank');
                 } else {
                     alert(data.error);
                 }
@@ -991,7 +995,7 @@
             document.getElementById('requestsList').appendChild(newDiv);
         }
 
-        /* ─── My Requests modal (student) ─── */
+        /* ─── Student "My Requests" modal ─── */
         function openMyRequestsModal() {
             document.getElementById('myRequestsModal').classList.add('active');
             loadMyRequests();
@@ -1010,12 +1014,10 @@
                 });
                 const data = await res.json();
                 list.innerHTML = '';
-
                 if (!Array.isArray(data) || data.length === 0) {
                     list.innerHTML = '<p style="color:gray;text-align:center;padding:20px">No requests yet.</p>';
                     return;
                 }
-
                 for (const req of data) renderMyRequest(req);
             } catch (e) {
                 list.innerHTML = '<p style="color:red;text-align:center;padding:20px">Failed to load requests.</p>';
@@ -1047,7 +1049,6 @@
             document.getElementById('myRequestsList').appendChild(newDiv);
         }
 
-        /* Call on page load */
         loadDashboard();
     </script>
 </body>
