@@ -110,6 +110,32 @@ const activateSlotsByGroup = async (groupToken, userId) => {
 
 };
 
+const deactivateSlotsByGroup = async (groupToken, userId) => {
+  const db = getDB();
+  const slots = await db.collection(COLLECTION)
+    .find({ groupToken, ownerId: toOid(userId, "userId"), status: "active" })
+    .toArray();
+
+  const slotIds = slots.map(s => s._id);
+  const reserved = await db.collection("reservations")
+    .find({ slotId: { $in: slotIds }, cancelledAt: { $exists: false } })
+    .toArray();
+
+  const reservedIds = new Set(reserved.map(r => r.slotId.toString()));
+  const deactivatable = slotIds.filter(id => !reservedIds.has(id.toString()));
+
+  if (deactivatable.length === 0) {
+    return { modifiedCount: 0, skippedCount: slotIds.length };
+  }
+
+  const result = await db.collection(COLLECTION).updateMany(
+    { _id: { $in: deactivatable } },
+    { $set: { status: "private" } }
+  );
+
+  return { modifiedCount: result.modifiedCount, skippedCount: reservedIds.size };
+};
+
 const deactivateSlot = async (slotId, ownerId) => {
   const db = getDB();
   // Check for active reservation before deactivating
@@ -231,6 +257,7 @@ module.exports = {
   // Recurring (Type 3)
   createRecurringSlots,
   activateSlotsByGroup,
+  deactivateSlotsByGroup,
   deleteSlotsByGroup,
   findSlotsByGroup,
   // Queries

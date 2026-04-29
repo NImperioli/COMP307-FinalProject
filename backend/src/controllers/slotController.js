@@ -4,6 +4,7 @@ const {
   createRecurringSlots,
   activateSlot,
   activateSlotsByGroup,
+  deactivateSlotsByGroup,
   deactivateSlot,
   deleteSlot,
   deleteSlotsByGroup,
@@ -86,6 +87,21 @@ exports.activateSlotsByGroup = async (req, res) => {
   try {
     const ownerId = req.user.id;
     const result = await activateSlotsByGroup(req.params.groupToken, ownerId);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.deactivateSlotsByGroup = async (req, res) => {
+  try {
+    const ownerId = req.user.id;
+    const result = await deactivateSlotsByGroup(req.params.groupToken, ownerId);
+    if (result.modifiedCount === 0 && result.skippedCount > 0) {
+      return res.status(400).json({ 
+        error: `All slots have active reservations and cannot be deactivated.` 
+      });
+    }
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });

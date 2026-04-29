@@ -237,7 +237,7 @@ const finalizeGroupMeeting = async (bookingId, selectedTime, repeatWeeks = 1, ow
 
   const MS_PER_WEEK = 7 * 24 * 60 * 60 * 1000;
   const base = selTime;
-  const allVoters = [...new Set(booking.slots.flatMap((s) => s.voters))].map(v => {
+  const allVoters = [...new Set(slotMatch.voters.map(v => v.toString()))].map(v => {
     try { return new ObjectId(v); } catch { return v; }
   });
 

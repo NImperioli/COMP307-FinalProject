@@ -25,10 +25,13 @@ router.get("/appointments/owner/:ownerId",       auth.authenticateAnyToken,  con
 router.delete("/group/:appointmentId/leave",     auth.authenticateUserToken, controller.leaveGroupMeeting);
 router.post("/group/:appointmentId/complete",    auth.authenticateUserToken, controller.completeGroupMeeting);
 
+router.post("/cancel", auth.authenticateUserToken, controller.cancelBooking);
+
 router.post(
   "/complete",
   auth.authenticateUserToken,
   controller.completeAnyBooking
 );
+
 
 module.exports = router;

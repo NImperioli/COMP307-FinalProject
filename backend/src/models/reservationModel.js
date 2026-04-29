@@ -29,11 +29,20 @@ const reserveSlot = async (slotId, userId) => {
     throw new Error("Cannot reserve a slot that has already started or passed.");
   }
 
-  const existing = await db.collection(COLLECTION).findOne({
-    slotId: toOid(slotId, "slotId"),
-    cancelledAt: { $exists: false },
-  });
-  if (existing) throw new Error("Slot is already reserved.");
+  if (slot.type !== 'recurring') {
+    const existing = await db.collection(COLLECTION).findOne({
+        slotId: toOid(slotId, "slotId"),
+        cancelledAt: { $exists: false },
+    });
+    if (existing) throw new Error("Slot is already reserved.");
+  } else {
+    const userAlreadyBooked = await db.collection(COLLECTION).findOne({
+        slotId: toOid(slotId, "slotId"),
+        userId: toOid(userId, "userId"),
+        cancelledAt: { $exists: false },
+    });
+    if (userAlreadyBooked) throw new Error("You have already reserved this slot.");
+  }
 
   return await db.collection(COLLECTION).insertOne({
     slotId: toOid(slotId, "slotId"),

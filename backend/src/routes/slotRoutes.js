@@ -10,6 +10,7 @@ router.post("/create",                             authToken.authenticateOwnerTo
 router.post("/recurring",                          authToken.authenticateOwnerToken, controller.createRecurringSlots);
 router.post("/:slotId/activate",                   authToken.authenticateOwnerToken, controller.activateSlot);
 router.post("/group/:groupToken/activate",         authToken.authenticateOwnerToken, controller.activateSlotsByGroup);
+router.post("/group/:groupToken/deactivate", authToken.authenticateOwnerToken, controller.deactivateSlotsByGroup);
 router.post("/:slotId/deactivate",                 authToken.authenticateOwnerToken, controller.deactivateSlot);
 router.delete("/:slotId",                          authToken.authenticateOwnerToken, controller.deleteSlot);
 router.delete("/group/:groupToken",                authToken.authenticateOwnerToken, controller.deleteSlotsByGroup);
