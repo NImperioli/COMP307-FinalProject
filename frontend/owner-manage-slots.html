@@ -1020,8 +1020,12 @@
             if (response.ok) {
                 const bookingId = data.insertedId;
                 closeCreateModal();
+
                 document.getElementById('finalizeBookingId').value = bookingId;
+
                 const shareUrl = `${window.location.origin}/owner-slots.html?ownerId=${id}&bookingId=${bookingId}&openVote=true`;
+                
+                // copy link to clipboard
                 navigator.clipboard.writeText(shareUrl).then(() => {
                     alert(`Group meeting created!\nBooking ID: ${bookingId}\n\nShare URL copied to clipboard.`);
                 });

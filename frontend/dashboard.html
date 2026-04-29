@@ -480,7 +480,23 @@
 
             if (role === 'student') {
                 renderAction("Book Another Appointment", "browse-owners.html");
-            }
+
+                // ical 
+                const exportAllBtn = document.createElement('button');
+                exportAllBtn.classList.add('action-button');
+                exportAllBtn.textContent = 'Export All to Calendar';
+                exportAllBtn.onclick = () => {
+                    const url = `${API_BASE}/api/slots/my-reservations/${id}/export.ics`;
+                    fetch(url, { headers: { 'Authorization': 'Bearer ' + token } })
+                    .then(r => r.blob())
+                    .then(blob => {
+                        const a = document.createElement('a');
+                        a.href = URL.createObjectURL(blob);
+                        a.download = 'my-bookings.ics';
+                        a.click();
+                    });
+                };
+                actionsBar.appendChild(exportAllBtn);
         }
 
         function renderAction(label, href) {
@@ -519,23 +535,60 @@
             newDiv.appendChild(status);
 
             if (role === 'owner') {
-                const bookedBy = document.createElement("p");
-                bookedBy.textContent = "Booked by: " + (item.user ? item.user.email : 'Unknown');
+                const bookedBy = document.createElement('p');
+                bookedBy.textContent = 'Booked by: ' + (item.user ? item.user.email : 'Unknown');
                 newDiv.appendChild(bookedBy);
 
-                const messageBooker = document.createElement("button");
-                messageBooker.classList.add("small-button");
-                messageBooker.textContent = "Message Booker";
-                messageBooker.onclick = async () => {
+                // Is the appointment in the past?
+                const isPast = item.slot && new Date(item.slot.startTime) < new Date();
+
+                if (isPast) {
+                    // Show "Completed" badge, no further actions
+                    const completedBadge = document.createElement('p');
+                    completedBadge.style.cssText = 'color:#22c55e;font-weight:700;margin-top:10px;';
+                    completedBadge.textContent = '✓ Completed';
+                    newDiv.appendChild(completedBadge);
+                    newDiv.style.opacity = '0.65';
+                } else {
+                    // 1. Message Booker (existing)
+                    const messageBooker = document.createElement('button');
+                    messageBooker.classList.add('small-button');
+                    messageBooker.textContent = 'Message Booker';
+                    messageBooker.onclick = async () => {
                     const res = await fetch(`${API_BASE}/api/slots/${item.slot._id}/message-booker`, {
                         headers: { 'Authorization': 'Bearer ' + token }
                     });
                     const data = await res.json();
                     if (res.ok) window.location.href = data.mailto;
                     else alert(data.error);
-                };
-                buttonDiv.appendChild(messageBooker);
+                    };
+                    buttonDiv.appendChild(messageBooker);
+
+                    // 2. Cancel Booking (owner cancels student's reservation)
+                    const cancelBtn = document.createElement('button');
+                    cancelBtn.classList.add('small-button-red');
+                    cancelBtn.textContent = 'Cancel Booking';
+                    cancelBtn.onclick = async () => {
+                    if (!confirm('Cancel this student\'s booking? The slot will become available again.')) return;
+                    const res = await fetch(`${API_BASE}/api/slots/${item.slot._id}/cancel-reservation`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        loadDashboard();
+                        if (data.notifyBooker) window.location.href = data.notifyBooker;
+                    } else {
+                        alert(data.error);
+                    }
+                    };
+                    buttonDiv.appendChild(cancelBtn);
+                }
+
+                newDiv.appendChild(buttonDiv);
+
             } else {
+                // message owner
                 const messageOwner = document.createElement("button");
                 messageOwner.classList.add("small-button");
                 messageOwner.textContent = "Message Owner";
@@ -549,6 +602,7 @@
                 };
                 buttonDiv.appendChild(messageOwner);
 
+                // cancel appointment
                 const cancel = document.createElement("button");
                 cancel.classList.add("small-button-red");
                 cancel.textContent = "Cancel Appointment";
@@ -568,6 +622,26 @@
                     }
                 };
                 buttonDiv.appendChild(cancel);
+
+                // export to calendar
+                const exportBtn = document.createElement('button');
+                exportBtn.classList.add('small-button');
+                exportBtn.textContent = 'Export .ics';
+                exportBtn.onclick = () => {
+                // item.slot._id is the slotId —> token is from localStorage
+                const url = `${API_BASE}/api/slots/${item.slot._id}/export.ics`;
+                const link = document.createElement('a');
+                fetch(url, { headers: { 'Authorization': 'Bearer ' + token } })
+                    .then(r => r.blob())
+                    .then(blob => {
+                    const objUrl = URL.createObjectURL(blob);
+                    link.href = objUrl;
+                    link.download = 'appointment.ics';
+                    link.click();
+                    URL.revokeObjectURL(objUrl);
+                    });
+                };
+                buttonDiv.appendChild(exportBtn);
             }
 
             newDiv.appendChild(buttonDiv);
@@ -576,33 +650,60 @@
 
         /* ── Type 1: meeting request card ── */
         function renderType1Card(item, role) {
-            const newDiv = document.createElement("div");
-            newDiv.classList.add("appointment-card");
+            const newDiv = document.createElement('div');
+            newDiv.classList.add('appointment-card');
 
-            const badge = document.createElement("span");
-            badge.classList.add("type-badge", "badge-req");
-            badge.textContent = "Meeting Request";
+            const isPast = item.proposedTime &&
+                new Date(item.proposedTime) < new Date();
+
+            const badge = document.createElement('span');
+            badge.classList.add('type-badge', 'badge-req');
+            badge.textContent = isPast ? 'Meeting — Completed' : 'Meeting Request';
             newDiv.appendChild(badge);
 
-            const heading = document.createElement("h3");
-            heading.textContent = item.title || "Meeting Request";
-            newDiv.appendChild(heading);
+            /* heading / info */
+            const h = document.createElement('h3');
+            h.textContent = item.title || 'Meeting Request';
+            newDiv.appendChild(h);
 
-            const other = document.createElement("p");
-            other.textContent = role === 'owner'
-                ? "From: " + item.userEmail
-                : "With: " + item.ownerEmail;
+            const other = document.createElement('p');
+            other.textContent = (role === 'owner')
+                ? 'From: ' + item.userEmail
+                : 'With: ' + item.ownerEmail;
             newDiv.appendChild(other);
 
             if (item.proposedTime) {
-                const timeP = document.createElement("p");
-                timeP.textContent = "Proposed time: " + new Date(item.proposedTime).toLocaleString();
-                newDiv.appendChild(timeP);
+                const t = document.createElement('p');
+                t.textContent = 'Time: ' + new Date(item.proposedTime).toLocaleString();
+                newDiv.appendChild(t);
             }
 
-            const statusP = document.createElement("p");
-            statusP.textContent = "Status: " + item.status;
+            const statusP = document.createElement('p');
+            statusP.textContent = 'Status: ' + item.status;
             newDiv.appendChild(statusP);
+
+            /* action buttons — skip if past */
+            if (!isPast && item.status === 'approved') {
+                const btnRow = document.createElement('div');
+                btnRow.classList.add('card-actions');
+
+                /* Message button */
+                const msgTarget = role === 'owner' ? item.userEmail : item.ownerEmail;
+                const msgBtn = document.createElement('button');
+                msgBtn.classList.add('small-button');
+                msgBtn.textContent = 'Message';
+                msgBtn.onclick = () => {
+                const mailto = `mailto:${msgTarget}?subject=
+                    ${encodeURIComponent('Re: ' + (item.title || 'Meeting'))}`;
+                window.location.href = mailto;
+                };
+                btnRow.appendChild(msgBtn);
+
+                newDiv.appendChild(btnRow);
+            }
+
+            /* if past, show faded completed style */
+            if (isPast) newDiv.style.opacity = '0.55';
 
             appointmentsList.appendChild(newDiv);
         }
@@ -639,6 +740,30 @@
                 const buttonDiv = document.createElement("div");
                 buttonDiv.classList.add("card-actions");
 
+                const isPast = new Date(item.time) < new Date();
+
+                if (isPast) {
+                // Show completed, no buttons
+                newDiv.style.opacity = '0.55';
+                const doneP = document.createElement('p');
+                doneP.style.cssText = 'color:#22c55e;font-weight:600;margin-top:8px;';
+                doneP.textContent = '✓ Completed';
+                newDiv.appendChild(doneP);
+                } else if (role === 'student') {
+                const buttonDiv = document.createElement('div');
+                buttonDiv.classList.add('card-actions');
+
+                // Message Organizer
+                const msgBtn = document.createElement('button');
+                msgBtn.classList.add('small-button');
+                msgBtn.textContent = 'Message Organizer';
+                msgBtn.onclick = () => {
+                    window.location.href = `mailto:${item.ownerEmail}?subject=
+                    ${encodeURIComponent('Re: Group Meeting — ' + item.title)}`;
+                };
+                buttonDiv.appendChild(msgBtn);
+
+                // Cancel 
                 const cancelBtn = document.createElement("button");
                 cancelBtn.classList.add("small-button-red");
                 cancelBtn.textContent = "Cancel Participation";
@@ -667,8 +792,8 @@
                 buttonDiv.appendChild(cancelBtn);
                 newDiv.appendChild(buttonDiv);
             }
-
             appointmentsList.appendChild(newDiv);
+            }
         }
 
         /* ── Pending Requests modal (owner) - Annie Huynh ── */
@@ -721,38 +846,39 @@
             accept.classList.add("accept-button");
             accept.textContent = "Accept";
             accept.onclick = async () => {
-                const res = await fetch(`${API_BASE}/api/bookings/respond`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                    body: JSON.stringify({ bookingId: request._id, accepted: true })
-                });
-                const data = await res.json();
-                if (res.ok) {
-                    window.location.href = data.notifyUser;
-                    loadRequests();
-                } else {
-                    alert(data.error);
-                }
+            const res = await fetch(`${API_BASE}/api/bookings/respond`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify({ bookingId: request._id, accepted: true })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                // 1. Refresh both the requests list and the main dashboard first
+                await loadRequests();
+                await loadDashboard();
+                // 2. Then open the mailto notification (may or may not navigate)
+                if (data.notifyUser) window.location.href = data.notifyUser;
+            } else {
+                alert(data.error);
+            }
             };
-            buttonDiv.appendChild(accept);
 
-            const decline = document.createElement("button");
-            decline.classList.add("decline-button");
-            decline.textContent = "Decline";
             decline.onclick = async () => {
-                const res = await fetch(`${API_BASE}/api/bookings/respond`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                    body: JSON.stringify({ bookingId: request._id, accepted: false })
-                });
-                const data = await res.json();
-                if (res.ok) {
-                    window.location.href = data.notifyUser;
-                    loadRequests();
-                } else {
-                    alert(data.error);
-                }
+            const res = await fetch(`${API_BASE}/api/bookings/respond`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify({ bookingId: request._id, accepted: false })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                await loadRequests();  // refresh list immediately
+                if (data.notifyUser) window.location.href = data.notifyUser;
+            } else {
+                alert(data.error);
+            }
             };
+
+            buttonDiv.appendChild(accept);
             buttonDiv.appendChild(decline);
 
             newDiv.appendChild(buttonDiv);

@@ -327,7 +327,7 @@
                 return;
             }
 
-            // Filter out "booked" type slots — these are approved Type 1 meeting
+            // Filter out "booked" type slots —> these are approved Type 1 meeting
             // requests auto-inserted into the slots collection. They already have a
             // specific user booked and must not be shown as available for reservation.
             const reservableSlots = Array.isArray(data)
@@ -347,10 +347,54 @@
                 }
             }
 
+            if (reservableSlots.length > 0) {
+                const slotIds = reservableSlots.map(s => s._id);
+                try {
+                    const checkRes = await fetch(`${API_BASE}/api/slots/reservations/check`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ slotIds })
+                    });
+                    const reservedMap = await checkRes.json();
+
+                    // For each slot card, update based on reservedMap
+                    reservableSlots.forEach(slot => {
+                    if (reservedMap[slot._id]) {
+                        markSlotAsReserved(slot._id);
+                    }
+                    });
+                } catch (e) { /* non-critical, skip */ }
+            }
+
             // Load open group meeting votes separately (only when browsing by ownerId,
             // not via an invite token which is slot-specific)
             if (ownerId) {
                 await loadGroupMeetingVotes();
+            }
+        }
+
+        function markSlotAsReserved(slotId) {
+            // We store a data-slotid on each card's reserve button for easy lookup
+            const btn = document.querySelector(`button[data-slotid="${slotId}"]`);
+            if (!btn) return;
+
+            btn.disabled = true;
+            btn.textContent = 'Already Reserved';
+            btn.style.cssText = 'background:#555;cursor:not-allowed;opacity:0.7;';
+
+            // Add a badge to the card
+            const card = btn.closest('.slot-card');
+            if (card) {
+                const badge = document.createElement('span');
+                badge.style.cssText = `display:inline-block;background:#fef3c7;color:#92400e;
+                font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;
+                margin-bottom:10px;letter-spacing:0.04em;`;
+                badge.textContent = '⚠ Already Booked';
+                card.insertBefore(badge, card.firstChild);
+                card.style.opacity = '0.75';
             }
         }
 
@@ -363,17 +407,10 @@
            the booking status via the votes endpoint.
         ───────────────────────────────────────────── */
         async function loadGroupMeetingVotes() {
-            // The appointments endpoint returns finalized Type 2 records.
-            // We need the raw booking documents that are still open for voting.
-            // We use the owner appointments endpoint which accepts any token,
-            // but type2 appointments there are finalized — we need the bookings.
-            // Strategy: fetch owner appointments to get bookingIds, then check
-            // each booking's vote status via the votes endpoint.
-
             let openBookingIds = [];
 
             try {
-                const apptRes = await fetch(`${API_BASE}/api/bookings/appointments/owner/${ownerId}`, {
+                const apptRes = await fetch(`${API_BASE}/api/bookings/group/open/owner/${ownerId}`, {
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
 
@@ -382,10 +419,9 @@
                 const apptData = await apptRes.json();
 
                 // Extract unique bookingIds from type2 appointments
-                const type2 = apptData.type2 || [];
                 const seenBookingIds = new Set();
-                for (const appt of type2) {
-                    const bid = appt.bookingId ? appt.bookingId.toString() : null;
+                for (const appt of apptData) {
+                    const bid = appt._id ? appt._id.toString() : null;
                     if (bid && !seenBookingIds.has(bid)) {
                         seenBookingIds.add(bid);
                         openBookingIds.push(bid);
@@ -395,22 +431,13 @@
                 return; // appointments endpoint unavailable, skip group meetings
             }
 
-            // For each bookingId, attempt to fetch votes — if the booking is still
+            // For each bookingId, attempt to fetch votes —> if the booking is still
             // in collecting_votes state the endpoint returns vote data, otherwise it
             // returns the slots with votes (finalized bookings still return data but
-            // the booking record will have status "approved"). We need to determine
-            // which bookings are still open. We do this by checking the voting window.
+            // the booking record will have status "approved")
             const openMeetings = [];
             for (const bookingId of openBookingIds) {
-                try {
-                    const voteRes = await fetch(`${API_BASE}/api/bookings/group/${bookingId}/votes`, {
-                        headers: { 'Authorization': 'Bearer ' + token }
-                    });
-                    if (!voteRes.ok) continue;
-                    // We can't easily check status from here without a dedicated endpoint,
-                    // so we rely on the bookingId URL param passed via invite link instead.
-                    // This path (auto-discovery) is best-effort only.
-                } catch (e) { /* skip */ }
+                renderGroupVoteCard(bookingId.toString());
             }
 
             // If arrived via a direct invite link with bookingId, open vote modal immediately
@@ -445,6 +472,7 @@
             const reserveBtn = document.createElement('button');
             reserveBtn.classList.add('reserve-button');
             reserveBtn.textContent = 'Reserve Slot';
+            reserveBtn.setAttribute('data-slotid', slot._id);
             reserveBtn.onclick = async () => {
                 const response = await fetch(`${API_BASE}/api/slots/reserve`, {
                     method: 'POST',
