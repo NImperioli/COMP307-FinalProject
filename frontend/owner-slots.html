@@ -1,7 +1,12 @@
 <!-- TAYM ATRACH 261183855 -->
 
+<!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
+    <meta name="description" content="MyBookings: Booking Application for McGill students and employees.">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
@@ -284,6 +289,7 @@
         if (!token) {
             window.location.href = 'login.html';
         }
+            */
 
         const urlParams = new URLSearchParams(window.location.search);
         const ownerId = urlParams.get('ownerId');
@@ -441,9 +447,8 @@
                 if (response.ok) {
                     if (data.notifyOwner) {
                         window.location.href = data.notifyOwner;
-                    } else {
-                        window.location.href = 'dashboard.html';
                     }
+                    window.location.href = 'dashboard.html';
                 } else {
                     alert(data.error);
                 }
@@ -544,9 +549,8 @@
         }
 
         // auto-open vote modal if URL has openVote=true
-        const params = new URLSearchParams(window.location.search);
-        if (params.get('openVote') === 'true' && params.get('bookingId')) {
-            openVoteModal(params.get('bookingId'));
+        if (urlParams.get('openVote') === 'true' && urlParams.get('bookingId')) {
+            openVoteModal(urlParams.get('bookingId'));
         }
     </script>
 </body>

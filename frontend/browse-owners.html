@@ -1,7 +1,12 @@
 <!-- TAYM ATRACH 261183855 -->
 
+<!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
+    <meta name="description" content="MyBookings: Booking Application for McGill students and employees.">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
@@ -393,21 +398,21 @@ d="M0,180
             <h2>Request Meeting</h2>
             <div class="form-group">
                 <label for="meetingTitle">Meeting Title</label>
-                <input type="text" id="meetingTitle" placeholder="Meeting title" />
+                <input class="input-field" type="text" id="meetingTitle" placeholder="Meeting title" />
             </div>
 
             <h3 class="section-title">Date</h3>
 
             <div class="form-group">
                 <label for="requestedDate">Date</label>
-                <input type="date" id="requestedDate" />
+                <input class="input-field" type="date" id="requestedDate" />
             </div>
 
             <h3 class="section-title">Time</h3>
 
             <div class="form-group">
                 <label for="requestedTime">Time</label>
-                <input type="time" id="requestedTime" />
+                <input class="input-field" type="time" id="requestedTime" />
             </div>
 
             <textarea id="requestMessage" placeholder="Reason for meeting.."></textarea>
@@ -419,18 +424,15 @@ d="M0,180
     <script>
        const API_BASE = '';
         
-        // read token and redirect if its missing
+        //read token and redirect if its missing
         const token = localStorage.getItem('token');
          if (!token){
             window.location.href = 'login.html'
         }
             
 
-        const id = localStorage.getItem('user._id');
-        const userEmail = localStorage.getItem('email');
-
-
         const ownersList = document.getElementById('ownersList');
+        
         //fetch active owners on load
         async function loadOwners(){
             const url = `${API_BASE}/api/slots/owners/active`;
@@ -535,7 +537,7 @@ d="M0,180
             const data = await response.json();
             if (response.ok) {
                 closeRequestModal();
-                window.open(data.notifyOwner);
+                window.location.href = data.notifyOwner
                 window.location.href = 'dashboard.html';
             } else {
                 alert(data.error);

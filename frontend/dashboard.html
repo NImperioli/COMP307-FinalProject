@@ -1,7 +1,12 @@
 <!-- TAYM ATRACH 261183855 -->
 
+<!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
+    <meta name="description" content="MyBookings: Booking Application for McGill students and employees.">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
@@ -554,6 +559,7 @@ document.getElementById('user-name').textContent = name || "";
             window.location.href = 'landing.html';
         }
 
+
         async function loadDashboard() {
             const url = role === 'owner'
                 ? `${API_BASE}/api/slots/owner/${id}/reservations`
@@ -619,11 +625,6 @@ document.getElementById('user-name').textContent = name || "";
                 renderAction("Book Another Appointment", "browse-owners.html");
             }
         }
-
-        loadDashboard();
-
-        const appointmentsList = document.getElementById("appointmentsList");
-        const actionsBar = document.getElementById("actions-menu");
 
         function renderAction(name, href) {
             const new_button = document.createElement("button");
@@ -942,7 +943,7 @@ document.getElementById('user-name').textContent = name || "";
                 });
                 const data = await response.json();
                 if (response.ok) {
-                    window.open(data.notifyUser);
+                    window.location.href = data.notifyUser;
                     loadRequests();
                 } else {
                     alert(data.error);
@@ -961,7 +962,7 @@ document.getElementById('user-name').textContent = name || "";
                 });
                 const data = await response.json();
                 if (response.ok) {
-                    window.open(data.notifyUser);
+                    window.location.href = data.notifyUser;
                     loadRequests();
                 } else {
                     alert(data.error);
