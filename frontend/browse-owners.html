@@ -22,59 +22,59 @@
         }
 
         .top-bar {
-            width: calc(100% - 40px);
-            margin: 20px;
+    width: calc(100% - 40px);
+    margin: 20px;
 
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 
-            background: rgba(255, 255, 255, 0.88);
-            backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(12px);
 
-            padding: 16px 28px;
-            position: absolute;
-            top: 0;
-            left: 0;
+    padding: 16px 28px;
+    position: absolute;
+    top: 0;
+    left: 0;
 
-            border-radius: 22px;
-            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.16);
+    border-radius: 22px;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.16);
 
-            z-index: 5;
-        }
+    z-index: 5;
+}
 
-        .logo {
-            font-size: 28px;
-            font-weight: 800;
-            text-decoration: none;
-            color: black;
-            letter-spacing: 1px;
-        }
+.logo {
+    font-size: 28px;
+    font-weight: 800;
+    text-decoration: none;
+    color: black;
+    letter-spacing: 1px;
+}
 
-        .logo span {
-            color: rgb(237, 27, 47);
-        }
+.logo span {
+    color: rgb(237, 27, 47);
+}
 
-        .top-buttons {
-            display: flex;
-            gap: 12px;
-        }
+.top-buttons {
+    display: flex;
+    gap: 12px;
+}
 
-        .top-button {
-            min-width: 100px;
-            height: 44px;
-            background: black;
-            border: none;
-            border-radius: 999px;
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.25s ease;
-        }
+.top-button {
+    min-width: 100px;
+    height: 44px;
+    background: black;
+    border: none;
+    border-radius: 999px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.25s ease;
+}
 
-        .top-button:hover {
-            background: rgb(237, 27, 47);
-        }
+.top-button:hover {
+    background: rgb(237, 27, 47);
+}
 
         body {
             min-height: 100vh;
@@ -238,128 +238,112 @@
              color: rgb(237, 27, 47); 
         }
         .view-button {
-        position: relative;
-        overflow: hidden;
-    }
+    position: relative;
+    overflow: hidden;
+}
 
-    .view-button::after {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(120deg, transparent, rgba(255,255,255,0.4), transparent);
-        transition: 0.5s;
-    }
+.view-button::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(120deg, transparent, rgba(255,255,255,0.4), transparent);
+    transition: 0.5s;
+}
 
-    .view-button:hover::after {
-        left: 100%;
-    }
+.view-button:hover::after {
+    left: 100%;
+}
 
-    .wave-bg {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 200%;
-        height: 480px;
-        overflow: hidden;
-        z-index: 0;
-        pointer-events: none;
-        animation: waveMove 12s linear infinite;
-    }
+.wave-bg {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 200%;
+    height: 480px;
+    overflow: hidden;
+    z-index: 0;
+    pointer-events: none;
+    animation: waveMove 12s linear infinite;
+}
 
-    .wave-svg {
-        width: 100%;
-        height: 100%;
-        display: block;
-    }
+.wave-svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
 
-    .wave-back {
-        bottom: -40px;
-        height: 620px;
-        opacity: 0.45;
-        animation-duration: 18s;
-    }
+.wave-back {
+    bottom: -40px;
+    height: 620px;
+    opacity: 0.45;
+    animation-duration: 18s;
+}
 
-    .wave-back .wave-svg {
-        transform: scaleY(1.2);   /* makes it taller */
-        transform-origin: bottom; /* grows upward */
-    }
+.wave-back .wave-svg {
+    transform: scaleY(1.2);   /* makes it taller */
+    transform-origin: bottom; /* grows upward */
+}
 
-    @keyframes waveMove {
-        from {
-            transform: translateX(0);
+@keyframes waveMove {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+.page-header h1 {
+    font-size: 42px;
+    color: rgb(0, 0, 0);
+}
+
+.page-header h1 {
+    font-size: 42px;
+    color: black;
+    position: relative;
+}
+
+.page-header h1::after {
+    content: "";
+    display: block;
+    width: 290px;
+    height: 3px;
+    background: rgb(237, 27, 47);
+    margin: 1px auto 0;
+    border-radius: 2px;
+}
+.logo {
+    color: rgb(237, 27, 47);
+}
+
+.main-panel,
+.page-header,
+.owners-grid,
+.owner-card {
+    position: relative;
+    z-index: 2;
+}
+
+ /* Modal - Annie Huynh */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
         }
-        to {
-            transform: translateX(-50%);
-        }
-    }
 
-    .page-header h1 {
-        font-size: 42px;
-        color: rgb(0, 0, 0);
-    }
 
-    .page-header h1 {
-        font-size: 42px;
-        color: black;
-        position: relative;
-    }
 
-    .page-header h1::after {
-        content: "";
-        display: block;
-        width: 290px;
-        height: 3px;
-        background: rgb(237, 27, 47);
-        margin: 1px auto 0;
-        border-radius: 2px;
-    }
-
-    .logo {
-        color: rgb(237, 27, 47);
-    }
-
-    .info-box .input-field {
-        width: 100%;
-        height: 60px;
-        font-size: 17px;
-        padding: 0 25px;
-        margin-bottom: 15px;
-        border-radius: 30px;
-        border: none;
-        box-shadow: 0px 5px 10px 1px rgb(146, 146, 146);
-        outline: none;
-        transition: .3s;
-        background: rgb(255, 255, 255);
-    }
-
-    .input-field:focus{
-        width: 105%;
-    }
-
-    .main-panel,
-    .page-header,
-    .owners-grid,
-    .owner-card {
-        position: relative;
-        z-index: 2;
-    }
-
-    /* Modal - Annie Huynh */
-    .modal-overlay {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 1000;
-        justify-content: center;
-        align-items: center;
-    }
     </style>
 </head>
 
@@ -367,42 +351,41 @@
    <div class="wave-bg wave-back">
     <svg class="wave-svg" viewBox="0 0 2880 320" preserveAspectRatio="none">
         <path fill="rgb(237, 27, 47)" fill-opacity="0.3"
-            d="M0,180 
-            C240,150 480,210 720,180 
-            C960,150 1200,210 1440,180 
-            C1680,150 1920,210 2160,180 
-            C2400,150 2640,210 2880,180 
-            L2880,320 L0,320 Z">
-        </path>
+d="M0,180 
+   C240,150 480,210 720,180 
+   C960,150 1200,210 1440,180 
+   C1680,150 1920,210 2160,180 
+   C2400,150 2640,210 2880,180 
+   L2880,320 L0,320 Z">
+</path>
     </svg>
-    </div>
+</div>
 
    <div class="wave-bg">
     <svg class="wave-svg" viewBox="0 0 2880 320" preserveAspectRatio="none">
         <path fill="rgb(237, 27, 47)" fill-opacity="0.8"
-            d="M0,180 
-            C240,150 480,210 720,180 
-            C960,150 1200,210 1440,180 
-            C1680,150 1920,210 2160,180 
-            C2400,150 2640,210 2880,180 
-            L2880,320 L0,320 Z">
-        </path>
+d="M0,180 
+   C240,150 480,210 720,180 
+   C960,150 1200,210 1440,180 
+   C1680,150 1920,210 2160,180 
+   C2400,150 2640,210 2880,180 
+   L2880,320 L0,320 Z">
+</path>
     </svg>
     </div>
     
-    <div class="top-bar">
-        <a href="landing.html" class="logo">
-            My<span>Bookings</span>
-        </a>
+<div class="top-bar">
+    <a href="landing.html" class="logo">
+        My<span>Bookings</span>
+    </a>
 
-        <div class="top-buttons">
-            <button class="top-button" onclick="window.location.href='dashboard.html'">Back</button>
-        </div>
+    <div class="top-buttons">
+        <button class="top-button" onclick="window.location.href='dashboard.html'">Back</button>
     </div>
-
-    <div class="page-header">
-        <h1>Browse Owners</h1>
-    </div>
+</div>
+<div class="page-header">
+    <h1>Browse Owners</h1>
+</div>
    
     <div class="owners-grid" id="ownersList">
         <p style="color:gray">Loading owners...</p>
@@ -446,6 +429,7 @@
          if (!token){
             window.location.href = 'login.html'
         }
+            
 
         const ownersList = document.getElementById('ownersList');
         

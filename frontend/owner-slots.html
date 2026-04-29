@@ -112,62 +112,49 @@
             background: rgb(237, 27, 47);
         }
 
-        .wave-bg {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 200%;
-            height: 480px;
-            overflow: hidden;
-            z-index: 0;
-            pointer-events: none;
-            animation: waveMove 12s linear infinite;
-        }
 
-        .wave-svg {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
+.wave-bg {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 200%;
+    height: 480px;
+    overflow: hidden;
+    z-index: 0;
+    pointer-events: none;
+    animation: waveMove 12s linear infinite;
+}
 
-        .wave-back {
-            bottom: -40px;
-            height: 620px;
-            opacity: 0.45;
-            animation-duration: 18s;
-        }
+.wave-svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
 
-        .wave-back .wave-svg {
-            transform: scaleY(1.2);   /* makes it taller */
-            transform-origin: bottom; /* grows upward */
-        }
+.wave-back {
+    bottom: -40px;
+    height: 620px;
+    opacity: 0.45;
+    animation-duration: 18s;
+}
 
-        @keyframes waveMove {
-            from {
-                transform: translateX(0);
-            }
-            to {
-                transform: translateX(-50%);
-            }
-        }
+.wave-back .wave-svg {
+    transform: scaleY(1.2);   /* makes it taller */
+    transform-origin: bottom; /* grows upward */
+}
 
-        /* Badge for meeting type */
-        .type-badge {
-            display: inline-block;
-            padding: 3px 12px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-        .badge-group {
-            background: rgb(230, 240, 255);
-            color: rgb(30, 80, 180);
-        }
-        .badge-slot {
-            background: rgb(220, 255, 220);
-            color: rgb(30, 130, 30);
-        }
+@keyframes waveMove {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+
+
+
 
         /* Modal - Annie Huynh */
         .modal-overlay {
@@ -296,8 +283,8 @@
         const email = localStorage.getItem('email');
         const role = localStorage.getItem('role');
 
-                 
-        /* read token and redirect if its missing
+         
+        // read token and redirect if its missing
         const token = localStorage.getItem('token');
         if (!token) {
             window.location.href = 'login.html';

@@ -261,7 +261,7 @@
             transform: scale(1.05,1);
         }
 
-        h6 a {
+h6 a {
             text-decoration: none;  
             color: black;            
             font-weight: 600;        
@@ -271,22 +271,29 @@
              color: rgb(237, 27, 47); 
         }
 
-        .login-header header {
-            position: relative;
-            font-size: 30px;
-            font-weight: 600;
-            color: black;
-            display: inline-block;
-        }
+.login-header header {
+    position: relative;
+    font-size: 30px;
+    font-weight: 600;
+    color: black;
+    display: inline-block;
+}
+
+.login-header header::after {
+    content: "";
+    display: block;
+    width: 110px;
+    height: 4px;
+    background: rgb(237, 27, 47);
+    margin: 8px auto 0;
+    border-radius: 2px;
+}
     </style>
 </head>
 
     <!-- HTML  -->
 <body>
-    <div class="top-bar">
-            <a href="landing.html" class="logo">
-                MyBookings
-            </a>
+    
 
             <div class="top-buttons">
                 <button class="top-button" onclick="goBack()">Back</button>
@@ -302,6 +309,16 @@
                 browse and reserve active appointments.
             </p>
         </div>
+<div class="top-bar">
+    <a href="landing.html" class="logo">
+        MyBookings
+    </a>
+
+    <div class="top-buttons">
+        <button class="top-button" onclick="goBack()">Back</button>
+    </div>
+</div>
+       
 
         <div class="right-section">
             <div class="login-box">

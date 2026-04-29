@@ -21,76 +21,81 @@
             font-family: "Outfit", sans-serif;
         }
 
+
         .top-bar {
-            width: calc(100% - 40px);
-            margin: 20px;
+    width: calc(100% - 40px);
+    margin: 20px;
 
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 
-            background: rgba(255, 255, 255, 0.88);
-            backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(12px);
 
-            padding: 16px 28px;
-            position: absolute;
-            top: 0;
-            left: 0;
+    padding: 16px 28px;
+    position: absolute;
+    top: 0;
+    left: 0;
 
-            border-radius: 22px;
-            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.16);
+    border-radius: 22px;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.16);
 
-            z-index: 2;
-        }
-
-
-        /* LOGO */
-        .logo {
-            font-size: 28px;
-            font-weight: 800;
-            color: rgb(237, 27, 47);
-            text-decoration: none;
-            letter-spacing: 1px;
-            position: relative;
-        }
+    z-index: 2;
+}
 
 
-        .logo:hover {
-            opacity: 0.8;
-        }
+    /* LOGO */
 
-        .logo span {
-            color: rgb(237, 27, 47);
-        }
-
-        .top-buttons {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .top-button {
-            min-width: 100px;
-            height: 44px;
-            background: black;
-            border: none;
-            border-radius: 999px;
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.25s ease;
-        }
-
-        .top-button:hover {
-            background: rgb(237, 27, 47);
-            transform: translateY(-2px);
-        }
+   .logo {
+    font-size: 28px;
+    font-weight: 800;
+    color: rgb(237, 27, 47);
+    text-decoration: none;
+    letter-spacing: 1px;
+    position: relative;
+}
 
 
+.logo:hover {
+    opacity: 0.8;
+}
+
+.logo span {
+    color: rgb(237, 27, 47);
+}
+
+.top-buttons {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+
+
+
+
+
+.top-button {
+    min-width: 100px;
+    height: 44px;
+    background: black;
+    border: none;
+    border-radius: 999px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.25s ease;
+}
+
+.top-button:hover {
+    background: rgb(237, 27, 47);
+    transform: translateY(-2px);
+}
         body {
             min-height: 100vh;
             background: rgb(255, 255, 255);
-            padding: 250px 40px 30px 40px;
+             padding: 250px 40px 30px 40px;
         }
 
         .create-button {
@@ -98,71 +103,16 @@
             overflow: hidden;
         }
 
-        .create-button::after {
-             content: "";
-             position: absolute;
-             top: 0;
-             left: -100%;
-             width: 100%;
-             height: 100%;
-             background: linear-gradient(120deg, transparent, rgba(255,255,255,0.4), transparent);
-             transition: 0.5s;
-        }
-
-        .create-button:hover::after {
-            left: 100%;
-        }
-
-        .wave-bg {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 200%;
-            height: 480px;
-            overflow: hidden;
-            z-index: 0;
-            pointer-events: none;
-            animation: waveMove 12s linear infinite;
-        }
-
-        .wave-svg {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-
-        .wave-back {
-            bottom: -40px;
-            height: 620px;
-            opacity: 0.45;
-            animation-duration: 18s;
-        }
-
-        .wave-back .wave-svg {
-            transform: scaleY(1.2);   /* makes it taller */
-            transform-origin: bottom; /* grows upward */
-        }
-
-        @keyframes waveMove {
-            from {
-                transform: translateX(0);
-            }
-            to {
-                transform: translateX(-50%);
-            }
-        }
-
-
-        .main-panel,
-        .page-header {
-            position: relative;
-            z-index: 2;
-        }
+       .page-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 35px;
+}
 
         .page-header h1 {
             font-size: 42px;
-            color: black;
-            position: relative;
+            color: rgb(0, 0, 0);
         }
 
         .page-header h1::after {
@@ -226,81 +176,20 @@
             gap: 18px;
         }
 
-        #slot_container > div {
-            padding: 20px;
-            border-radius: 25px;
-            box-shadow: 0px 3px 8px 1px rgb(220, 220, 220);
-            background: white;
-            color: rgb(40, 40, 40);
-            font-size: 18px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            flex-wrap: nowrap;
-        }
+      #slot_container > div {
+         padding: 20px;
+         border-radius: 25px;
+         box-shadow: 0px 3px 8px 1px rgb(220, 220, 220);
+         background: white;
+         color: rgb(40, 40, 40);
+         font-size: 18px;
 
-        .slot-card-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .slot-info {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            flex: 1;
-        }
-
-        .slot-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: black;
-        }
-
-        .slot-time {
-            font-size: 14px;
-            color: rgb(90, 90, 90);
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 3px 12px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        .status-active {
-            background: rgb(220, 255, 220);
-            color: rgb(30, 130, 30);
-        }
-        .status-private {
-            background: rgb(235, 235, 235);
-            color: rgb(100, 100, 100);
-        }
-
-        .group-id-box {
-            background: rgb(245, 245, 245);
-            border-radius: 10px;
-            padding: 8px 14px;
-            font-size: 13px;
-            color: rgb(80, 80, 80);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .group-id-box code {
-            font-family: monospace;
-            color: rgb(40, 40, 40);
-            word-break: break-all;
-        }
+         display: flex;
+         align-items: center;
+         justify-content: space-between;
+         gap: 12px;
+         flex-wrap: nowrap;
+}
 
         #slot_container button {
             height: 38px;
@@ -319,12 +208,113 @@
             background: rgb(237, 27, 47);
         }
 
-        .btn-delete {
-            background: rgb(200, 50, 50) !important;
+         h6 a {
+            text-decoration: none;  
+            color: black;            
+            font-weight: 600;        
         }
-        .btn-delete:hover {
-            background: rgb(237, 27, 47) !important;
+
+        h6 a:hover {
+             color: rgb(237, 27, 47); 
         }
+
+
+        .create-button {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .create-button::after {
+             content: "";
+             position: absolute;
+             top: 0;
+             left: -100%;
+             width: 100%;
+             height: 100%;
+             background: linear-gradient(120deg, transparent, rgba(255,255,255,0.4), transparent);
+             transition: 0.5s;
+        }
+
+        .create-button:hover::after {
+            left: 100%;
+        }
+
+
+.wave-bg {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 200%;
+    height: 480px;
+    overflow: hidden;
+    z-index: 0;
+    pointer-events: none;
+    animation: waveMove 12s linear infinite;
+}
+
+.wave-svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.wave-back {
+    bottom: -40px;
+    height: 620px;
+    opacity: 0.45;
+    animation-duration: 18s;
+}
+
+.wave-back .wave-svg {
+    transform: scaleY(1.2);   /* makes it taller */
+    transform-origin: bottom; /* grows upward */
+}
+
+@keyframes waveMove {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+
+.main-panel,
+.page-header {
+    position: relative;
+    z-index: 2;
+}
+
+
+.page-header h1 {
+    font-size: 42px;
+    color: rgb(0, 0, 0);
+}
+
+.page-header h1 {
+    font-size: 42px;
+    color: black;
+    position: relative;
+}
+
+.page-header h1::after {
+    content: "";
+    display: block;
+    width: 245px;
+    height: 3px;
+    background: rgb(237, 27, 47);
+    margin: 3px auto 0;
+    border-radius: 2px;
+}
+
+#slot_container > div span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
 
         /* Modal - Annie Huynh */
         .modal-overlay {
@@ -487,44 +477,45 @@
 
 <body>
     <div class="wave-bg wave-back">
-        <svg class="wave-svg" viewBox="0 0 2880 320" preserveAspectRatio="none">
-            <path fill="rgb(237, 27, 47)" fill-opacity="0.3"
-                d="M0,180 
-                C240,150 480,210 720,180 
-                C960,150 1200,210 1440,180 
-                C1680,150 1920,210 2160,180 
-                C2400,150 2640,210 2880,180 
-                L2880,320 L0,320 Z">
-            </path>
-        </svg>
-    </div>
+    <svg class="wave-svg" viewBox="0 0 2880 320" preserveAspectRatio="none">
+        <path fill="rgb(237, 27, 47)" fill-opacity="0.3"
+d="M0,180 
+   C240,150 480,210 720,180 
+   C960,150 1200,210 1440,180 
+   C1680,150 1920,210 2160,180 
+   C2400,150 2640,210 2880,180 
+   L2880,320 L0,320 Z">
+</path>
+    </svg>
+</div>
 
-    <div class="wave-bg">
-        <svg class="wave-svg" viewBox="0 0 2880 320" preserveAspectRatio="none">
-            <path fill="rgb(237, 27, 47)" fill-opacity="0.8"
-                d="M0,180 
-                C240,150 480,210 720,180 
-                C960,150 1200,210 1440,180 
-                C1680,150 1920,210 2160,180 
-                C2400,150 2640,210 2880,180 
-                L2880,320 L0,320 Z">
-            </path>
-        </svg>
-    </div>
-
+   <div class="wave-bg">
+    <svg class="wave-svg" viewBox="0 0 2880 320" preserveAspectRatio="none">
+        <path fill="rgb(237, 27, 47)" fill-opacity="0.8"
+d="M0,180 
+   C240,150 480,210 720,180 
+   C960,150 1200,210 1440,180 
+   C1680,150 1920,210 2160,180 
+   C2400,150 2640,210 2880,180 
+   L2880,320 L0,320 Z">
+</path>
+    </svg>
+</div>
     <div class="top-bar">
-        <a href="landing.html" class="logo">
-            My<span>Bookings</span>
-        </a>
+    <a href="landing.html" class="logo">
+    My<span>Bookings</span>
+</a>
 
-        <div class="top-buttons">
-            <button class="top-button" onclick="window.location.href='dashboard.html'">Back</button>
-        </div>
+    <div class="top-buttons">
+        <button class="top-button" onclick="window.location.href='dashboard.html'">Back</button>
     </div>
+</div>
 
-    <div class="page-header">
-        <h1>Manage Slots</h1>
-    </div>
+<div class="page-header">
+    <h1>Manage Slots</h1>
+</div>
+
+    
 
     <div class="main-panel">
         <h2 class="panel-title">Available Slots</h2>
@@ -657,18 +648,106 @@
         </div>
     </div>
 
-    <script>
-        const API_BASE = '';
-        const token = localStorage.getItem('token');
-        const role = localStorage.getItem('role');
-        const id = localStorage.getItem('user._id');
-        const email = localStorage.getItem('email');
+<script>
+    const API_BASE = '';
+    const token = localStorage.getItem('token');
+    const role = localStorage.getItem('role');
+    const id = localStorage.getItem('user._id');
+    const email = localStorage.getItem('email');
 
-        if (!token){
-            window.location.href = 'login.html';
-        } else if (role !== "owner"){
-            window.location.href = 'dashboard.html';
+    // redirect to login page if token is missing
+
+    
+
+    if (!token){
+        window.location.href = 'login.html';
+    } else if (role !== "owner"){
+        window.location.href = 'dashboard.html';
+    }
+    
+    else if (role !== "owner"){
+        window.location.href = 'dashboard.html'
+    }
+
+    const url = `${API_BASE}/api/slots/`;
+    const slot_container = document.getElementById("slot_container");
+
+    async function renderAll(options = { show_repeating: true, range: [0, Date.parse("2099-12-31")], sort: "start-time", filter: ["active", "private"] }) {
+        slot_container.innerHTML = "";
+
+        const response = await fetch(url + `owner/${id}`, {
+            method: 'GET',
+            headers: { "Authorization": 'Bearer ' + token },
+            cache: 'no-store'
+        });
+
+        const data = await response.json();
+
+        const filtered = [];
+        for (let slot of data) {
+            if (!options.show_repeating && (slot.type === "recurring")) continue;
+            if (Date.parse(slot.endTime) < options.range[0] || Date.parse(slot.startTime) > options.range[1]) continue;
+            if (!options.filter.includes(slot.status)) continue;
+            filtered.push(slot);
         }
+
+        // Separate non-grouped from grouped
+        const ungrouped = filtered.filter(s => !s.groupToken);
+        const grouped = new Map();
+        for (const s of filtered.filter(s => s.groupToken)) {
+            if (!grouped.has(s.groupToken)) grouped.set(s.groupToken, []);
+            grouped.get(s.groupToken).push(s);
+        }
+
+        // Render ungrouped individually
+        for (const slot of ungrouped) await renderSlot(slot);
+        // Render each group as one card
+        for (const [groupToken, slots] of grouped) await renderGroupCard(groupToken, slots);
+    }
+
+    async function renderGroupCard(groupToken, slots) {
+        const card = document.createElement("div");
+
+        // Top row: title + status badge
+        const row = document.createElement("div");
+        row.classList.add("slot-card-row");
+
+        const info = document.createElement("div");
+        info.classList.add("slot-info");
+
+        const titleEl = document.createElement("span");
+        titleEl.classList.add("slot-title");
+        titleEl.textContent = slots[0].title + ` (${slots.length} weeks recurring)`;
+        info.appendChild(titleEl);
+
+        const startTime = new Date(slots[0].startTime).toLocaleString();
+        const endTime = new Date(slots[slots.length - 1].endTime).toLocaleString();
+        const timeEl = document.createElement("span");
+        timeEl.classList.add("slot-time");
+        timeEl.textContent = `Start: ${startTime} → End: ${endTime}`;
+        info.appendChild(timeEl);
+
+        const statusEl = document.createElement("span");
+        statusEl.classList.add("status-badge");
+        const groupStatus = slots[0].status;
+        statusEl.classList.add(groupStatus === 'active' ? 'status-active' : 'status-private');
+        statusEl.textContent = groupStatus;
+        info.appendChild(statusEl);
+
+        row.appendChild(info);
+        card.appendChild(row);
+
+        const idBox = document.createElement("div");
+        idBox.classList.add("group-id-box");
+        idBox.innerHTML = `<strong>Group ID:</strong> <code>${groupToken}</code>`;
+        const copyIdBtn = document.createElement("button");
+        copyIdBtn.textContent = "Copy ID";
+        copyIdBtn.style.cssText = "height:28px;padding:0 10px;font-size:12px;";
+        copyIdBtn.onclick = () => {
+            navigator.clipboard.writeText(groupToken).then(() => alert("Group ID copied!"));
+        };
+        idBox.appendChild(copyIdBtn);
+        card.appendChild(idBox);
 
         const url = `${API_BASE}/api/slots/`;
         const slot_container = document.getElementById("slot_container");
