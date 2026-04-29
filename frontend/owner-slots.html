@@ -1,7 +1,12 @@
 <!-- TAYM ATRACH 261183855 -->
 
+<!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
+    <meta name="description" content="MyBookings: Booking Application for McGill students and employees.">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
@@ -105,6 +110,45 @@
 
         .reserve-button:hover {
             background: rgb(237, 27, 47);
+        }
+
+        .wave-bg {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 200%;
+            height: 480px;
+            overflow: hidden;
+            z-index: 0;
+            pointer-events: none;
+            animation: waveMove 12s linear infinite;
+        }
+
+        .wave-svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .wave-back {
+            bottom: -40px;
+            height: 620px;
+            opacity: 0.45;
+            animation-duration: 18s;
+        }
+
+        .wave-back .wave-svg {
+            transform: scaleY(1.2);   /* makes it taller */
+            transform-origin: bottom; /* grows upward */
+        }
+
+        @keyframes waveMove {
+            from {
+                transform: translateX(0);
+            }
+            to {
+                transform: translateX(-50%);
+            }
         }
 
         /* Badge for meeting type */
@@ -252,10 +296,13 @@
         const email = localStorage.getItem('email');
         const role = localStorage.getItem('role');
 
+                 
+        /* read token and redirect if its missing
         const token = localStorage.getItem('token');
         if (!token) {
             window.location.href = 'login.html';
         }
+            */
 
         const urlParams = new URLSearchParams(window.location.search);
         const ownerId = urlParams.get('ownerId');
@@ -413,9 +460,8 @@
                 if (response.ok) {
                     if (data.notifyOwner) {
                         window.location.href = data.notifyOwner;
-                    } else {
-                        window.location.href = 'dashboard.html';
                     }
+                    window.location.href = 'dashboard.html';
                 } else {
                     alert(data.error);
                 }
@@ -516,9 +562,8 @@
         }
 
         // auto-open vote modal if URL has openVote=true
-        const params = new URLSearchParams(window.location.search);
-        if (params.get('openVote') === 'true' && params.get('bookingId')) {
-            openVoteModal(params.get('bookingId'));
+        if (urlParams.get('openVote') === 'true' && urlParams.get('bookingId')) {
+            openVoteModal(urlParams.get('bookingId'));
         }
     </script>
 </body>

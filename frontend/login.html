@@ -1,7 +1,12 @@
 <!-- TAYM ATRACH 261183855 -->
 
+<!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
+    <meta name="description" content="MyBookings: Booking Application for McGill students and employees.">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
@@ -31,6 +36,77 @@
 
         background-size: cover;
         background-position: center;
+        }
+
+        .top-bar {
+            width: calc(100% - 40px);
+            margin: 20px;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(12px);
+
+            padding: 16px 28px;
+            position: absolute;
+            top: 0;
+            left: 0;
+
+            border-radius: 22px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.16);
+
+            z-index: 5;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 800;
+            text-decoration: none;
+            color: rgb(237, 27, 47);
+            letter-spacing: 1px;
+        }
+
+        .logo span {
+            color: rgb(237, 27, 47);
+        }
+        .login-header header {
+            position: relative;
+            font-size: 30px;
+            font-weight: 600;
+            color: black;
+            display: inline-block;
+        }
+
+        .login-header header::after {
+            content: "";
+            display: block;
+            width: 70px;
+            height: 4px;
+            background: rgb(237, 27, 47);
+            margin: 8px auto 0;
+            border-radius: 2px;
+        }
+        .top-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .top-button {
+            min-width: 100px;
+            height: 44px;
+            background: black;
+            border: none;
+            border-radius: 999px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.25s ease;
+        }
+
+        .top-button:hover {
+            background: rgb(237, 27, 47);
         }
 
         .page-container {
@@ -140,7 +216,7 @@
         }
 
         .left-section h1.mcgill {
-            color: rgb(237, 27, 47);
+            color: rgb(0, 0, 0);
            
         }
 
@@ -178,31 +254,45 @@
     transform: scale(1.05,1);
 }
 
+h6 a {
+            text-decoration: none;  
+            color: black;            
+            font-weight: 600;        
+        }
+
+        h6 a:hover {
+             color: rgb(237, 27, 47); 
+        }
+
+
     </style>
 </head>
 
 <body>
-    <h6>MyBookings</h6>
-<div class="page-container">
-    <div class="left-section">
-        <h1 class="mcgill">MyBookings</h1>
-        <p>
-           <p>
-Book meetings with ease using MyBookings. Designed for McGill students, professors, and teaching assistants, this platform allows you to schedule, manage, and reserve appointment slots seamlessly. Stay organized, save time, and never miss an important meeting again.
-</p>
-         
-        </p>
+
+    <div class="top-bar">
+        <a href="landing.html" class="logo">
+            My<span>Bookings</span>
+        </a>
+
+        <div class="top-buttons">
+            <button class="top-button" onclick="goBack()">Back</button>
+        </div>
     </div>
+    
+    <h6><a href="landing.html">MyBookings</a></h6>
 
-    <div class="right-section">
-        <div class="login-box">
-            <div class="login-header">
-                <header><b>Login</b></header>
-            </div>
+    <div class="page-container">
+        <div class="left-section">
+            <h1 class="mcgill">Welcome!</h1>
+            <p> Book meetings with ease using MyBookings. Designed for McGill students, professors, and teaching assistants, this platform allows you to schedule, manage, and reserve appointment slots seamlessly. Stay organized, save time, and never miss an important meeting again.</p>
+        </div>
 
-             <button class="back-btn" onclick="goBack()">Back</button>
-
-
+        <div class="right-section">
+            <div class="login-box">
+                <div class="login-header">
+                    <header><b>Login</b></header>
+                </div>
             <form id="login-form">
                 <div class="info-box">
                     <input type="text" id="user" class="input-field" placeholder="Email" name="email" autocomplete="off" required>
