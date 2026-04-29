@@ -700,7 +700,7 @@
         }
 
         /* ─── Type 1: meeting request card ─── */
-       function renderType1Card(item) {
+        function renderType1Card(item) {
             const newDiv = document.createElement('div');
             newDiv.classList.add('appointment-card');
 
@@ -746,39 +746,42 @@
                 buttonDiv.appendChild(msgBtn);
             }
 
-            const cancelBtn = document.createElement('button');
-            cancelBtn.classList.add('small-button-red');
-            cancelBtn.textContent = 'Cancel';
-            cancelBtn.onclick = async () => {
-                const res = await fetch(`${API_BASE}/api/bookings/cancel`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + token
-                    },
-                    body: JSON.stringify({ bookingId: item._id, userId: id })
-                });
-                if (res.ok) loadDashboard();
-                else alert('Cancel failed');
-            };
-            buttonDiv.appendChild(cancelBtn);
+            // Only show Cancel and Complete buttons for future appointments
+            if (!isPast) {
+                const cancelBtn = document.createElement('button');
+                cancelBtn.classList.add('small-button-red');
+                cancelBtn.textContent = 'Cancel';
+                cancelBtn.onclick = async () => {
+                    const res = await fetch(`${API_BASE}/api/bookings/cancel`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + token
+                        },
+                        body: JSON.stringify({ bookingId: item._id, userId: id })
+                    });
+                    if (res.ok) loadDashboard();
+                    else alert('Cancel failed');
+                };
+                buttonDiv.appendChild(cancelBtn);
 
-            const completeBtn = document.createElement('button');
-            completeBtn.classList.add('small-button');
-            completeBtn.textContent = 'Mark as Completed';
-            completeBtn.onclick = async () => {
-                const res = await fetch(`${API_BASE}/api/bookings/complete`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + token
-                    },
-                    body: JSON.stringify({ bookingId: item._id })
-                });
-                if (res.ok) loadDashboard();
-                else alert('Complete failed');
-            };
-            buttonDiv.appendChild(completeBtn);
+                const completeBtn = document.createElement('button');
+                completeBtn.classList.add('small-button');
+                completeBtn.textContent = 'Mark as Completed';
+                completeBtn.onclick = async () => {
+                    const res = await fetch(`${API_BASE}/api/bookings/complete`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + token
+                        },
+                        body: JSON.stringify({ bookingId: item._id })
+                    });
+                    if (res.ok) loadDashboard();
+                    else alert('Complete failed');
+                };
+                buttonDiv.appendChild(completeBtn);
+            }
 
             newDiv.appendChild(buttonDiv);
 
@@ -830,37 +833,40 @@
                 buttonDiv.appendChild(msgBtn);
             }
 
-            const cancelBtn = document.createElement('button');
-            cancelBtn.classList.add('small-button-red');
-            cancelBtn.textContent = 'Cancel';
-            cancelBtn.onclick = async () => {
-                const res = await fetch(`${API_BASE}/api/bookings/group/${item._id}/leave`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + token
-                    },
-                    body: JSON.stringify({ userId: id })
-                });
-                if (res.ok) loadDashboard();
-                else alert('Cancel failed');
-            };
-            buttonDiv.appendChild(cancelBtn);
+            // Only show Cancel and Complete buttons for future appointments
+            if (!isPast) {
+                const cancelBtn = document.createElement('button');
+                cancelBtn.classList.add('small-button-red');
+                cancelBtn.textContent = 'Cancel';
+                cancelBtn.onclick = async () => {
+                    const res = await fetch(`${API_BASE}/api/bookings/group/${item._id}/leave`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + token
+                        },
+                        body: JSON.stringify({ userId: id })
+                    });
+                    if (res.ok) loadDashboard();
+                    else alert('Cancel failed');
+                };
+                buttonDiv.appendChild(cancelBtn);
 
-            const completeBtn = document.createElement('button');
-            completeBtn.classList.add('small-button');
-            completeBtn.textContent = 'Mark as Completed';
-            completeBtn.onclick = async () => {
-                const res = await fetch(`${API_BASE}/api/bookings/group/${item._id}/complete`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + token
-                    }
-                });
-                if (res.ok) loadDashboard();
-                else alert('Complete failed');
-            };
-            buttonDiv.appendChild(completeBtn);
+                const completeBtn = document.createElement('button');
+                completeBtn.classList.add('small-button');
+                completeBtn.textContent = 'Mark as Completed';
+                completeBtn.onclick = async () => {
+                    const res = await fetch(`${API_BASE}/api/bookings/group/${item._id}/complete`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': 'Bearer ' + token
+                        }
+                    });
+                    if (res.ok) loadDashboard();
+                    else alert('Complete failed');
+                };
+                buttonDiv.appendChild(completeBtn);
+            }
 
             const exportBtn = document.createElement('button');
             exportBtn.classList.add('small-button');
@@ -1006,41 +1012,42 @@
                 list.innerHTML = '';
 
                 if (!Array.isArray(data) || data.length === 0) {
-                    list.innerHTML = '<p style="color:gray;text-align:center;padding:20px">No requests sent yet.</p>';
+                    list.innerHTML = '<p style="color:gray;text-align:center;padding:20px">No requests yet.</p>';
                     return;
                 }
 
-                for (const request of data) {
-                    const card = document.createElement('div');
-                    card.classList.add('request-card');
-
-                    const to = document.createElement('p');
-                    to.textContent = 'To: ' + request.ownerEmail;
-                    card.appendChild(to);
-
-                    const msg = document.createElement('p');
-                    msg.textContent = request.message;
-                    card.appendChild(msg);
-
-                    if (request.proposedTime) {
-                        const t = document.createElement('p');
-                        t.textContent = 'Proposed: ' + new Date(request.proposedTime).toLocaleString();
-                        card.appendChild(t);
-                    }
-
-                    const statusEl = document.createElement('p');
-                    statusEl.style.fontWeight = '600';
-                    statusEl.textContent = 'Status: ' + request.status;
-                    card.appendChild(statusEl);
-
-                    list.appendChild(card);
-                }
+                for (const req of data) renderMyRequest(req);
             } catch (e) {
                 list.innerHTML = '<p style="color:red;text-align:center;padding:20px">Failed to load requests.</p>';
             }
         }
 
-        /* ─── Bootstrap ─── */
+        function renderMyRequest(request) {
+            const newDiv = document.createElement('div');
+            newDiv.classList.add('request-card');
+
+            const toP = document.createElement('p');
+            toP.textContent = 'To: ' + request.ownerEmail;
+            newDiv.appendChild(toP);
+
+            const msgP = document.createElement('p');
+            msgP.textContent = request.message;
+            newDiv.appendChild(msgP);
+
+            if (request.proposedTime) {
+                const timeP = document.createElement('p');
+                timeP.textContent = 'Proposed time: ' + new Date(request.proposedTime).toLocaleString();
+                newDiv.appendChild(timeP);
+            }
+
+            const statusP = document.createElement('p');
+            statusP.textContent = 'Status: ' + request.status;
+            newDiv.appendChild(statusP);
+
+            document.getElementById('myRequestsList').appendChild(newDiv);
+        }
+
+        /* Call on page load */
         loadDashboard();
     </script>
 </body>

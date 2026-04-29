@@ -222,3 +222,16 @@ exports.completeGroupMeeting = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+exports.completeAnyBooking = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { bookingId } = req.body;
+
+    const result = await bookingService.completeAnyBooking(bookingId, userId);
+
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
