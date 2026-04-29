@@ -119,6 +119,10 @@ exports.getUserAppointments = async (req, res) => {
 exports.getOwnerAppointments = async (req, res) => {
   try {
     const result = await bookingService.getOwnerAppointments(req.params.ownerId);
+    result.type2 = result.type2.map(a => ({
+      ...a,
+      participantEmails: (a.participantDocs || []).map(p => p.email)
+    }));
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });

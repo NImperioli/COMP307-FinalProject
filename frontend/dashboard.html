@@ -506,6 +506,21 @@
                         if (!entry._anyActive) entry.status = 'completed';
                         delete entry._anyActive;
                     }
+                    for (const [token, entry] of groupMap) {
+                    // find the earliest active (non-completed) slot in the group
+                    const activeItems = d.filter(i => 
+                        i.slot && i.slot.groupToken === token && 
+                        i.status !== 'completed' &&
+                        !i.cancelledAt
+                    );
+                    if (activeItems.length > 0) {
+                        const earliest = activeItems.sort((a, b) => 
+                            new Date(a.slot.startTime) - new Date(b.slot.startTime)
+                        )[0];
+                        entry.slot = earliest.slot;
+                        entry._id = earliest._id;
+                    }
+                }
                     for (const item of singles) renderCard(item);
                     for (const item of groupMap.values()) renderCard(item);
                 } else {
@@ -702,7 +717,11 @@
                         body: JSON.stringify({ reservationId: item._id })
                     });
                     const d = await res.json();
-                    if (res.ok) { loadDashboard(); }
+                    if (res.ok) {
+                        const d = await res.json();
+                        if (d.notifyOwner) window.open(d.notifyOwner, '_blank');
+                        loadDashboard();
+                    }
                     else alert(d.error);
                 };
                 buttonDiv.appendChild(cancelBtn);
@@ -821,7 +840,11 @@
                     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
                     body: JSON.stringify({ bookingId: item._id, type: 'TYPE1' })
                 });
-                if (res.ok) loadDashboard();
+                if (res.ok) {
+                    const d = await res.json();
+                    if (d.notify) d.notify.forEach(url => window.open(url, '_blank'));
+                    loadDashboard();
+                }
                 else { const d = await res.json(); alert(d.error); }
             };
             buttonDiv.appendChild(cancelBtn);
@@ -893,7 +916,12 @@
             const msgBtn = document.createElement('button');
             msgBtn.classList.add('small-button');
             msgBtn.textContent = 'Message';
-            msgBtn.onclick = () => { window.location.href = `mailto:${item.ownerEmail}`; };
+            msgBtn.onclick = () => {
+                const target = role === 'owner'
+                    ? (item.participants || []).join(',')  // owner messages participants
+                    : item.ownerEmail;                     // student messages owner
+                window.location.href = `mailto:${target}`;
+            };
             buttonDiv.appendChild(msgBtn);
 
             const cancelBtn = document.createElement('button');
@@ -911,7 +939,11 @@
                     method: 'DELETE',
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
-                if (res.ok) loadDashboard();
+                if (res.ok) {
+                    const d = await res.json();
+                    if (d.notify) d.notify.forEach(url => window.open(url, '_blank'));
+                    loadDashboard();
+                }
                 else { const d = await res.json(); alert(d.error); }
             };
             buttonDiv.appendChild(cancelBtn);
