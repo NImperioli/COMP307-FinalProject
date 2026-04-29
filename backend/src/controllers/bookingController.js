@@ -125,6 +125,15 @@ exports.getOwnerAppointments = async (req, res) => {
   }
 };
 
+exports.getOpenGroupBookings = async (req, res) => {
+  try {
+    const result = await bookingService.getOpenGroupBookings(req.params.ownerId);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 exports.getGroupInviteUrl = async (req, res) => {
   try {
     const { bookingId } = req.params;

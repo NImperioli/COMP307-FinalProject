@@ -412,6 +412,7 @@
         <button class="create-button" onclick="window.location.href='browse-owners.html'">Request Meeting</button>
 
         <div id="slot_container"></div>
+        <div id="groupMeetingsContainer"></div>
     </div>
 
     <!-- Create Group Meeting Modal - Annie Huynh -->
@@ -657,18 +658,35 @@
 
             const inviteBtn = document.createElement('button');
             inviteBtn.textContent = 'Get Invite URL';
+
             inviteBtn.onclick = async () => {
-                const firstSlotId = slots[0]._id;
-                const inviteResponse = await fetch(`${API_BASE}/api/slots/${firstSlotId}/invite-url`, {
-                    headers: { 'Authorization': 'Bearer ' + token }
-                });
-                const data = await inviteResponse.json();
-                if (inviteResponse.ok) {
-                    navigator.clipboard.writeText(data.inviteUrl).then(() => alert('Invite URL copied!'));
-                } else {
-                    alert(data.error || 'URL not found');
+                try {
+                    const bookingId = groupToken;
+
+                    const inviteResponse = await fetch(
+                        `${API_BASE}/api/bookings/group/${bookingId}/invite-url`,
+                        {
+                            headers: {
+                                'Authorization': 'Bearer ' + token
+                            }
+                        }
+                    );
+
+                    const data = await inviteResponse.json();
+
+                    if (inviteResponse.ok) {
+                        navigator.clipboard.writeText(data.inviteUrl);
+                        alert('Invite URL copied to clipboard!');
+                    } else {
+                        alert(data.error || 'Failed to create invite URL');
+                    }
+
+                } catch (err) {
+                    console.error(err);
+                    alert('Error generating invite URL');
                 }
             };
+
             btnRow.appendChild(inviteBtn);
 
             card.appendChild(btnRow);
@@ -1019,20 +1037,48 @@
             const data = await response.json();
             if (response.ok) {
                 const bookingId = data.insertedId;
+
                 closeCreateModal();
-                document.getElementById('finalizeBookingId').value = bookingId;
-                const shareUrl = `${window.location.origin}/owner-slots.html?ownerId=${id}&bookingId=${bookingId}&openVote=true`;
-                navigator.clipboard.writeText(shareUrl).then(() => {
-                    alert(`Group meeting created!\nBooking ID: ${bookingId}\n\nShare URL copied to clipboard.`);
-                });
-            } else {
+
+                const shareUrl =
+                    `${window.location.origin}/owner-slots.html?ownerId=${id}&bookingId=${bookingId}&openVote=true`;
+
+                await navigator.clipboard.writeText(shareUrl).catch(() => {});
+
+                alert(
+                    "Group Meeting Created Successfully!\n\n" +
+                    "Booking ID: " + bookingId + "\n\n" +
+                    "Invite link copied to clipboard."
+                );
+
+                loadOpenGroupMeetings();
+            }else {
                 alert(data.error || 'Failed to create meeting');
             }
         };
 
         /* ─────────────────────────────────────────────
-           FINALIZE GROUP MEETING MODAL
-        ───────────────────────────────────────────── */
+        CREATE GROUP MEETING MODAL
+        ──────────────────────────────────────────── */
+
+        function openCreateModal() {
+            document.getElementById('meetingTitle').value = '';
+            document.getElementById('opensAt').value = '';
+            document.getElementById('closesAt').value = '';
+            document.getElementById('slot1').value = '';
+            document.getElementById('slot2').value = '';
+            document.getElementById('slot3').value = '';
+            document.getElementById('createModal').classList.add('active');
+        }
+
+        function closeCreateModal() {
+            document.getElementById('createModal').classList.remove('active');
+        }
+
+        /* ─────────────────────────────────────────────
+        FINALIZE GROUP MEETING MODAL
+        ──────────────────────────────────────────── */
+
         function openFinalizeModal() {
             document.getElementById('finalizeSlotsList').innerHTML = '';
             document.getElementById('finalizeModal').classList.add('active');
@@ -1044,58 +1090,140 @@
 
         document.getElementById('loadSlotsBtn').onclick = async () => {
             const bookingId = document.getElementById('finalizeBookingId').value.trim();
+
             if (!bookingId) return alert('Please enter a booking ID.');
 
             const response = await fetch(`${API_BASE}/api/bookings/group/${bookingId}/votes`, {
-                headers: { 'Authorization': 'Bearer ' + token }
+                headers: { Authorization: 'Bearer ' + token }
             });
+
             const data = await response.json();
             const list = document.getElementById('finalizeSlotsList');
             list.innerHTML = '';
 
-            if (!response.ok) return alert(data.error);
-
-            if (data.length === 0) {
-                list.innerHTML = '<p style="color:gray">No slots found for this booking.</p>';
+            if (!response.ok) {
+                alert(data.error);
                 return;
             }
 
-            for (const slot of data) renderFinalizeSlot(slot, bookingId);
+            if (data.length === 0) {
+                list.innerHTML = '<p>No voting slots found.</p>';
+                return;
+            }
+
+            for (const slot of data) {
+                renderFinalizeSlot(slot, bookingId);
+            }
         };
 
         function renderFinalizeSlot(slot, bookingId) {
-            const list   = document.getElementById('finalizeSlotsList');
-            const newDiv = document.createElement('div');
+            const list = document.getElementById('finalizeSlotsList');
 
-            const time = document.createElement('p');
-            time.textContent = 'Time: ' + new Date(slot.time).toLocaleString();
-            newDiv.appendChild(time);
+            const div = document.createElement('div');
 
-            const votes = document.createElement('p');
-            votes.textContent = 'Votes: ' + slot.votes;
-            newDiv.appendChild(votes);
+            div.innerHTML = `
+                <p><b>${new Date(slot.time).toLocaleString()}</b></p>
+                <p>Votes: ${slot.votes}</p>
+            `;
 
-            const selectBtn = document.createElement('button');
-            selectBtn.textContent = 'Select this time';
-            selectBtn.onclick = async () => {
+            const btn = document.createElement('button');
+            btn.textContent = 'Select This Time';
+
+            btn.onclick = async () => {
                 const response = await fetch(`${API_BASE}/api/bookings/group/finalize`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                    body: JSON.stringify({ bookingId, selectedTime: slot.time, ownerEmail: email })
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: 'Bearer ' + token
+                    },
+                    body: JSON.stringify({
+                        bookingId,
+                        selectedTime: slot.time,
+                        ownerEmail: email
+                    })
                 });
+
                 const data = await response.json();
+
                 if (response.ok) {
+                    alert('Meeting finalized!');
                     closeFinalizeModal();
-                    if (data.notifyOwner) window.location.href = data.notifyOwner;
-                    else window.location.href = 'dashboard.html';
+                    loadOpenGroupMeetings();
                 } else {
                     alert(data.error);
                 }
             };
-            newDiv.appendChild(selectBtn);
-            list.appendChild(newDiv);
+
+            div.appendChild(btn);
+            list.appendChild(div);
         }
 
+        async function loadOpenGroupMeetings() {
+            const container = document.getElementById("groupMeetingsContainer");
+
+            const response = await fetch(
+                `${API_BASE}/api/bookings/group/open/owner/${id}`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + token
+                    }
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                container.innerHTML = "";
+                return;
+            }
+
+            if (data.length === 0) {
+                container.innerHTML = "";
+                return;
+            }
+
+            container.innerHTML = "<h2 style='margin-top:30px;color:#ed1b2f;'>Open Group Meetings</h2>" + "<p style='margin-bottom:15px;color:#666;'>Use these Booking IDs to finalize meetings.</p>";
+            data.forEach(meeting => {
+                const div = document.createElement("div");
+                div.style.cssText =
+                    "padding:20px;margin-top:15px;border-radius:20px;box-shadow:0 3px 10px #ddd;background:white;";
+
+                div.innerHTML = `
+                    <h3>${meeting.title}</h3>
+                    <p><b>Booking ID:</b> ${meeting._id}</p>
+                    <p><b>Status:</b> ${meeting.status}</p>
+                    <button onclick="copyInvite('${meeting._id}')">Copy Invite URL</button>
+                    <button onclick="openFinalizeWithId('${meeting._id}')">Finalize</button>
+                `;
+
+                container.appendChild(div);
+            });
+        }
+
+        function openFinalizeWithId(bookingId) {
+            openFinalizeModal();
+            document.getElementById("finalizeBookingId").value = bookingId;
+        }
+
+        async function copyInvite(bookingId) {
+            const res = await fetch(
+                `${API_BASE}/api/bookings/group/${bookingId}/invite-url`,
+                {
+                    headers: {
+                        Authorization: "Bearer " + token
+                    }
+                }
+            );
+
+            const data = await res.json();
+
+            if (res.ok) {
+                navigator.clipboard.writeText(data.inviteUrl);
+                alert("Invite URL copied!");
+            } else {
+                alert(data.error);
+            }
+        }
         /* ─────────────────────────────────────────────
            AUTO-OPEN FROM URL PARAMS + INITIAL LOAD
         ───────────────────────────────────────────── */
@@ -1104,6 +1232,7 @@
         if (params.get('openFinalize') === 'true') openFinalizeModal();
 
         renderAll();
+        loadOpenGroupMeetings();
     </script>
 </body>
 </html>
