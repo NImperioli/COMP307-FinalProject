@@ -286,8 +286,7 @@
         const role        = localStorage.getItem('role');
         const token       = localStorage.getItem('token');
 
-        const params = new URLSearchParams(window.location.search);
-        const groupToken = params.get('groupToken');
+        
 
         if (!token) {
             window.location.href = 'login.html';
@@ -298,7 +297,7 @@
         const inviteToken = urlParams.get('token');
         const ownerName   = urlParams.get('ownerName');
 
-        if (!ownerId && !inviteToken && !groupToken) {
+        if (!ownerId && !inviteToken) {
     window.location.href = 'browse-owners.html';
 }
 
@@ -316,15 +315,9 @@
            slots to other users.
         ───────────────────────────────────────────── */
         async function loadSlots() {
-            let url;
-
-if (groupToken) {
-    url = `${API_BASE}/api/slots/group/${groupToken}`;
-} else if (inviteToken) {
-    url = `${API_BASE}/api/slots/token/${inviteToken}`;
-} else {
-    url = `${API_BASE}/api/slots/owner/${ownerId}/active`;
-}
+            const url = inviteToken
+    ? `${API_BASE}/api/slots/token/${inviteToken}`
+    : `${API_BASE}/api/slots/owner/${ownerId}/active`;
 
             const response = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
             const data = await response.json();
@@ -343,9 +336,7 @@ if (groupToken) {
     ? data.filter(s => s.type !== 'booked')
     : [];
 
-if (groupToken) {
-    reservableSlots = reservableSlots.filter(s => s.groupToken === groupToken);
-}
+
 
 console.log(data);
 

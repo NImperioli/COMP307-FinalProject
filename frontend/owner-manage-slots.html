@@ -791,21 +791,6 @@
                 }
             };
             btnRow.appendChild(deleteGroupBtn);
-
-            const inviteBtn = document.createElement('button');
-            inviteBtn.textContent = 'Get Invite URL';
-
-            inviteBtn.onclick = async () => {
-                const inviteUrl =
-        `${window.location.origin}/owner-slots.html?groupToken=${encodeURIComponent(groupToken)}`;
-
-    await copyText(inviteUrl);
-    alert('Invite URL copied to clipboard!');
-                
-            };
-
-            btnRow.appendChild(inviteBtn);
-
             card.appendChild(btnRow);
             slot_container.appendChild(card);
         }
