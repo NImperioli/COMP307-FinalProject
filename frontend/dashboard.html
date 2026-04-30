@@ -643,6 +643,16 @@
                 const type2 = d2.type2 || [];
                 for (const item of type1) renderType1Card(item);
                 for (const item of type2) renderType2Card(item);
+                if (role === 'owner') {
+                    const sentRes = await fetch(`${API_BASE}/api/bookings/requests/user/${id}`, {
+                        headers: { 'Authorization': 'Bearer ' + token }
+                    });
+                    const sentData = await sentRes.json();
+
+                    for (const item of (sentData || []).filter(r => r.status === 'approved')) {
+                        renderType1Card(item);
+                    }
+                }
             } catch (e) { console.error('Failed to load appointments:', e); }
 
             if (appointmentsList.children.length === 0) {
@@ -710,123 +720,154 @@
 
         /* ─── Slot reservation card (Type 0/3) ─── */
         function renderCard(item) {
-            const card = document.createElement('div');
-            card.classList.add('appointment-card');
+        const card = document.createElement('div');
+        card.classList.add('appointment-card');
 
-            const badge = document.createElement('span');
-            badge.classList.add('type-badge', 'badge-slot');
-            badge.textContent = (item.slot && item.slot.type === 'recurring') 
-                ? `Recurring Slot${item.bookers && item.bookers.length > 1 ? ' (' + item.bookers.length + ' students)' : ''}` 
-                : 'Booking Slot';            
-            card.appendChild(badge);
+        const badge = document.createElement('span');
+        badge.classList.add('type-badge', 'badge-slot');
+        badge.textContent = (item.slot && item.slot.type === 'recurring') 
+            ? `Recurring Slot${item.bookers && item.bookers.length > 1 ? ' (' + item.bookers.length + ' students)' : ''}` 
+            : 'Booking Slot';
+        card.appendChild(badge);
 
-            const heading = document.createElement('h3');
-            heading.textContent = item.slot ? item.slot.title : '(no title)';
-            card.appendChild(heading);
+        const heading = document.createElement('h3');
+        heading.textContent = item.slot ? item.slot.title : '(no title)';
+        card.appendChild(heading);
 
-            const time = document.createElement('p');
-            time.textContent = 'Time: '
-                + (item.slot ? new Date(item.slot.startTime).toLocaleString() : '')
-                + ' — '
-                + (item.slot ? new Date(item.slot.endTime).toLocaleString() : '');
-            card.appendChild(time);
+        const time = document.createElement('p');
+        time.textContent = 'Time: '
+            + (item.slot ? new Date(item.slot.startTime).toLocaleString() : '')
+            + ' — '
+            + (item.slot ? new Date(item.slot.endTime).toLocaleString() : '');
+        card.appendChild(time);
 
-            const statusP = document.createElement('p');
-            statusP.textContent = 'Status: ' + (item.slot ? item.slot.status : '');
-            card.appendChild(statusP);
+        const statusP = document.createElement('p');
+        statusP.textContent = 'Status: ' + (item.status || '');
+        card.appendChild(statusP);
 
-            const buttonDiv = document.createElement('div');
-            buttonDiv.classList.add('card-actions');
+        const buttonDiv = document.createElement('div');
+        buttonDiv.classList.add('card-actions');
 
-            const isCancelled = item.status === 'cancelled' || item.cancelledAt;
-            const isPast = !isCancelled && ((item.slot && new Date(item.slot.startTime) < new Date()) || item.status === 'completed');
+        const isCancelled = item.status === 'cancelled' || item.cancelledAt;
+        const isCompleted = item.status === 'completed';
 
-            if (isCancelled) {
-                const cancelledBadge = document.createElement('span');
-                cancelledBadge.classList.add('completed-badge');
-                cancelledBadge.style.background = 'rgb(255,220,220)';
-                cancelledBadge.style.color = 'rgb(150,30,30)';
-                cancelledBadge.textContent = '✗ Cancelled';
-                card.appendChild(cancelledBadge);
-                card.style.opacity = '0.55';
-            } else if (isPast) {
-                const completedBadge = document.createElement('span');
-                completedBadge.classList.add('completed-badge');
-                completedBadge.textContent = '✓ Completed';
-                card.appendChild(completedBadge);
-                card.style.opacity = '0.65';
-            } else if (role === 'owner') {
-                const bookedBy = document.createElement('p');
-                if (item.bookers && item.bookers.length > 0) {
-                    bookedBy.textContent = 'Booked by: ' + item.bookers.join(', ');
-                } else {
-                    bookedBy.textContent = 'Booked by: ' + (item.user ? item.user.email : 'Unknown');
-                }
-                card.appendChild(bookedBy);
+        if (isCancelled) {
+            const cancelledBadge = document.createElement('span');
+            cancelledBadge.classList.add('completed-badge');
+            cancelledBadge.style.background = 'rgb(255,220,220)';
+            cancelledBadge.style.color = 'rgb(150,30,30)';
+            cancelledBadge.textContent = '✗ Cancelled';
+            card.appendChild(cancelledBadge);
+            card.style.opacity = '0.55';
+        }
 
-                const messageBooker = document.createElement('button');
-                messageBooker.classList.add('small-button');
-                messageBooker.textContent = 'Message Student';
-                messageBooker.onclick = async () => {
-                    const res = await fetch(`${API_BASE}/api/slots/${item.slot._id}/message-booker`, {
-                        headers: { 'Authorization': 'Bearer ' + token }
-                    });
-                    const data = await res.json();
-                    if (res.ok) window.location.href = data.mailto;
-                    else alert(data.error);
-                };
-                buttonDiv.appendChild(messageBooker);
+        else if (isCompleted) {
+            const completedBadge = document.createElement('span');
+            completedBadge.classList.add('completed-badge');
+            completedBadge.textContent = '✓ Completed';
+            card.appendChild(completedBadge);
+            card.style.opacity = '0.65';
+        }
 
-                const exportBtn = document.createElement('button');
-                exportBtn.classList.add('small-button');
-                exportBtn.textContent = 'Export .ics';
-                exportBtn.onclick = () => exportSlotICS(item.slot._id);
-                
+        else {
+            if (role === 'owner') {
 
-                const completeBtn = document.createElement('button');
-                completeBtn.classList.add('small-button');
-                completeBtn.textContent = 'Mark as Completed';
-                completeBtn.onclick = async () => {
-                    const ids = item.reservationIds && item.reservationIds.length > 0
-                        ? item.reservationIds
-                        : [item._id];
-                    const results = await Promise.all(ids.map(bid =>
-                        fetch(`${API_BASE}/api/bookings/complete`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                            body: JSON.stringify({ bookingId: bid, type: 'TYPE_SLOT' })
-                        })
-                    ));
-                    if (results.every(r => r.ok)) markCardCompleted(card);
-                    else alert('Complete failed for one or more reservations');
-                };
-                buttonDiv.appendChild(completeBtn);
-                buttonDiv.appendChild(exportBtn);
+        const bookedBy = document.createElement('p');
+        if (item.bookers && item.bookers.length > 0) {
+            bookedBy.textContent = 'Booked by: ' + item.bookers.join(', ');
+        } else {
+            bookedBy.textContent = 'Booked by: ' + (item.user ? item.user.email : 'Unknown');
+        }
+        card.appendChild(bookedBy);
 
+        // Message
+        const messageBooker = document.createElement('button');
+        messageBooker.classList.add('small-button');
+        messageBooker.textContent = 'Message';
+        messageBooker.onclick = async () => {
+            const res = await fetch(`${API_BASE}/api/slots/${item.slot._id}/message-booker`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const data = await res.json();
+            if (res.ok) window.location.href = data.mailto;
+            else alert(data.error);
+        };
+        buttonDiv.appendChild(messageBooker);
+
+        const cancelBtn = document.createElement('button');
+        cancelBtn.classList.add('small-button-red');
+        cancelBtn.textContent = item.reservationIds && item.reservationIds.length > 1
+            ? 'Cancel Entire Series'
+            : 'Cancel Booking';
+
+        cancelBtn.onclick = async () => {
+            const confirmMsg = item.reservationIds && item.reservationIds.length > 1
+                ? 'Cancel ALL bookings in this recurring series?'
+                : 'Cancel this booking?';
+
+            if (!confirm(confirmMsg)) return;
+
+            const ids = item.reservationIds && item.reservationIds.length > 0
+                ? item.reservationIds
+                : [item._id];
+
+            const results = await Promise.all(ids.map(bid =>
+                fetch(`${API_BASE}/api/slots/cancel`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ reservationId: bid })
+                })
+            ));
+
+            if (results.every(r => r.ok)) {
+                loadDashboard();
             } else {
-                // Student
-                const cancelBtn = document.createElement('button');
-                cancelBtn.classList.add('small-button-red');
-                cancelBtn.textContent = 'Cancel Booking';
-                cancelBtn.onclick = async () => {
-                    if (!confirm('Cancel this booking?')) return;
-                    const res = await fetch(`${API_BASE}/api/slots/cancel`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                        body: JSON.stringify({ reservationId: item._id })
-                    });
-                    const cancelData = await res.json();
-                    if (res.ok) {
-                        if (cancelData.notifyOwner) window.open(cancelData.notifyOwner, '_blank');
-                        loadDashboard();
-                    } else {
-                        alert(cancelData.error);
-                    }
-                };
-                
+                alert('Cancel failed for one or more reservations');
+            }
+        };
+
+        buttonDiv.appendChild(cancelBtn);
+
+        // COMPLETE
+        const completeBtn = document.createElement('button');
+        completeBtn.classList.add('small-button');
+        completeBtn.textContent = 'Mark as Completed';
+        completeBtn.onclick = async () => {
+            const ids = item.reservationIds && item.reservationIds.length > 0
+                ? item.reservationIds
+                : [item._id];
+
+            const results = await Promise.all(ids.map(bid =>
+                fetch(`${API_BASE}/api/bookings/complete`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ bookingId: bid, type: 'TYPE_SLOT' })
+                })
+            ));
+
+            if (results.every(r => r.ok)) markCardCompleted(card);
+            else alert('Complete failed for one or more reservations');
+        };
+        buttonDiv.appendChild(completeBtn);
+
+        // Export
+        const exportBtn = document.createElement('button');
+        exportBtn.classList.add('small-button');
+        exportBtn.textContent = 'Export .ics';
+        exportBtn.onclick = () => exportSlotICS(item.slot._id);
+        buttonDiv.appendChild(exportBtn);
+    } else {
+
+                // Message Owner
                 const messageOwner = document.createElement('button');
                 messageOwner.classList.add('small-button');
-                messageOwner.textContent = 'Message Owner';
+                messageOwner.textContent = 'Message';
                 messageOwner.onclick = async () => {
                     const res = await fetch(`${API_BASE}/api/slots/${item.slot._id}/message-owner`, {
                         headers: { 'Authorization': 'Bearer ' + token }
@@ -836,31 +877,69 @@
                     else alert(data.error);
                 };
                 buttonDiv.appendChild(messageOwner);
+
+                const cancelBtn = document.createElement('button');
+                cancelBtn.classList.add('small-button-red');
+                cancelBtn.textContent = 'Cancel This Week';
+                cancelBtn.onclick = async () => {
+                    if (!confirm('Cancel this booking?')) return;
+
+                    const res = await fetch(`${API_BASE}/api/slots/cancel`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + token
+                        },
+                        body: JSON.stringify({
+                            reservationId: item._id   
+                        })
+                    });
+
+                    const cancelData = await res.json();
+
+                    if (res.ok) {
+                        if (cancelData.notifyOwner) window.open(cancelData.notifyOwner, '_blank');
+                        loadDashboard();
+                    } else {
+                        alert(cancelData.error);
+                    }
+                };
                 buttonDiv.appendChild(cancelBtn);
+
+                // Complete
                 const completeBtn = document.createElement('button');
                 completeBtn.classList.add('small-button');
                 completeBtn.textContent = 'Mark as Completed';
                 completeBtn.onclick = async () => {
                     const res = await fetch(`${API_BASE}/api/bookings/complete`, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + token
+                        },
                         body: JSON.stringify({ bookingId: item._id, type: 'TYPE_SLOT' })
                     });
+
                     if (res.ok) markCardCompleted(card);
-                    else { const d = await res.json(); alert(d.error || 'Complete failed'); }
+                    else {
+                        const d = await res.json();
+                        alert(d.error || 'Complete failed');
+                    }
                 };
                 buttonDiv.appendChild(completeBtn);
 
+                // Export
                 const exportBtn = document.createElement('button');
                 exportBtn.classList.add('small-button');
                 exportBtn.textContent = 'Export .ics';
                 exportBtn.onclick = () => exportSlotICS(item.slot._id);
                 buttonDiv.appendChild(exportBtn);
             }
-
-            card.appendChild(buttonDiv);
-            appointmentsList.appendChild(card);
         }
+
+        card.appendChild(buttonDiv);
+        appointmentsList.appendChild(card);
+    }
 
         function exportSlotICS(slotId) {
             fetch(`${API_BASE}/api/slots/${slotId}/export.ics`, {
@@ -894,7 +973,17 @@
             card.appendChild(h);
 
             const other = document.createElement('p');
-            other.textContent = (role === 'owner') ? 'From: ' + item.userEmail : 'With: ' + item.ownerEmail;
+            if (role === 'owner') {
+                if (item.userId === id) {
+                    // owner SENT the request
+                    other.textContent = 'With: ' + item.ownerEmail;
+                } else {
+                    // owner RECEIVED the request
+                    other.textContent = 'From: ' + item.userEmail;
+                }
+            } else {
+                other.textContent = 'With: ' + item.ownerEmail;
+            }
             card.appendChild(other);
 
             if (item.proposedTime) {
@@ -923,9 +1012,25 @@
             if (item.status === 'approved') {
                 const msgBtn = document.createElement('button');
                 msgBtn.classList.add('small-button');
-                msgBtn.textContent = role === 'owner' ? 'Message Student' : 'Message Owner';
+                msgBtn.textContent = 'Message';
                 msgBtn.onclick = () => {
-                    window.location.href = `mailto:${role === 'owner' ? item.userEmail : item.ownerEmail}?subject=${encodeURIComponent('Re: ' + (item.title || 'Meeting'))}`;
+                    let targetEmail;
+
+                    if (role === 'owner') {
+                        const isSender = item.userEmail === name || item.userEmail === localStorage.getItem('email');
+
+                        // If YOU sent it → message the OTHER owner
+                        if (isSender) {
+                            targetEmail = item.ownerEmail;
+                        } else {
+                            targetEmail = item.userEmail;
+                        }
+                    } else {
+                        targetEmail = item.ownerEmail;
+                    }
+
+                    window.location.href =
+                        `mailto:${targetEmail}?subject=${encodeURIComponent('Re: ' + (item.title || 'Meeting'))}`;
                 };
                 buttonDiv.appendChild(msgBtn);
             }
@@ -1028,24 +1133,40 @@
             cancelBtn.classList.add('small-button-red');
             cancelBtn.textContent = role === 'owner' ? 'Cancel Meeting' : 'Leave Meeting';
             cancelBtn.onclick = async () => {
-                if (!confirm(role === 'owner' ? 'Cancel this group meeting for all participants?' : 'Leave this group meeting?')) return;
-                const res = role === 'owner'
-                    ? await fetch(`${API_BASE}/api/bookings/cancel`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                        body: JSON.stringify({ bookingId: item._id, type: 'TYPE2' })
+            const confirmMsg = role === 'owner'
+                ? 'Cancel ONLY this week’s meeting?'
+                : 'Leave ONLY this week’s meeting?';
+
+            if (!confirm(confirmMsg)) return;
+
+            const res = role === 'owner'
+                ? await fetch(`${API_BASE}/api/bookings/cancel`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    // ✅ THIS IS THE KEY: cancel ONLY this occurrence
+                    body: JSON.stringify({
+                        bookingId: item._id,
+                        type: 'TYPE2',
+                        scope: 'single'   // 👈 add this flag
                     })
-                    : await fetch(`${API_BASE}/api/bookings/group/${item._id}/leave`, {
+                })
+                : await fetch(`${API_BASE}/api/bookings/group/${item._id}/leave`, {
                     method: 'DELETE',
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
-                if (res.ok) {
-                    const d = await res.json();
-                    if (d.notify) d.notify.forEach(url => window.open(url, '_blank'));
-                    loadDashboard();
-                }
-                else { const d = await res.json(); alert(d.error); }
-            };
+
+            if (res.ok) {
+                const d = await res.json();
+                if (d.notify) d.notify.forEach(url => window.open(url, '_blank'));
+                loadDashboard();
+            } else {
+                const d = await res.json();
+                alert(d.error);
+            }
+        };
             buttonDiv.appendChild(cancelBtn);
 
             // FIX: complete passes type: TYPE2 so controller routes to appointments collection

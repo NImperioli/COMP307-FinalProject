@@ -57,12 +57,51 @@ const reserveSlot = async (slotId, userId) => {
 
 const cancelReservation = async (reservationId, userId) => {
   const db = getDB();
-  return await db.collection(COLLECTION).updateOne(
-    { _id: toOid(reservationId, "reservationId"), 
-      userId: toOid(userId, "userId"), 
-      cancelledAt: { $exists: false } },
-    { $set: { cancelledAt: new Date() } }
+
+  const reservation = await db.collection("reservations").findOne({
+    _id: toOid(reservationId, "reservationId")
+  });
+
+  if (!reservation) throw new Error("Reservation not found.");
+
+  const slot = await db.collection("slots").findOne({
+    _id: reservation.slotId
+  });
+
+  if (!slot) throw new Error("Slot not found.");
+
+  const isOwner = slot.ownerId.toString() === userId;
+  const isBooker = reservation.userId.toString() === userId;
+
+  if (!isOwner && !isBooker) {
+    throw new Error("Not authorized to cancel this reservation.");
+  }
+
+  if (reservation.cancelledAt) {
+    throw new Error("Already cancelled.");
+  }
+
+  await db.collection("reservations").updateOne(
+    { _id: reservation._id },
+    {
+      $set: {
+        cancelledAt: new Date(),
+        status: "cancelled"
+      }
+    }
   );
+
+  // OPTIONAL: notify
+  const user = await db.collection("users").findOne({ _id: reservation.userId });
+
+  let notifyOwner = null;
+  if (slot.ownerEmail && user) {
+    notifyOwner = `mailto:${slot.ownerEmail}?subject=Booking Cancelled&body=${encodeURIComponent(
+      `${user.email} cancelled a booking on ${new Date(slot.startTime).toLocaleString()}`
+    )}`;
+  }
+
+  return { success: true, notifyOwner };
 };
 
 // Who booked a slot (owners view)
