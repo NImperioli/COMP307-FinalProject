@@ -784,7 +784,6 @@
         card.appendChild(time);
 
         const statusP = document.createElement('p');
-        statusP.textContent = 'Status: ' + (item.status || '');
         card.appendChild(statusP);
 
         if (role === 'owner') {
@@ -824,13 +823,6 @@
         else {
             if (role === 'owner') {
 
-        const bookedBy = document.createElement('p');
-        if (item.bookers && item.bookers.length > 0) {
-            bookedBy.textContent = 'Booked by: ' + item.bookers.join(', ');
-        } else {
-            bookedBy.textContent = 'Booked by: ' + (item.user ? item.user.email : 'Unknown');
-        }
-        card.appendChild(bookedBy);
 
         // Message
         const messageBooker = document.createElement('button');
@@ -1092,7 +1084,6 @@
             }
 
             const statusP = document.createElement('p');
-            statusP.textContent = 'Status: ' + item.status;
             card.appendChild(statusP);
 
             if (isPast || isCompleted) {
@@ -1513,7 +1504,6 @@
             }
 
             const statusP = document.createElement('p');
-            statusP.textContent = 'Status: ' + request.status;
             newDiv.appendChild(statusP);
 
             document.getElementById('myRequestsList').appendChild(newDiv);
