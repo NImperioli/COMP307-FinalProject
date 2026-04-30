@@ -316,9 +316,15 @@
            slots to other users.
         ───────────────────────────────────────────── */
         async function loadSlots() {
-            const url = inviteToken
-                ? `${API_BASE}/api/slots/token/${inviteToken}`
-                : `${API_BASE}/api/slots/owner/${ownerId}/active`;
+            let url;
+
+if (groupToken) {
+    url = `${API_BASE}/api/slots/group/${groupToken}`;
+} else if (inviteToken) {
+    url = `${API_BASE}/api/slots/token/${inviteToken}`;
+} else {
+    url = `${API_BASE}/api/slots/owner/${ownerId}/active`;
+}
 
             const response = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
             const data = await response.json();
