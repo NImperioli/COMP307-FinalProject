@@ -826,9 +826,8 @@
 if (results.every(r => r.ok)) {
     resultData.forEach(d => {
         if (d.notifyUser) window.open(d.notifyUser, '_blank');
-        if (d.notifyOwner) window.open(d.notifyOwner, '_blank');
-        if (Array.isArray(d.notify)) {
-            d.notify.forEach(url => window.open(url, '_blank'));
+    if (Array.isArray(d.notify)) {
+        d.notify.forEach(url => window.open(url, '_blank'));
         }
     });
 
@@ -1058,7 +1057,6 @@ if (results.every(r => r.ok)) {
     const d = await res.json();
 
     if (d.notifyUser) window.open(d.notifyUser, '_blank');
-    if (d.notifyOwner) window.open(d.notifyOwner, '_blank');
     if (Array.isArray(d.notify)) {
         d.notify.forEach(url => window.open(url, '_blank'));
     }
@@ -1177,7 +1175,6 @@ if (results.every(r => r.ok)) {
     const d = await res.json();
 
     if (d.notifyUser) window.open(d.notifyUser, '_blank');
-    if (d.notifyOwner) window.open(d.notifyOwner, '_blank');
     if (Array.isArray(d.notify)) {
         d.notify.forEach(url => window.open(url, '_blank'));
     }
