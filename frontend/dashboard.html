@@ -693,6 +693,38 @@
                 pendingBtn.onclick = () => openPendingModal();
                 actionsBar.appendChild(pendingBtn);
 
+            const inviteBtn = document.createElement('button');
+                inviteBtn.classList.add('action-button');
+                inviteBtn.textContent = 'Copy Invite Link';
+                inviteBtn.onclick = () => {
+                    const base = window.location.origin;
+                    const ownerName = localStorage.getItem('name') || '';
+                    const inviteUrl = `${base}/owner-slots.html?ownerId=${encodeURIComponent(id)}&ownerName=${encodeURIComponent(ownerName)}`;
+
+                    // HTTP-safe copy using a temporary textarea
+                    const ta = document.createElement('textarea');
+                    ta.value = inviteUrl;
+                    ta.style.position = 'fixed';
+                    ta.style.opacity = '0';
+                    document.body.appendChild(ta);
+                    ta.focus();
+                    ta.select();
+                    const ok = document.execCommand('copy');
+                    document.body.removeChild(ta);
+
+                    if (ok) {
+                        inviteBtn.textContent = '✓ Link Copied!';
+                        inviteBtn.style.background = 'rgb(30, 130, 30)';
+                        setTimeout(() => {
+                            inviteBtn.textContent = 'Copy Invite Link';
+                            inviteBtn.style.background = '';
+                        }, 2500);
+                    } else {
+                        prompt('Copy this invite link:', inviteUrl);
+                    }
+                };
+                actionsBar.appendChild(inviteBtn);
+
             } else {
                 document.getElementById('viewRequestsBtn').style.display = '';
                 renderAction('Book Another Appointment', 'browse-owners.html');
@@ -1197,11 +1229,10 @@
                         'Content-Type': 'application/json',
                         'Authorization': 'Bearer ' + token
                     },
-                    // ✅ THIS IS THE KEY: cancel ONLY this occurrence
                     body: JSON.stringify({
                         bookingId: item._id,
                         type: 'TYPE2',
-                        scope: 'single'   // 👈 add this flag
+                        scope: 'single'   
                     })
                 })
                 : await fetch(`${API_BASE}/api/bookings/group/${item._id}/leave`, {
