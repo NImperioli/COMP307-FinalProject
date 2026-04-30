@@ -446,8 +446,10 @@ const cancelAnyBooking = async (bookingId, userId, type) => {
         .toArray();
 
       const notify = users.map(u =>
-        `mailto:${u.email}?subject=Group Meeting Cancelled&body=The meeting "${appt.title}" was cancelled.`
-      );
+      `mailto:${u.email}?subject=${encodeURIComponent("Group Meeting Cancelled")}&body=${encodeURIComponent(
+        `Hi,\n\nThe group meeting "${appt.title}" scheduled on ${new Date(appt.time).toLocaleString()} has been cancelled by the professor.\n\nPlease check your dashboard.`
+      )}`
+    );
 
       return { success: true, notify };
     } else {
@@ -467,16 +469,30 @@ const cancelAnyBooking = async (bookingId, userId, type) => {
     const isOwner = booking.ownerId.toString() === userId;
     if (!isOwner) throw new Error("Not authorized");
 
+    const userIds = booking.slots
+      .filter(s => s.reservedBy)
+      .map(s => s.reservedBy.toString());
+
+    const uniqueUserIds = [...new Set(userIds)].map(id => new ObjectId(id));
+
+    const users = await db.collection("users")
+      .find({ _id: { $in: uniqueUserIds } })
+      .toArray();
+
     await db.collection("bookings").deleteOne({ _id: oid });
 
-    return {
-      success: true,
-      notify: [`mailto:${booking.ownerEmail}?subject=Office Hours Cancelled`]
-    };
+    const notify = users.map(u =>
+      `mailto:${u.email}?subject=${encodeURIComponent("Office Hours Cancelled")}&body=${encodeURIComponent(
+        `Hi,\n\nThe office hours you reserved have been cancelled by the professor.\n\nPlease check your dashboard.`
+      )}`
+    );
+
+    return { success: true, notify };
   }
 
   throw new Error("Invalid type");
 };
+
 const completeGroupMeeting = async (appointmentId, userId) => {
   const db = require("../config/db").getDB();
   const { ObjectId } = require("mongodb");
