@@ -47,12 +47,19 @@
         }
 
         .logo {
-            font-size: 28px;
-            font-weight: 800;
-            color: rgb(237, 27, 47);
-            text-decoration: none;
-            letter-spacing: 1px;
-        }
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 28px;
+    font-weight: 800;
+    color: rgb(237, 27, 47);
+    text-decoration: none;
+}
+
+.logo-icon {
+    width: 46px;   /* adjust size here */
+    height: auto;
+}
 
         .logo:hover { opacity: 0.8; }
 
@@ -455,7 +462,7 @@
     <div class="wave-bg wave-back">
         <svg class="wave-svg" viewBox="0 0 2880 320" preserveAspectRatio="none">
             <path fill="rgb(237, 27, 47)" fill-opacity="0.3"
-                d="M0,180 C240,150 480,210 720,180 C960,150 1200,210 1440,180 C1680,150 1920,210 2160,180 C2400,150 2640,210 2880,180 L2880,320 L0,320 Z">
+                d="M0,180 C240,150 480,210 720,180 C960,150 1200,210 1440,180 C1680,150 1920,210 2160,180 C2400,150 2640,210 2880,180 L2880,320 L0,320 Z">  // Template
             </path>
         </svg>
     </div>
@@ -463,18 +470,22 @@
     <div class="wave-bg">
         <svg class="wave-svg" viewBox="0 0 2880 320" preserveAspectRatio="none">
             <path fill="rgb(237, 27, 47)" fill-opacity="0.8"
-                d="M0,180 C240,150 480,210 720,180 C960,150 1200,210 1440,180 C1680,150 1920,210 2160,180 C2400,150 2640,210 2880,180 L2880,320 L0,320 Z">
+                d="M0,180 C240,150 480,210 720,180 C960,150 1200,210 1440,180 C1680,150 1920,210 2160,180 C2400,150 2640,210 2880,180 L2880,320 L0,320 Z">  // Template
             </path>
         </svg>
     </div>
 
-    <div class="top-bar">
-        <a href="landing.html" class="logo">MyBookings</a>
-        <div class="top-buttons">
-            <span id="user-name"></span>
-            <button class="top-button" onclick="logout()">Logout</button>
-        </div>
+   <div class="top-bar">
+    <a href="landing.html" class="logo">
+        <span>MyBookings</span>
+        <img src="Images/bird.png" class="logo-icon">
+    </a>
+
+    <div class="top-buttons">
+        <span id="user-name"></span>
+        <button class="top-button" onclick="logout()">Logout</button>
     </div>
+</div>
 
     <div class="page-header">
         <h1>Dashboard</h1>
@@ -518,7 +529,7 @@
         const appointmentsList = document.getElementById('appointmentsList');
         const actionsBar       = document.getElementById('actions-menu');
 
-        if (!token) window.location.href = 'login.html';
+         if (!token) window.location.href = 'login.html'; 
 
         document.getElementById('user-name').textContent = name || '';
 

@@ -76,13 +76,22 @@
             z-index: 2;
         }
 
-        .logo {
-            font-size: 28px;
-            font-weight: 800;
-            color: rgb(237, 27, 47);
-            text-decoration: none;
-            letter-spacing: 1px;
-        }
+       .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 28px;
+    font-weight: 800;
+    color: rgb(237, 27, 47);
+    text-decoration: none;
+}
+
+.logo-icon {
+    width: 46px;
+    height: 46px;
+    object-fit: contain;
+    transform: translateY(-1px);
+}
 
         .top-buttons {
             display: flex;
@@ -169,7 +178,10 @@
 
 <body>
     <div class="top-bar">
-        <div class="logo">MyBookings</div>
+        <a href="landing.html" class="logo">
+    <span>MyBookings</span>
+    <img src="Images/bird.png" class="logo-icon">
+</a>
         <div class="top-buttons" id="top-buttons">
             <button class="top-button" id="login-btn" onclick="window.location.href='login.html'">Login</button>
         </div>

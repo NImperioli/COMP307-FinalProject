@@ -52,7 +52,14 @@
     font-weight: 800;
     text-decoration: none;
      color: rgb(237, 27, 47);
-     letter-spacing: 1px;
+     display: flex;
+     align-items: center;
+      gap: 10px;
+
+}
+
+.logo-icon {
+    width: 46px;
 }
 
 .logo span {
@@ -337,7 +344,11 @@
     </div>
 
     <div class="top-bar">
-    <a href="landing.html" class="logo">My<span>Bookings</span></a>
+    <a href="landing.html" class="logo">
+        <span class="logo-text">My<span>Bookings</span></span>
+        <img src="Images/bird.png" class="logo-icon">
+    </a>
+
     <div class="top-buttons">
         <button class="top-button" onclick="window.location.href='dashboard.html'">Back</button>
     </div>
