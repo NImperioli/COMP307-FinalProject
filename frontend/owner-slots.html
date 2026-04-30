@@ -21,13 +21,14 @@
             font-family: "Outfit", sans-serif;
         }
 
-        body {
-             body {
+       body {
     min-height: 100vh;
     background: rgb(255, 255, 255);
-    padding: 130px 40px 30px 40px;
+    padding: 200px 40px 30px 40px;
+    position: relative;
+    overflow-x: hidden;
 }
-        }
+        
 
         .top-bar {
     width: calc(100% - 40px);
@@ -50,7 +51,7 @@
     font-size: 28px;
     font-weight: 800;
     text-decoration: none;
-    color: black;
+     color: rgb(237, 27, 47);
 }
 
 .logo span {
@@ -84,30 +85,32 @@
             margin-bottom: 30px;
         }
 
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 18px;
-        }
+       .page-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 35px;
+    position: relative;
+    z-index: 2;
+}
 
         .page-header h1 {
-            font-size: 42px;
-            color: rgb(237, 27, 47);
-        }
+    font-size: 42px;
+    color: black;
+    position: relative;
+}
+.page-header h1::after {
+    content: "";
+    display: block;
+    width: 285px;
+    height: 3px;
+    background: rgb(237, 27, 47);
+    margin: 1px auto 0;
+    border-radius: 2px;
+}
 
-        .back-button {
-            width: 130px;
-            height: 50px;
-            background: black;
-            border: none;
-            border-radius: 30px;
-            color: white;
-            cursor: pointer;
-            transition: .3s;
-        }
 
-        .back-button:hover { background: rgb(237, 27, 47); }
+       
 
         .owner-info {
             margin-bottom: 28px;
@@ -213,9 +216,7 @@
         border-radius: 18px;
     }
 
-    .logo {
-        font-size: 22px;
-    }
+  
 
     .top-button {
         min-width: 80px;
@@ -342,9 +343,8 @@
 </div>
 
     <div class="page-header">
-        <h1>Available Slots</h1>
-        <button class="back-button" onclick="window.location.href='browse-owners.html'">Back</button>
-    </div>
+    <h1>Available Slots</h1>
+</div>
 
     <div class="owner-info">
         Showing active slots for <b id="ownerName">...</b>
