@@ -821,11 +821,21 @@
                 })
             ));
 
-            if (results.every(r => r.ok)) {
-                loadDashboard();
-            } else {
-                alert('Cancel failed for one or more reservations');
-            }
+            const resultData = await Promise.all(results.map(r => r.json()));
+
+if (results.every(r => r.ok)) {
+    resultData.forEach(d => {
+        if (d.notifyUser) window.open(d.notifyUser, '_blank');
+        if (d.notifyOwner) window.open(d.notifyOwner, '_blank');
+        if (Array.isArray(d.notify)) {
+            d.notify.forEach(url => window.open(url, '_blank'));
+        }
+    });
+
+    loadDashboard();
+} else {
+    alert('Cancel failed for one or more reservations');
+}
         };
 
         buttonDiv.appendChild(cancelBtn);
@@ -1045,15 +1055,16 @@
                     body: JSON.stringify({ bookingId: item._id, type: 'TYPE1' })
                 });
                 if (res.ok) {
-                    const d = await res.json();
-                    const myEmail = localStorage.getItem('email');
-                    if (role === 'student' || role !== 'owner') {
-                        if (d.notifyOwner) window.open(d.notifyOwner, '_blank');
-                    } else {
-                        if (d.notifyUser) window.open(d.notifyUser, '_blank');
-                    }
-                    loadDashboard();
-                }
+    const d = await res.json();
+
+    if (d.notifyUser) window.open(d.notifyUser, '_blank');
+    if (d.notifyOwner) window.open(d.notifyOwner, '_blank');
+    if (Array.isArray(d.notify)) {
+        d.notify.forEach(url => window.open(url, '_blank'));
+    }
+
+    loadDashboard();
+}
                 else { const d = await res.json(); alert(d.error); }
             };
             buttonDiv.appendChild(cancelBtn);
@@ -1163,10 +1174,16 @@
                 });
 
             if (res.ok) {
-                const d = await res.json();
-                if (d.notify) d.notify.forEach(url => window.open(url, '_blank'));
-                loadDashboard();
-            } else {
+    const d = await res.json();
+
+    if (d.notifyUser) window.open(d.notifyUser, '_blank');
+    if (d.notifyOwner) window.open(d.notifyOwner, '_blank');
+    if (Array.isArray(d.notify)) {
+        d.notify.forEach(url => window.open(url, '_blank'));
+    }
+
+    loadDashboard();
+} else {
                 const d = await res.json();
                 alert(d.error);
             }
