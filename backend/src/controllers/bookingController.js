@@ -76,6 +76,11 @@ exports.voteForSlots = async (req, res) => {
   try {
     const { bookingId, slotTimes } = req.body;
     const userId = req.user.id;
+    if (req.user.role === "owner") {
+      return res.status(403).json({
+        error: "Owners cannot vote on group meeting times."
+      });
+    }
     if (!bookingId || !Array.isArray(slotTimes) || slotTimes.length === 0)
       return res.status(400).json({ error: "bookingId and slotTimes (array) are required." });
     const result = await bookingService.voteForSlots(bookingId, userId, slotTimes);

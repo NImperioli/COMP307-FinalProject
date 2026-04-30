@@ -475,25 +475,29 @@ console.log(data);
 
             const buttonDiv = document.createElement('div');
 
-            const reserveBtn = document.createElement('button');
-            reserveBtn.classList.add('reserve-button');
-            reserveBtn.textContent = 'Reserve Slot';
-            reserveBtn.setAttribute('data-slotid', slot._id);
-            reserveBtn.onclick = async () => {
-                const response = await fetch(`${API_BASE}/api/slots/reserve`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                    body: JSON.stringify({ slotId: slot._id, userId: id, userEmail: email })
-                });
-                const data = await response.json();
-                if (response.ok) {
-                    if (data.notifyOwner) window.location.href = data.notifyOwner;
-                    else window.location.href = 'dashboard.html';
-                } else {
-                    alert(data.error);
-                }
-            };
-            buttonDiv.appendChild(reserveBtn);
+            if (role !== "owner") {
+                const reserveBtn = document.createElement('button');
+                reserveBtn.classList.add('reserve-button');
+                reserveBtn.textContent = 'Reserve Slot';
+                reserveBtn.setAttribute('data-slotid', slot._id);
+
+                reserveBtn.onclick = async () => {
+                    const response = await fetch(`${API_BASE}/api/slots/reserve`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                        body: JSON.stringify({ slotId: slot._id, userId: id, userEmail: email })
+                    });
+                    const data = await response.json();
+                    if (response.ok) {
+                        if (data.notifyOwner) window.location.href = data.notifyOwner;
+                        else window.location.href = 'dashboard.html';
+                    } else {
+                        alert(data.error);
+                    }
+                };
+
+                buttonDiv.appendChild(reserveBtn);
+            }
 
             const messageOwner = document.createElement('button');
             messageOwner.classList.add('reserve-button');
@@ -549,11 +553,13 @@ console.log(data);
             note.textContent = 'Vote for one or more times that work for you. The organizer will finalize the best time.';
             card.appendChild(note);
 
-            const voteBtn = document.createElement('button');
-            voteBtn.classList.add('reserve-button');
-            voteBtn.textContent = 'Vote on Times';
-            voteBtn.onclick = () => openVoteModal(bookingId);
-            card.appendChild(voteBtn);
+            if (role !== "owner") {
+                const voteBtn = document.createElement('button');
+                voteBtn.classList.add('reserve-button');
+                voteBtn.textContent = 'Vote on Times';
+                voteBtn.onclick = () => openVoteModal(bookingId);
+                card.appendChild(voteBtn);
+            }
 
             slotsList.appendChild(card);
         }

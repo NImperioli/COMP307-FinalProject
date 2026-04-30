@@ -239,9 +239,18 @@ exports.getInviteUrl = async (req, res) => {
   }
 };
 
-// Reservations (user) 
+// Reservations (user)
 exports.reserveSlot = async (req, res) => {
   try {
+    // Only students (role === "student") may reserve slots.
+    // Owners can browse and request meetings (Type 1) but cannot
+    // reserve recurring or single booking slots.
+    if (req.user.role === "owner") {
+      return res.status(403).json({
+        error: "Owners cannot reserve booking slots. Use 'Request Meeting' instead."
+      });
+    }
+
     const { slotId } = req.body;
     const userId    = req.user.id;     // from JWT
     const userEmail = req.user.email;  // from JWT
