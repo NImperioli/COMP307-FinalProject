@@ -1379,7 +1379,9 @@ alert('Meeting finalized!');}
             const data = await res.json();
 
             if (res.ok) {
-                copyText(data.inviteUrl);
+                const ownerDisplayName = localStorage.getItem('name') || localStorage.getItem('email') || '';
+                const separator = data.inviteUrl.includes('?') ? '&' : '?';
+                copyText(data.inviteUrl + separator + 'ownerName=' + encodeURIComponent(ownerDisplayName));
                 alert("Invite URL copied!");
             } else {
                 alert(data.error);

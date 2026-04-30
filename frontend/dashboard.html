@@ -776,6 +776,16 @@
         statusP.textContent = 'Status: ' + (item.status || '');
         card.appendChild(statusP);
 
+        if (role === 'owner') {
+            const bookedBy = document.createElement('p');
+            if (item.bookers && item.bookers.length > 0) {
+                bookedBy.textContent = 'Booked by: ' + item.bookers.join(', ');
+            } else {
+                bookedBy.textContent = 'Booked by: ' + (item.user ? item.user.email : 'Unknown');
+            }
+            card.appendChild(bookedBy);
+        }
+
         const buttonDiv = document.createElement('div');
         buttonDiv.classList.add('card-actions');
 
@@ -1187,10 +1197,13 @@
             organizer.textContent = 'Organizer: ' + (item.ownerEmail || 'Unknown');
             card.appendChild(organizer);
 
-            if (role === 'owner' && item.participants && item.participants.length > 0) {
-                const participants = document.createElement('p');
-                participants.textContent = 'Participants: ' + item.participants.join(', ');
-                card.appendChild(participants);
+            if (role === 'owner') {
+                const emailList = item.participantEmails || item.participants || [];
+                if (emailList.length > 0) {
+                    const participants = document.createElement('p');
+                    participants.textContent = 'Participants: ' + emailList.join(', ');
+                    card.appendChild(participants);
+                }
             }
 
             if (isPast || isCompleted) {
