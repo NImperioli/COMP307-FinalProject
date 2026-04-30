@@ -174,6 +174,143 @@
             box-shadow: 0 10px 24px rgba(237, 27, 47, 0.35);
         }
 
+        .floating-ui {
+    position: absolute;
+    right: 220px;
+    top: 60%;
+    width: 400px;
+    height: 400px;
+    transform: translateY(-50%);
+    z-index: 1;
+}
+
+.float-card {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(12px);
+    border-radius: 24px;
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+}
+
+.calendar-card {
+    transform: scale(0.9) rotate(-3deg);
+    width: 400px;
+    height: 155px;
+    top: 20%;
+    right: 8%;
+    padding: 22px;
+    animation: floatOne 5s ease-in-out infinite;
+}
+
+.profile-card {
+     transform: scale(0.8) rotate(4deg);
+    width: 230px;
+    height: 125px;
+    top: 65%;
+    right: 28%;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    animation: floatTwo 6s ease-in-out infinite;
+}
+
+.check-card {
+    transform: scale(0.75) rotate(-6deg);
+    width: 120px;
+    height: 120px;
+     top: 45%;
+    right: 2%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: floatThree 4.5s ease-in-out infinite;
+}
+
+.card-top-line {
+    width: 80px;
+    height: 9px;
+    background: rgb(237, 27, 47);
+    border-radius: 999px;
+    margin-bottom: 22px;
+}
+
+.calendar-dots {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.calendar-dots span {
+    width: 34px;
+    height: 34px;
+    background: rgba(237, 27, 47, 0.16);
+    border-radius: 50%;
+}
+
+.mini-lines {
+    flex: 1;
+}
+
+.mini-lines span {
+    display: block;
+    height: 8px;
+    background: rgb(220, 220, 220);
+    border-radius: 999px;
+    margin-bottom: 10px;
+}
+
+.mini-lines span:first-child {
+    width: 100%;
+}
+
+.mini-lines span:last-child {
+    width: 65%;
+}
+
+.avatar-circle {
+    width: 48px;
+    height: 48px;
+    background: rgb(237, 27, 47);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.check-circle {
+    width: 46px;
+    height: 46px;
+    background: rgb(237, 27, 47);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 26px;
+    font-weight: 800;
+}
+
+@keyframes floatOne {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-14px); }
+}
+
+@keyframes floatTwo {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(12px); }
+}
+
+@keyframes floatThree {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+@media (max-width: 800px) {
+    .floating-ui {
+        display: none;
+    }
+}
+
         @media (max-width: 800px) {
     body {
         padding: 130px 16px 30px 16px;
@@ -273,6 +410,31 @@
             <button class="hero-button" id="dashboard-btn" onclick="window.location.href='dashboard.html'" style="display:none">Dashboard</button>
         </div>
     </div>
+
+    <div class="floating-ui">
+    <div class="float-card calendar-card">
+        <div class="card-top-line"></div>
+        <div class="calendar-dots">
+            <span></span><span></span><span></span>
+        </div>
+        <div class="mini-lines">
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+
+    <div class="float-card profile-card">
+        <div class="avatar-circle"></div>
+        <div class="mini-lines">
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+
+    <div class="float-card check-card">
+        <div class="check-circle">✓</div>
+    </div>
+</div>
 
     <script>
         const API_BASE = '';
