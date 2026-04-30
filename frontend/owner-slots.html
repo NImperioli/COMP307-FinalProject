@@ -386,6 +386,14 @@
 
         if (ownerName) {
             document.getElementById('ownerName').textContent = decodeURIComponent(ownerName);
+        } else if (ownerId) {
+            fetch(`${API_BASE}/api/users/${ownerId}`, { headers: { 'Authorization': 'Bearer ' + token } })
+                .then(r => r.json())
+                .then(d => {
+                    if (d.name || d.fullName || d.email) {
+                        document.getElementById('ownerName').textContent = d.name || d.fullName || d.email;
+                    }
+                }).catch(() => {});
         }
 
         const slotsList = document.getElementById('slotsList');
@@ -398,9 +406,10 @@
            slots to other users.
         ───────────────────────────────────────────── */
         async function loadSlots() {
+
             const url = inviteToken
-    ? `${API_BASE}/api/slots/token/${inviteToken}`
-    : `${API_BASE}/api/slots/owner/${ownerId}/active`;
+            ? `${API_BASE}/api/slots/token/${inviteToken}`
+            : `${API_BASE}/api/slots/owner/${ownerId}/active`;
 
             const response = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
             const data = await response.json();
@@ -416,23 +425,26 @@
             // requests auto-inserted into the slots collection. They already have a
             // specific user booked and must not be shown as available for reservation.
             let reservableSlots = Array.isArray(data)
-    ? data.filter(s => s.type !== 'booked')
-    : [];
+            ? data.filter(s => s.type !== 'booked')
+            : [];
 
 
 
 console.log(data);
 
-            if (reservableSlots.length === 0) {
-                slotsList.innerHTML = `<p style="color:gray;position:relative;z-index:2;">No active slots available for this owner.</p>`;
-            } else {
-                const heading = document.createElement('h2');
-                heading.classList.add('section-heading');
-                heading.textContent = 'Available Booking Slots';
-                slotsList.appendChild(heading);
+            const directBookingId = urlParams.get('bookingId');
+            if (!directBookingId) {
+                if (reservableSlots.length === 0) {
+                    slotsList.innerHTML = `<p style="color:gray;position:relative;z-index:2;">No active slots available for this owner.</p>`;
+                } else {
+                    const heading = document.createElement('h2');
+                    heading.classList.add('section-heading');
+                    heading.textContent = 'Available Booking Slots';
+                    slotsList.appendChild(heading);
 
-                for (const slot of reservableSlots) {
-                    renderSlotCard(slot);
+                    for (const slot of reservableSlots) {
+                        renderSlotCard(slot);
+                    }
                 }
             }
 
@@ -460,8 +472,8 @@ console.log(data);
 
             // Load open group meeting votes separately (only when browsing by ownerId,
             // not via an invite token which is slot-specific)
-            if (ownerId) {
-                await loadGroupMeetingVotes();
+            if (directBookingId) {
+                await renderGroupVoteCard(directBookingId);
             }
         }
 
@@ -737,12 +749,9 @@ console.log(data);
 
             // If a specific bookingId was passed in the URL (e.g. via owner's share link),
             // render the group vote card and auto-open the vote modal.
-            const directBookingId = urlParams.get('bookingId');
-            if (directBookingId) {
-                await renderGroupVoteCard(directBookingId);
-                if (urlParams.get('openVote') === 'true') {
-                    openVoteModal(directBookingId);
-                }
+             const directBookingId = urlParams.get('bookingId');
+            if (directBookingId && urlParams.get('openVote') === 'true') {
+                openVoteModal(directBookingId);
             }
         }
 
