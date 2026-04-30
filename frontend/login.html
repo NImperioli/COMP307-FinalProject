@@ -212,6 +212,115 @@
         .sign-up-link a:hover {
             color: red;
         }
+
+        @media (max-width: 800px) {
+    body {
+        padding: 130px 16px 30px 16px;
+        align-items: flex-start;
+        background-position: center;
+         background-size: cover;
+         background:
+            linear-gradient(
+                rgba(255,255,255,0.92),
+                rgba(255,255,255,0.92)
+            ),
+            url('Images/landing_bg.jpg');
+    }
+
+    .top-bar {
+        width: calc(100% - 28px);
+        margin: 14px;
+        padding: 14px 18px;
+    }
+
+    .logo {
+        font-size: 24px;
+    }
+
+    .logo-icon {
+        width: 38px;
+    }
+
+    .page-container {
+        flex-direction: column;
+        padding: 0;
+        gap: 25px;
+    }
+
+     .left-section {
+        width: 100%;
+        max-width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;   /* centers horizontally */
+        text-align: center;
+    }
+
+    .left-section h1 {
+        width: 100%;
+        text-align: center;
+    }
+
+     .left-section p {
+        color: black;
+        font-weight: 500;
+         max-width: 100%;
+        text-align: center;
+        line-height: 1.6;
+        font-size: 16px;
+    }
+
+    .right-section {
+        width: 100%;
+    }
+
+    .login-box {
+        width: 100%;
+        max-width: 420px;
+        padding: 28px 22px;
+    }
+
+    .input-field:focus {
+        width: 100%;
+    }
+
+    .submit-button:hover {
+        transform: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .top-bar {
+        flex-direction: column;
+        gap: 10px;
+        align-items: stretch;
+        text-align: center;
+    }
+
+    .logo {
+        justify-content: center;
+    }
+
+    .top-buttons {
+        justify-content: center;
+    }
+
+    .top-button {
+        width: 100%;
+    }
+
+    .left-section h1 {
+        font-size: 32px;
+    }
+
+    .left-section p {
+        display: none;
+    }
+
+    .login-header {
+        margin: 10px 0 30px 0;
+    }
+}
     </style>
 </head>
 
