@@ -168,12 +168,7 @@
         .badge-group    { background: rgb(230, 240, 255); color: rgb(30, 80, 180); }
         .badge-completed { background: rgb(220, 255, 220); color: rgb(30, 130, 30); }
 
-        .card-actions {
-            margin-top: 14px;
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
+        
 
         .small-button {
             height: 42px;
@@ -273,7 +268,15 @@
             padding: 20px;
         }
 
-        @media (max-width: 800px) {
+     .card-actions {
+    margin-top: 14px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+}
+
+       @media (max-width: 800px) {
     body {
         padding: 170px 14px 24px 14px;
     }
@@ -299,6 +302,12 @@
         padding: 24px;
     }
 
+    
+    .right-panel {
+        order: -1;
+        margin-bottom: 10px;
+    }
+
     .page-header h1 {
         font-size: 38px;
     }
@@ -307,10 +316,7 @@
         padding: 18px;
     }
 
-    .card-actions {
-        width: 100%;
-        gap: 8px;
-    }
+  
 
     .small-button,
     .small-button-red {
@@ -322,6 +328,18 @@
     .action-button {
         height: 50px;
     }
+
+     .card-actions {
+        width: 100%;
+        gap: 8px;
+        flex-direction: column;
+    }
+
+    .card-actions button {
+    width: 100%;
+}
+
+
 }
 
 @media (max-width: 480px) {
