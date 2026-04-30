@@ -191,7 +191,7 @@ exports.leaveGroupMeeting = async (req, res) => {
   }
 };
 
-// ─── helpers ──────────────────────────────────────────────────────────────────
+// helpers 
 const fmt = d => new Date(d).toLocaleString("en-CA", { timeZone: "America/Toronto" });
 
 function toOid(val) {
@@ -199,7 +199,7 @@ function toOid(val) {
   try { return new ObjectId(val); } catch { return null; }
 }
 
-// ─── COMPLETE (all types) ─────────────────────────────────────────────────────
+// COMPLETE (all types) 
 // Either party (owner or student) marking it done persists for both.
 exports.completeAnyBooking = async (req, res) => {
   try {
@@ -211,7 +211,7 @@ exports.completeAnyBooking = async (req, res) => {
     const db = require("../config/db").getDB();
     const { ObjectId } = require("mongodb");
 
-    // ── Slot reservation ──────────────────────────────────────────────────────
+    // Slot reservation 
     if (type === "TYPE_SLOT") {
       const resOid = toOid(bookingId);
       if (!resOid) return res.status(400).json({ error: "Invalid id." });
@@ -234,7 +234,7 @@ exports.completeAnyBooking = async (req, res) => {
       return res.json({ success: true });
     }
 
-    // ── TYPE 1 ────────────────────────────────────────────────────────────────
+    // TYPE 1 
     if (type === "TYPE1") {
       const oid = toOid(bookingId);
       if (!oid) return res.status(400).json({ error: "Invalid id." });
@@ -254,7 +254,7 @@ exports.completeAnyBooking = async (req, res) => {
       return res.json({ success: true });
     }
 
-    // ── TYPE 2 ────────────────────────────────────────────────────────────────
+    // TYPE 2 
     if (type === "TYPE2") {
       const oid = toOid(bookingId);
       if (!oid) return res.status(400).json({ error: "Invalid id." });

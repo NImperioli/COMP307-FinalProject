@@ -10,7 +10,7 @@ function toOid(val) {
   try { return new ObjectId(val); } catch { return null; }
 }
 
-// ── Single slot ───────────────────────────────────────────────────────────────
+// Single slot 
 router.get("/slot/:id", auth.authenticateAnyToken, async (req, res) => {
   try {
     const db  = getDB();
@@ -45,7 +45,7 @@ router.get("/slot/:id", auth.authenticateAnyToken, async (req, res) => {
   }
 });
 
-// ── Single group appointment (Type 2) ─────────────────────────────────────────
+// Single group appointment (Type 2)
 router.get("/group/:appointmentId", auth.authenticateAnyToken, async (req, res) => {
   try {
     const db  = getDB();
@@ -92,8 +92,7 @@ router.get("/group/:appointmentId", auth.authenticateAnyToken, async (req, res) 
   }
 });
 
-// ── Owner: export ALL events ──────────────────────────────────────────────────
-// Includes: slots (with booker names), Type 1 approved bookings, Type 2 appointments
+// Owner: export ALL events
 router.get("/owner/:ownerId/all", auth.authenticateOwnerToken, async (req, res) => {
   try {
     const db = getDB();

@@ -91,7 +91,6 @@ const cancelReservation = async (reservationId, userId) => {
     }
   );
 
-  // OPTIONAL: notify
   const user = await db.collection("users").findOne({ _id: reservation.userId });
 
   let notifyOwner = null;
@@ -132,7 +131,6 @@ const findReservationWithDetails = async (reservationId) => {
 // Owner view
 const findReservationsByOwner = async (ownerId, { limit = 50, skip = 0 } = {}) => {
   const db = getDB();
-  // FIXED: filter slots by ownerId in the lookup pipeline before the full scan
   return await db.collection("slots").aggregate([
     { $match: { ownerId: toOid(ownerId, "ownerId") } },  // start from slots, not reservations
     {
