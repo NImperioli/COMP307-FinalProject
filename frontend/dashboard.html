@@ -823,11 +823,27 @@
 
             const resultData = await Promise.all(results.map(r => r.json()));
 
-if (results.every(r => r.ok)) {
+
+ if (results.every(r => r.ok)) {
     resultData.forEach(d => {
+
+        // OLD behavior (kept)
         if (d.notifyUser) window.open(d.notifyUser, '_blank');
-    if (Array.isArray(d.notify)) {
-        d.notify.forEach(url => window.open(url, '_blank'));
+
+        // NEW: handle multiple student emails properly
+        if (Array.isArray(d.notify)) {
+            d.notify.forEach(url => {
+                if (url) window.open(url, '_blank');
+            });
+        }
+
+        // NEW: fallback if backend doesn't send notify[]
+        if (!d.notify && item.bookers && item.bookers.length > 0) {
+            const emails = item.bookers.join(',');
+            const subject = encodeURIComponent('Booking Cancelled');
+            const body = encodeURIComponent('Your booking has been cancelled by the owner.');
+
+            window.location.href = `mailto:${emails}?subject=${subject}&body=${body}`;
         }
     });
 
