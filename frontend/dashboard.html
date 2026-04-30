@@ -1187,6 +1187,12 @@
             organizer.textContent = 'Organizer: ' + (item.ownerEmail || 'Unknown');
             card.appendChild(organizer);
 
+            if (role === 'owner' && item.participants && item.participants.length > 0) {
+                const participants = document.createElement('p');
+                participants.textContent = 'Participants: ' + item.participants.join(', ');
+                card.appendChild(participants);
+            }
+
             if (isPast || isCompleted) {
                 const completedBadge = document.createElement('span');
                 completedBadge.classList.add('completed-badge');
@@ -1259,19 +1265,34 @@
         });
     }
 
-    if (!openedEmail && role === 'owner') {
-        let emails = [];
+     if (!openedEmail && role === 'owner') {
+        // Fetch voter emails fresh from the votes endpoint as the reliable source
+        try {
+            const voteRes = await fetch(`${API_BASE}/api/bookings/group/${item._id}/votes`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const slots = await voteRes.json();
+            const emails = [...new Set(
+                (slots || []).flatMap(s => s.voterEmails || s.voters || [])
+            )].filter(e => e && e.includes('@'));
 
-        if (item.participants && item.participants.length > 0) {
-            emails = item.participants;
-        }
+            const finalEmails = emails.length > 0
+                ? emails
+                : (item.participants || []).filter(e => e && e.includes('@'));
 
-        if (emails.length > 0) {
-            const subject = encodeURIComponent('Group Meeting Cancelled');
-            const body = encodeURIComponent('The group meeting has been cancelled by the owner.');
-
-            window.location.href =
-                `mailto:${emails.join(',')}?subject=${subject}&body=${body}`;
+            if (finalEmails.length > 0) {
+                const subject = encodeURIComponent('Group Meeting Finalized');
+                const body = encodeURIComponent(
+                    `Your group meeting "${item.title || 'Group Meeting'}" has been scheduled.\nTime: ${new Date(item.time).toLocaleString()}`
+                );
+                window.location.href = `mailto:${finalEmails.join(',')}?subject=${subject}&body=${body}`;
+            }
+        } catch (e) {
+            // hard fallback
+            const emails = (item.participants || []).filter(e => e && e.includes('@'));
+            if (emails.length > 0) {
+                window.location.href = `mailto:${emails.join(',')}`;
+            }
         }
     }
 
