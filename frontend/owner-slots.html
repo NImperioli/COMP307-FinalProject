@@ -411,10 +411,7 @@
 
         /* ─────────────────────────────────────────────
            LOAD SLOTS
-           Filters out type="booked" slots — these are
-           auto-created when a Type 1 meeting request is
-           approved and should NOT appear as reservable
-           slots to other users.
+           Filters out type="booked" slots
         ───────────────────────────────────────────── */
         async function loadSlots() {
 
@@ -432,7 +429,7 @@
                 return;
             }
 
-            // Filter out "booked" type slots —> these are approved Type 1 meeting
+            // Filter out "booked" type slots —>  approved Type 1 meeting
             // requests auto-inserted into the slots collection. They already have a
             // specific user booked and must not be shown as available for reservation.
             let reservableSlots = Array.isArray(data)
@@ -489,7 +486,7 @@ console.log(data);
         }
 
         function markSlotAsReserved(slotId) {
-            // We store a data-slotid on each card's reserve button for easy lookup
+            // data-slotid on each card's reserve button for easy lookup
             const btn = document.querySelector(`button[data-slotid="${slotId}"]`);
             if (!btn) return;
 
@@ -514,9 +511,6 @@ console.log(data);
            LOAD GROUP MEETING VOTES
            Fetches the owner's Type 2 bookings that are
            still collecting_votes so users can vote.
-           Uses the owner appointments endpoint
-           (authenticateAnyToken) then cross-checks
-           the booking status via the votes endpoint.
         ───────────────────────────────────────────── */
         async function loadGroupMeetingVotes() {
             let openBookingIds = [];
@@ -552,8 +546,6 @@ console.log(data);
                 renderGroupVoteCard(bookingId.toString());
             }
 
-            // If arrived via a direct invite link with bookingId, open vote modal immediately
-            // (handled after loadSlots returns, see bottom of script)
         }
 
         /* ─────────────────────────────────────────────
@@ -625,7 +617,6 @@ console.log(data);
         /* ─────────────────────────────────────────────
            GROUP MEETING VOTE SECTION
            Rendered when arriving via direct invite URL
-           that includes ?bookingId=... &openVote=true
         ───────────────────────────────────────────── */
         async function renderGroupVoteCard(bookingId) {
             // Fetch vote data to get meeting title and window info
@@ -757,12 +748,22 @@ console.log(data);
         ───────────────────────────────────────────── */
         async function init() {
             await loadSlots();
+<<<<<<< Updated upstream
 
             // If a specific bookingId was passed in the URL (e.g. via owner's share link),
             // render the group vote card and auto-open the vote modal.
              const directBookingId = urlParams.get('bookingId');
             if (directBookingId && urlParams.get('openVote') === 'true') {
                 openVoteModal(directBookingId);
+=======
+            
+            const directBookingId = urlParams.get('bookingId');
+            if (directBookingId) {
+                await renderGroupVoteCard(directBookingId);
+                if (urlParams.get('openVote') === 'true') {
+                    openVoteModal(directBookingId);
+                }
+>>>>>>> Stashed changes
             }
         }
 

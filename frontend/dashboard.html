@@ -783,8 +783,63 @@
             + (item.slot ? new Date(item.slot.endTime).toLocaleString() : '');
         card.appendChild(time);
 
+<<<<<<< Updated upstream
         const statusP = document.createElement('p');
         card.appendChild(statusP);
+=======
+            const status = document.createElement('p');
+            status.textContent = 'Status: ' + (item.slot ? item.slot.status : '');
+            newDiv.appendChild(status);
+
+            const buttonDiv = document.createElement('div');
+            buttonDiv.classList.add('card-actions');
+
+            if (role === 'owner') {
+                const bookedBy = document.createElement('p');
+                bookedBy.textContent = 'Booked by: ' + (item.user ? item.user.email : 'Unknown');
+                newDiv.appendChild(bookedBy);
+
+                const isPast = item.slot && new Date(item.slot.startTime) < new Date();
+
+                if (isPast) {
+                    const completedBadge = document.createElement('p');
+                    completedBadge.style.cssText = 'color:#22c55e;font-weight:700;margin-top:10px;';
+                    completedBadge.textContent = '✓ Completed';
+                    newDiv.appendChild(completedBadge);
+                    newDiv.style.opacity = '0.65';
+                } else {
+                    // Message Booker
+                    const messageBooker = document.createElement('button');
+                    messageBooker.classList.add('small-button');
+                    messageBooker.textContent = 'Message Booker';
+                    messageBooker.onclick = async () => {
+                        const res = await fetch(`${API_BASE}/api/slots/${item.slot._id}/message-booker`, {
+                            headers: { 'Authorization': 'Bearer ' + token }
+                        });
+                        const data = await res.json();
+                        if (res.ok) window.location.href = data.mailto;
+                        else alert(data.error);
+                    };
+                    buttonDiv.appendChild(messageBooker);
+
+                    // Export single slot .ics
+                    const exportBtn = document.createElement('button');
+                    exportBtn.classList.add('small-button');
+                    exportBtn.textContent = 'Export to calendar';
+                    exportBtn.onclick = () => {
+                        const url = `${API_BASE}/api/slots/${item.slot._id}/export.ics`;
+                        fetch(url, { headers: { 'Authorization': 'Bearer ' + token } })
+                            .then(r => r.blob())
+                            .then(blob => {
+                                const a = document.createElement('a');
+                                a.href = URL.createObjectURL(blob);
+                                a.download = 'appointment.ics';
+                                a.click();
+                            });
+                    };
+                    buttonDiv.appendChild(exportBtn);
+                }
+>>>>>>> Stashed changes
 
         if (role === 'owner') {
             const bookedBy = document.createElement('p');
@@ -969,6 +1024,157 @@
                 };
                 buttonDiv.appendChild(messageOwner);
 
+<<<<<<< Updated upstream
+=======
+                // Cancel appointment
+                const cancel = document.createElement('button');
+                cancel.classList.add('small-button-red');
+                cancel.textContent = 'Cancel Appointment';
+                cancel.onclick = async () => {
+                    if (!confirm('Cancel this appointment?')) return;
+                    const res = await fetch(`${API_BASE}/api/slots/cancel`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                        body: JSON.stringify({ reservationId: item._id, userId: id })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        loadDashboard();
+                        if (data.notifyOwner) window.location.href = data.notifyOwner;
+                    } else {
+                        alert(data.error);
+                    }
+                };
+                buttonDiv.appendChild(cancel);
+
+                // Export single slot .ics
+                const exportBtn = document.createElement('button');
+                exportBtn.classList.add('small-button');
+                exportBtn.textContent = 'Export to calendar';
+                exportBtn.onclick = () => {
+                    const url = `${API_BASE}/api/slots/${item.slot._id}/export.ics`;
+                    fetch(url, { headers: { 'Authorization': 'Bearer ' + token } })
+                        .then(r => r.blob())
+                        .then(blob => {
+                            const a = document.createElement('a');
+                            a.href = URL.createObjectURL(blob);
+                            a.download = 'appointment.ics';
+                            a.click();
+                            URL.revokeObjectURL(a.href);
+                        });
+                };
+                buttonDiv.appendChild(exportBtn);
+            }
+
+            newDiv.appendChild(buttonDiv);
+            appointmentsList.appendChild(newDiv);
+        }
+
+        /* ─── Type 1: meeting request card ─── */
+        function renderType1Card(item) {
+            const newDiv = document.createElement('div');
+            newDiv.classList.add('appointment-card');
+
+            const isPast = item.proposedTime && new Date(item.proposedTime) < new Date();
+
+            const badge = document.createElement('span');
+            badge.classList.add('type-badge', 'badge-req');
+            badge.textContent = isPast ? 'Meeting — Completed' : 'Meeting Request';
+            newDiv.appendChild(badge);
+
+            const h = document.createElement('h3');
+            h.textContent = item.title || 'Meeting Request';
+            newDiv.appendChild(h);
+
+            const other = document.createElement('p');
+            other.textContent = (role === 'owner')
+                ? 'From: ' + item.userEmail
+                : 'With: ' + item.ownerEmail;
+            newDiv.appendChild(other);
+
+            if (item.proposedTime) {
+                const t = document.createElement('p');
+                t.textContent = 'Time: ' + new Date(item.proposedTime).toLocaleString();
+                newDiv.appendChild(t);
+            }
+
+            const statusP = document.createElement('p');
+            statusP.textContent = 'Status: ' + item.status;
+            newDiv.appendChild(statusP);
+
+            // Action buttons — only for approved, non-past meetings
+            if (!isPast && item.status === 'approved') {
+                const btnRow = document.createElement('div');
+                btnRow.classList.add('card-actions');
+
+                const msgTarget = role === 'owner' ? item.userEmail : item.ownerEmail;
+                const msgBtn = document.createElement('button');
+                msgBtn.classList.add('small-button');
+                msgBtn.textContent = 'Message';
+                msgBtn.onclick = () => {
+                    window.location.href = `mailto:${msgTarget}?subject=${encodeURIComponent('Re: ' + (item.title || 'Meeting'))}`;
+                };
+                btnRow.appendChild(msgBtn);
+
+                newDiv.appendChild(btnRow);
+            }
+
+            if (isPast) newDiv.style.opacity = '0.55';
+
+            appointmentsList.appendChild(newDiv);
+        }
+
+        /* ─── Type 2: group meeting card ─── */
+        function renderType2Card(item) {
+            const newDiv = document.createElement('div');
+            newDiv.classList.add('appointment-card');
+
+            const badge = document.createElement('span');
+            badge.classList.add('type-badge', 'badge-group');
+            badge.textContent = 'Group Meeting';
+            newDiv.appendChild(badge);
+
+            const heading = document.createElement('h3');
+            heading.textContent = item.title || 'Group Meeting';
+            newDiv.appendChild(heading);
+
+            const time = document.createElement('p');
+            time.textContent = 'Time: ' + new Date(item.time).toLocaleString();
+            newDiv.appendChild(time);
+
+            if (item.isRecurring) {
+                const week = document.createElement('p');
+                week.textContent = 'Week ' + item.weekNumber + ' of recurring series';
+                newDiv.appendChild(week);
+            }
+
+            const organizer = document.createElement('p');
+            organizer.textContent = 'Organizer: ' + (item.ownerEmail || 'Unknown');
+            newDiv.appendChild(organizer);
+
+            const isPast = new Date(item.time) < new Date();
+
+            if (isPast) {
+                newDiv.style.opacity = '0.55';
+                const doneP = document.createElement('p');
+                doneP.style.cssText = 'color:#22c55e;font-weight:600;margin-top:8px;';
+                doneP.textContent = '✓ Completed';
+                newDiv.appendChild(doneP);
+            } else if (role === 'student') {
+                const buttonDiv = document.createElement('div');
+                buttonDiv.classList.add('card-actions');
+
+                // Message Organizer
+                const msgBtn = document.createElement('button');
+                msgBtn.classList.add('small-button');
+                msgBtn.textContent = 'Message Organizer';
+                msgBtn.onclick = () => {
+                    window.location.href = `mailto:${item.ownerEmail}?subject=${encodeURIComponent('Re: Group Meeting — ' + item.title)}`;
+                };
+                buttonDiv.appendChild(msgBtn);
+
+                // Cancel participation
+>>>>>>> Stashed changes
                 const cancelBtn = document.createElement('button');
                 cancelBtn.classList.add('small-button-red');
                 cancelBtn.textContent = 'Cancel';
