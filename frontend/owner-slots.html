@@ -286,6 +286,9 @@
         const role        = localStorage.getItem('role');
         const token       = localStorage.getItem('token');
 
+        const params = new URLSearchParams(window.location.search);
+        const groupToken = params.get('groupToken');
+
         if (!token) {
             window.location.href = 'login.html';
         }
@@ -330,9 +333,15 @@
             // Filter out "booked" type slots —> these are approved Type 1 meeting
             // requests auto-inserted into the slots collection. They already have a
             // specific user booked and must not be shown as available for reservation.
-            const reservableSlots = Array.isArray(data)
-                ? data.filter(s => s.type !== 'booked')
-                : [];
+            let reservableSlots = Array.isArray(data)
+    ? data.filter(s => s.type !== 'booked')
+    : [];
+
+if (groupToken) {
+    reservableSlots = reservableSlots.filter(s => s.groupToken === groupToken);
+}
+
+console.log(data);
 
             if (reservableSlots.length === 0) {
                 slotsList.innerHTML = `<p style="color:gray;position:relative;z-index:2;">No active slots available for this owner.</p>`;

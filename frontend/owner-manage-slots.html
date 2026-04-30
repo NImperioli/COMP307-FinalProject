@@ -796,31 +796,12 @@
             inviteBtn.textContent = 'Get Invite URL';
 
             inviteBtn.onclick = async () => {
-                try {
-                    const bookingId = groupToken;
+                const inviteUrl =
+        `${window.location.origin}/owner-slots.html?groupToken=${encodeURIComponent(groupToken)}`;
 
-                    const inviteResponse = await fetch(
-                        `${API_BASE}/api/bookings/group/${bookingId}/invite-url`,
-                        {
-                            headers: {
-                                'Authorization': 'Bearer ' + token
-                            }
-                        }
-                    );
-
-                    const data = await inviteResponse.json();
-
-                    if (inviteResponse.ok) {
-                        copyText(data.inviteUrl);
-                        alert('Invite URL copied to clipboard!');
-                    } else {
-                        alert(data.error || 'Failed to create invite URL');
-                    }
-
-                } catch (err) {
-                    console.error(err);
-                    alert('Error generating invite URL');
-                }
+    await copyText(inviteUrl);
+    alert('Invite URL copied to clipboard!');
+                
             };
 
             btnRow.appendChild(inviteBtn);
