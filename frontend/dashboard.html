@@ -1046,7 +1046,12 @@
                 });
                 if (res.ok) {
                     const d = await res.json();
-                    if (d.notify) d.notify.forEach(url => window.open(url, '_blank'));
+                    const myEmail = localStorage.getItem('email');
+                    if (role === 'student' || role !== 'owner') {
+                        if (d.notifyOwner) window.open(d.notifyOwner, '_blank');
+                    } else {
+                        if (d.notifyUser) window.open(d.notifyUser, '_blank');
+                    }
                     loadDashboard();
                 }
                 else { const d = await res.json(); alert(d.error); }

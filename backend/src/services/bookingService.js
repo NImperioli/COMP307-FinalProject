@@ -420,12 +420,11 @@ const cancelAnyBooking = async (bookingId, userId, type) => {
     await db.collection("slots").deleteMany({ bookingId: oid });
     await db.collection("bookings").deleteOne({ _id: oid });
 
-    const notify = [
-      `mailto:${booking.userEmail}?subject=Meeting Cancelled&body=Your meeting was cancelled.`,
-      `mailto:${booking.ownerEmail}?subject=Meeting Cancelled&body=The meeting was cancelled.`
-    ];
-
-    return { success: true, notify };
+    return {
+      success: true,
+      notifyUser: `mailto:${booking.userEmail}?subject=Meeting Cancelled&body=Your meeting was cancelled.`,
+      notifyOwner: `mailto:${booking.ownerEmail}?subject=Meeting Cancelled&body=The meeting was cancelled.`
+    };
   }
 
   if (type === "TYPE2") {
