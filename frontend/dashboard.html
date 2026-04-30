@@ -773,7 +773,6 @@
         card.appendChild(time);
 
         const statusP = document.createElement('p');
-        statusP.textContent = 'Status: ' + (item.status || '');
         card.appendChild(statusP);
 
         if (role === 'owner') {
@@ -1074,7 +1073,6 @@
             }
 
             const statusP = document.createElement('p');
-            statusP.textContent = 'Status: ' + item.status;
             card.appendChild(statusP);
 
             if (isPast || isCompleted) {
@@ -1495,7 +1493,6 @@
             }
 
             const statusP = document.createElement('p');
-            statusP.textContent = 'Status: ' + request.status;
             newDiv.appendChild(statusP);
 
             document.getElementById('myRequestsList').appendChild(newDiv);
