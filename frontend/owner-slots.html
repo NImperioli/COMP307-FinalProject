@@ -298,9 +298,9 @@
         const inviteToken = urlParams.get('token');
         const ownerName   = urlParams.get('ownerName');
 
-        if (!ownerId && !inviteToken) {
-            window.location.href = 'browse-owners.html';
-        }
+        if (!ownerId && !inviteToken && !groupToken) {
+    window.location.href = 'browse-owners.html';
+}
 
         if (ownerName) {
             document.getElementById('ownerName').textContent = decodeURIComponent(ownerName);
