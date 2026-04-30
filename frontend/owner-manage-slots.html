@@ -1217,14 +1217,43 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    closeFinalizeModal();
-                    loadOpenGroupMeetings();
-                    if (Array.isArray(data.notifyParticipants) && data.notifyParticipants.length > 0) {
-                        data.notifyParticipants.forEach(mailto => window.open(mailto, '_blank'));
-                    }
-                    if (data.notifyOwner) window.location.href = data.notifyOwner;
-                    else alert('Meeting finalized!');
-                } else {
+    closeFinalizeModal();
+    loadOpenGroupMeetings();
+
+    const ownerEmail = localStorage.getItem('email');
+
+let opened = false;
+
+// handle notifyParticipants (group emails)
+if (Array.isArray(data.notifyParticipants)) {
+    data.notifyParticipants.forEach(url => {
+        if (!url) return;
+
+        const decoded = decodeURIComponent(url);
+
+        // skip yourself
+        if (ownerEmail && decoded.includes(ownerEmail)) return;
+
+        window.open(url, '_blank');
+        opened = true;
+    });
+}
+
+// fallback if backend sends "notify"
+if (!opened && Array.isArray(data.notify)) {
+    data.notify.forEach(url => {
+        if (!url) return;
+
+        const decoded = decodeURIComponent(url);
+
+        if (ownerEmail && decoded.includes(ownerEmail)) return;
+
+        window.open(url, '_blank');
+    });
+}
+
+alert('Meeting finalized!');}
+ else {
                     alert(data.error);
                 }
             };
