@@ -273,6 +273,83 @@
             padding: 20px;
         }
 
+        @media (max-width: 800px) {
+    body {
+        padding: 170px 14px 24px 14px;
+    }
+
+    .top-bar {
+        width: calc(100% - 28px);
+        margin: 14px;
+        padding: 14px 18px;
+    }
+
+    .logo {
+        font-size: 26px;
+    }
+
+    .dashboard-grid {
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .left-panel,
+    .right-panel {
+        width: 100%;
+        padding: 24px;
+    }
+
+    .page-header h1 {
+        font-size: 38px;
+    }
+
+    .appointment-card {
+        padding: 18px;
+    }
+
+    .card-actions {
+        width: 100%;
+        gap: 8px;
+    }
+
+    .small-button,
+    .small-button-red {
+        flex: 1 1 auto;
+        min-width: 135px;
+        text-align: center;
+    }
+
+    .action-button {
+        height: 50px;
+    }
+}
+
+@media (max-width: 480px) {
+    .top-bar {
+        flex-direction: column;
+        gap: 10px;
+        align-items: stretch;
+        text-align: center;
+    }
+
+    .top-buttons {
+        justify-content: center;
+    }
+
+    .page-header h1 {
+        font-size: 32px;
+    }
+
+    .panel-title {
+        font-size: 24px;
+    }
+
+    .small-button,
+    .small-button-red {
+        width: 100%;
+    }
+}
+
         /* Modals */
         .modal-overlay {
             display: none;
