@@ -1209,19 +1209,46 @@
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
 
-            if (res.ok) {
+           if (res.ok) {
     const d = await res.json();
 
-    if (d.notifyUser) window.open(d.notifyUser, '_blank');
-    if (Array.isArray(d.notify)) {
-        d.notify.forEach(url => window.open(url, '_blank'));
+    let openedEmail = false;
+
+    if (d.notifyUser) {
+        window.open(d.notifyUser, '_blank');
+        openedEmail = true;
+    }
+
+    if (Array.isArray(d.notify) && d.notify.length > 0) {
+        d.notify.forEach(url => {
+            if (url) {
+                window.open(url, '_blank');
+                openedEmail = true;
+            }
+        });
+    }
+
+    if (!openedEmail && role === 'owner') {
+        let emails = [];
+
+        if (item.participants && item.participants.length > 0) {
+            emails = item.participants;
+        }
+
+        if (emails.length > 0) {
+            const subject = encodeURIComponent('Group Meeting Cancelled');
+            const body = encodeURIComponent('The group meeting has been cancelled by the owner.');
+
+            window.location.href =
+                `mailto:${emails.join(',')}?subject=${subject}&body=${body}`;
+        }
     }
 
     loadDashboard();
 } else {
-                const d = await res.json();
-                alert(d.error);
-            }
+    const d = await res.json();
+    alert(d.error);
+}
         };
             buttonDiv.appendChild(cancelBtn);
 
