@@ -170,8 +170,24 @@
             align-items: center;
             justify-content: space-between;
             gap: 12px;
-            flex-wrap: nowrap;
+            flex-wrap: wrap;
         }
+
+        #slot_container > div > div:first-child {
+    flex: 1 1 260px;
+    min-width: 0;
+}
+
+#slot_container > div > div:last-child {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-start;
+}
+
+#slot_container button {
+    flex-shrink: 0;
+}
 
         #slot_container button {
             height: 38px;
@@ -240,6 +256,56 @@
             color: rgb(150, 150, 150);
             margin-top: 4px;
         }
+
+        @media (max-width: 700px) {
+    body {
+        padding: 170px 14px 24px 14px;
+    }
+
+    .top-bar {
+        width: calc(100% - 28px);
+        margin: 14px;
+        padding: 14px 18px;
+    }
+
+    .logo {
+        font-size: 26px;
+    }
+
+    .page-header h1 {
+        font-size: 38px;
+    }
+
+    .main-panel {
+        width: 100%;
+        padding: 30px;
+    }
+
+    .create-button {
+        width: 100%;
+        margin-right: 0;
+    }
+
+    #slot_container > div {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    #slot_container > div > div:last-child {
+        width: 100%;
+    }
+
+    #slot_container button {
+        width: auto;
+    }
+}
+
+@media (max-width: 700px) {
+    #slot_container button {
+        flex: 1 1 auto;
+        text-align: center;
+    }
+}
 
         /* Modal - Annie Huynh */
         .modal-overlay {
