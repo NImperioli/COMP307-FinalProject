@@ -22,10 +22,61 @@
         }
 
         body {
-            min-height: 100vh;
-            background: rgb(255, 255, 255);
-            padding: 30px 40px;
+             body {
+    min-height: 100vh;
+    background: rgb(255, 255, 255);
+    padding: 130px 40px 30px 40px;
+}
         }
+
+        .top-bar {
+    width: calc(100% - 40px);
+    margin: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(12px);
+    padding: 16px 28px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-radius: 22px;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.16);
+    z-index: 5;
+}
+
+.logo {
+    font-size: 28px;
+    font-weight: 800;
+    text-decoration: none;
+    color: black;
+}
+
+.logo span {
+    color: rgb(237, 27, 47);
+}
+
+.top-buttons {
+    display: flex;
+    gap: 12px;
+}
+
+.top-button {
+    min-width: 100px;
+    height: 44px;
+    background: black;
+    border: none;
+    border-radius: 999px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.25s ease;
+}
+
+.top-button:hover {
+    background: rgb(237, 27, 47);
+}
 
         h6 {
             text-align: center;
@@ -152,6 +203,32 @@
             to   { transform: translateX(-50%); }
         }
 
+
+
+        @media (max-width: 700px) {
+    .top-bar {
+        width: calc(100% - 20px);
+        margin: 10px;
+        padding: 12px 16px;
+        border-radius: 18px;
+    }
+
+    .logo {
+        font-size: 22px;
+    }
+
+    .top-button {
+        min-width: 80px;
+        height: 38px;
+        font-size: 13px;
+        padding: 0 14px;
+    }
+
+    body {
+        padding: 110px 14px 20px 14px;
+    }
+}
+
         /* Modal - Annie Huynh */
         .modal-overlay {
             display: none;
@@ -257,7 +334,12 @@
         </svg>
     </div>
 
-    <h6><a href="landing.html" style="text-decoration:none;">MyBookings</a></h6>
+    <div class="top-bar">
+    <a href="landing.html" class="logo">My<span>Bookings</span></a>
+    <div class="top-buttons">
+        <button class="top-button" onclick="window.location.href='dashboard.html'">Back</button>
+    </div>
+</div>
 
     <div class="page-header">
         <h1>Available Slots</h1>
