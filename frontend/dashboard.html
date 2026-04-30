@@ -825,29 +825,51 @@
 
 
  if (results.every(r => r.ok)) {
+
+    let openedEmail = false;
+
     resultData.forEach(d => {
-
-        // OLD behavior (kept)
-        if (d.notifyUser) window.open(d.notifyUser, '_blank');
-
-        // NEW: handle multiple student emails properly
-        if (Array.isArray(d.notify)) {
-            d.notify.forEach(url => {
-                if (url) window.open(url, '_blank');
-            });
+        // Case 1: single email (like student → owner)
+        if (d.notifyUser) {
+            window.open(d.notifyUser, '_blank');
+            openedEmail = true;
         }
 
-        // NEW: fallback if backend doesn't send notify[]
-        if (!d.notify && item.bookers && item.bookers.length > 0) {
-            const emails = item.bookers.join(',');
-            const subject = encodeURIComponent('Booking Cancelled');
-            const body = encodeURIComponent('Your booking has been cancelled by the owner.');
-
-            window.location.href = `mailto:${emails}?subject=${subject}&body=${body}`;
+        // Case 2: multiple students
+        if (Array.isArray(d.notify) && d.notify.length > 0) {
+            d.notify.forEach(url => {
+                if (url) {
+                    window.open(url, '_blank');
+                    openedEmail = true;
+                }
+            });
         }
     });
 
+    // 🔥 Fallback if backend sends nothing
+    if (!openedEmail) {
+        let emails = [];
+
+        // recurring/group bookings
+        if (item.bookers && item.bookers.length > 0) {
+            emails = item.bookers;
+        }
+        // single booking fallback
+        else if (item.user && item.user.email) {
+            emails = [item.user.email];
+        }
+
+        if (emails.length > 0) {
+            const subject = encodeURIComponent('Booking Cancelled');
+            const body = encodeURIComponent('Your booking has been cancelled by the owner.');
+
+            window.location.href =
+                `mailto:${emails.join(',')}?subject=${subject}&body=${body}`;
+        }
+    }
+
     loadDashboard();
+
 } else {
     alert('Cancel failed for one or more reservations');
 }
